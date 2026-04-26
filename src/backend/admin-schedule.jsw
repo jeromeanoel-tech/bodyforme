@@ -1,0 +1,37 @@
+// Backend web module for Admin - Schedule page.
+// Called from page-level Velo via: import { getSchedule } from 'backend/admin-schedule';
+//
+// TODO Phase 3: replace mock returns with real Wix Bookings SDK calls.
+// SDK import (uncomment when ready):
+//   import { sessions } from 'wix-bookings-backend';
+
+/**
+ * Returns schedule data for the given date range.
+ * @param {string} startDate - ISO date string (e.g. '2026-04-21')
+ * @param {string} endDate   - ISO date string (e.g. '2026-04-27')
+ * @returns {Promise<{days: DaySchedule[]}>}
+ */
+export async function getSchedule({ startDate, endDate }) {
+  // TODO: query wix-bookings-backend sessions in date range,
+  // then join with getSessionAttendees for each session.
+  return { days: [] };
+}
+
+/**
+ * Returns attendee list for a single session.
+ * @param {string} sessionId - Wix Bookings session ID
+ * @returns {Promise<Attendee[]>}
+ */
+export async function getSessionAttendees(sessionId) {
+  // TODO: wix-bookings-backend.getSessions / listParticipants
+  return [];
+}
+
+/**
+ * Returns the list of instructors (staff members) for filter dropdown.
+ * @returns {Promise<{id: string, name: string}[]>}
+ */
+export async function getInstructors() {
+  // TODO: wix-bookings-backend staff members query
+  return [];
+}
