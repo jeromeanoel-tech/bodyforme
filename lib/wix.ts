@@ -195,6 +195,22 @@ export async function getContactBookings(contactId: string): Promise<WixContactB
   })
 }
 
+// ── Mark attendance ───────────────────────────────────────────────────────────
+
+export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {
+  await fetch(`${BASE}/bookings/v1/attendance`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      attendance: {
+        bookingId,
+        attendanceStatus: attended ? 'ATTENDED' : 'NOT_ATTENDED',
+        numberOfAttendees: attended ? 1 : 0,
+      },
+    }),
+  })
+}
+
 // ── Bookings for a session ────────────────────────────────────────────────────
 
 export type WixBooking = {
