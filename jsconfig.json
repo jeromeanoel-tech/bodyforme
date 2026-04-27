@@ -1,0 +1,19 @@
+{
+  "typeAcquisition": {
+    "enable": true
+  },
+  "references": [
+    {
+      "path": ".wix/types/c1dmp/jsconfig.json"
+    },
+    {
+      "path": ".wix/types/masterPage/jsconfig.json"
+    },
+    {
+      "path": ".wix/types/backend/jsconfig.json"
+    },
+    {
+      "path": ".wix/types/public/jsconfig.json"
+    }
+  ]
+}

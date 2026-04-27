@@ -1,179 +1,108 @@
-# Doncaster Pilates Studio — Project Brief
+# BodyForme Pilates Studio — Project Brief
 
-## Project context
-Building a website + booking system for a Pilates studio in Doncaster, Melbourne (Australia). The studio is migrating from Mind Body to Wix. Client is a real business with active members; this is a production build, not a prototype.
+## Context
+Pilates studio in Doncaster, Melbourne. Migrating from Mind Body to Wix. Active members, production build.
 
 ## Owner
-Australian-based developer (beginner coder, project manager background). Working solo. Tight 7-day timeline, fixed budget. Plain English explanations preferred. Australian English, AUD, metric. Always default to automation over manual workflows.
+Australian developer, PM background, beginner coder. Solo. Plain English preferred. Australian English, AUD, metric. Always default to automation over manual.
 
-## Stack (final, verified)
-- **Platform**: Wix Studio (Business plan, paid)
-- **Booking engine**: Wix Bookings (native)
-- **Memberships/packs**: Wix Pricing Plans (native, integrated with Bookings)
-- **Payments**: Stripe (Wix Payments not available in Australia). BECS Direct Debit applied for, recurring memberships use it.
-- **ClassPass**: Official Wix App Market integration. Submitted to ClassPass partner support for approval (5–10 business day clock).
-- **Database**: Wix Collections (native). NOT Supabase. Earlier plan included Supabase — dropped. Wix Bookings already stores everything needed.
-- **Frontend hosting**: Wix Studio (NOT Wix Headless / NOT Next.js). Headless was considered and rejected due to ClassPass uncertainty + timeline.
-- **Code workflow**: GitHub-synced repo. Wix editor is read-only. ALL code changes happen via Claude Code locally and push to GitHub. Wix syncs from default branch.
-- **Email**: Resend (free tier, 3,000/mo). Sending domain verified.
-- **Custom logic**: Velo (Wix's JS layer)
-- **MCP**: Wix MCP server connected to Claude Code. Use it before web search for Wix-specific questions.
+## Stack (current, in use)
+- **Admin dashboard**: Next.js (App Router) + Tailwind — built in this repo under `app/admin/`
+- **Public site**: Next.js pages — to be built in this repo under `app/` (public-facing routes)
+- **Deployment**: Vercel — env vars `WIX_API_KEY` and `WIX_SITE_ID` required
+- **Booking engine**: Wix Bookings (customers book through Wix; we read data via Wix REST API)
+- **Memberships**: Wix Pricing Plans (read via Wix REST API)
+- **Payments**: Stripe — BECS Direct Debit applied for; recurring memberships use it
+- **ClassPass**: Wix App Market integration — partner approval submitted (5–10 business days)
+- **Email**: Resend (free tier, 3,000/mo). Sending domain verified. Emails sent via Next.js API routes calling Resend directly.
+- **Wix REST API layer**: `lib/wix.ts` — all Wix data fetching goes here
 
-## What the client wants
+## What's built
 
-### Public site (5–6 pages)
-- Homepage: hero, social proof, "Book Free Trial" CTA, classes preview, membership CTA
-- Classes page: schedule widget + class type descriptions
-- Memberships page: pricing comparison (2–3 tiers, recommended highlight)
-- Free trial landing page: single CTA, what to expect, location, parking
-- About page: studio story, instructor bios (real photos coming post-renovation)
-- Contact page: form, embedded Google Map, hours
+### Admin (`app/admin/`)
+- Layout with sidebar nav + header
+- `/admin/schedule` — week view, session rows with fill rate, attendee drawer
+- `/admin/clients` — full client table, filters, column picker, client drawer with bookings/memberships/notes tabs
+- `/admin/memberships` — membership table, status tabs, expiry tracking, plan breakdown, detail drawer
+- `/admin/insights` — analytics: new clients/orders by month, plan breakdown, class performance table
+- `/admin/settings` — admin preferences (new member days, expiry threshold, fill rate warning, show cancelled classes)
+- `/admin` (dashboard), `/admin/checkin`, `/admin/staff` — stubs, not yet built
 
-Optimised for mobile (app-style feel). Stock images initially with consistent colour grading; real photos swap in post-reno.
+### API routes (`app/api/admin/`)
+- `/api/admin/session-bookings` — bookings for a given session (used by schedule attendee drawer)
+- `/api/admin/contact-bookings` — booking history for a given contact (used by client drawer)
 
-### Admin dashboard (locked to Staff member role)
-- **Class Schedule** view: each class shows attendance count (e.g. "19/25"), click to see attendee list. Filter by date (Day/Week/Month), class type, instructor.
-- **Customer Profiles**: table with search, filters, "+ New Customer" button. Customer details from website bookings populate automatically (this is native Wix Bookings behaviour, no custom code needed for population).
-- **Reports**: visual data — website views, membership sales, class attendance, financial. Date range toggle (7/30/90 days, all time). Build only what Wix's native analytics doesn't already cover; lean on Wix's built-in reports first.
-- **Custom view bridging Wix Pricing Plans + Stripe**: shows membership status with payment health (last successful debit, failed payment retry status) so the studio doesn't have to bounce between two dashboards.
+### Wix API functions (`lib/wix.ts`)
+- `getStaff`, `getServices`, `getSessions`, `getMemberships`, `getContacts`, `getContactBookings`, `getSessionBookings`
 
-### Email automation (via Wix Automations → Velo HTTP function → Resend)
-- Trigger: First class attended +7 days → Google review request (one-time per customer)
-- Trigger: No bookings in 30 days → re-engagement template
-- Trigger: No bookings in 90 days → re-engagement template
-- (Skip 7-day inactive trigger initially — too noisy, captures people on holiday)
+## What's next (build order)
 
-## Pricing structure (configured in Wix Pricing Plans, attached to Bookings services)
-- Casual drop-in: ~$35 (set on the service itself)
-- 5-class pack: ~$160, expires 2 months (One-time payment, Limited sessions = 5)
-- 10-class pack: ~$300, expires 3 months (One-time payment, Limited sessions = 10)
-- Bronze: 4 classes/month, $120/mo (Recurring monthly, Limited sessions = 4)
-- Silver: 8 classes/month, $200/mo (Recurring monthly, Limited sessions = 8) — visually recommended tier
-- Unlimited: $260/mo (Recurring monthly, Unlimited sessions)
-- Free trial: $0 service, max 1 booking per customer
+### 1. Vercel deployment
+- Add `WIX_API_KEY` and `WIX_SITE_ID` to Vercel env vars
+- Deploy — this is blocking real testing
 
-**IMPORTANT** about Pricing Plans:
-- Build Booking Services FIRST, then create Pricing Plans from inside each service (Booking Services → service → Price & Payment → Pricing Plans → Create New Plan). The session-limit options only appear via this path, not via the standalone Pricing Plans dashboard.
-- Sessions don't roll over between billing cycles (Wix limitation). Group bookings deduct one session per attendee.
-- Once a plan has active subscribers, you can't change its payment type. Cancel + recreate.
+### 2. Admin stubs
+- **Dashboard** (`/admin`) — today's class count, active members, recent signups; quick-action links
+- **Check In** (`/admin/checkin`) — search clients by name, mark attendance against today's sessions
+- **Staff** (`/admin/staff`) — staff list from Wix, read-only for now
 
-## Build sequence (in order)
+### 3. Public site (`app/`)
+Pages to build (Next.js, mobile-first, Tailwind):
+- **Homepage** — hero, "Book Free Trial" CTA, classes preview, membership CTA, social proof
+- **Classes** — live schedule pulled from Wix (read-only display), class type descriptions
+- **Memberships** — pricing comparison table (Bronze/Silver/Unlimited + packs), recommended highlight on Silver
+- **Free Trial** — single CTA, what to expect, location + parking
+- **About** — studio story, instructor bios (placeholder images until post-reno photos)
+- **Contact** — contact form (Resend), embedded Google Map, hours
 
-### Phase 1: Foundation [DONE per user]
-- Wix Studio Business plan purchased
-- Stripe connected, BECS approval applied for
-- ClassPass app installed, partner integration request submitted
-- Resend account created, domain verified
-- GitHub connected to Wix Studio (Wix editor now read-only, code via Claude Code only)
-- Mind Body data export obtained from client
-- Wix Bookings configured: services, staff, recurring sessions, pricing plans (recurring + one-time), free trial service
-- Staff member role created in Wix Members. User assigned to it.
-- "Admin - Schedule" page created in Wix Studio editor:
-  - Hidden from menu
-  - Search engine indexing disabled
-  - Permissions: Site Members → Specific members → Members with roles → Staff
-  - Layout: No header & footer
-  - Currently blank, needs Custom Element
+For booking CTAs: link to the Wix Bookings booking URL (don't rebuild the booking flow — Wix handles it).
 
-### Phase 2: Admin pages [CURRENT — start here]
+### 4. Email automation (Next.js API routes + Resend + Wix webhooks)
+- Three Resend templates: Google review request, 30-day re-engagement, 90-day re-engagement
+- Next.js API route at `/api/email/send` accepts `{ to, template, vars }` → POSTs to Resend
+- Wix webhook (Automation → Send Webhook) fires on: first session attended +7 days, no bookings 30 days, no bookings 90 days
+- Stripe webhook → `/api/webhooks/stripe` for `invoice.payment_failed` alerts
+- Skip 7-day inactive trigger (too noisy)
 
-Build order:
-1. **Admin - Schedule** page (Class Schedule view) — already created, needs Custom Element + Velo code
-2. **Admin - Customers** page (customer table)
-3. **Admin - Memberships** page (Wix Pricing Plans + Stripe payment health combined view)
-4. **Admin - Reports** page (only what Wix native analytics doesn't cover)
-
-For each admin page, use this pattern:
-- Page is created in Wix Studio editor (already done for Schedule, repeat the steps for the others)
-- Drop ONE Custom Element on the page, set it to fill the page
-- Custom Element points to a Velo file under `src/public/custom-elements/`
-- Web Component (the Custom Element file) renders the entire UI — sidebar, table, filters, modals, etc.
-- Velo backend functions (`src/backend/`) query Wix Bookings, Pricing Plans, Members, Stripe via SDK
-- Page-level Velo code passes data into the Custom Element via attributes
-- Custom Element communicates back via custom events
-
-Constraints to remember:
-- Custom Elements render in a sandboxed iFrame. No access to cookies, localStorage, or IndexedDB inside the element. State management via attributes + custom events only.
-- Tag names must be at least two words separated by dash (e.g. `admin-schedule`, `admin-customers`).
-- Velo file lives in `src/public/custom-elements/` directory.
-- For sensitive data (Stripe keys, Resend API key), use Wix Secrets Manager. Never hardcode.
-
-### Phase 3: Public pages
-Use Wix Studio's native elements (drag-and-drop) for these — NOT Custom Elements. Reasons:
-- Wix's responsive design system handles mobile breakpoints natively
-- Visual design iteration is faster in Wix's editor than via code prompts
-- These pages don't need pixel-perfect bespoke design
-- Faster to ship
-
-Embed the native Wix Bookings widget for the schedule. Use Wix's Pricing Plans display widget for the memberships page.
-
-### Phase 4: Email automation
-- Build three Resend templates: Google review request, 30-day re-engagement, 90-day re-engagement
-- Velo HTTP function (`src/backend/http-functions.js`) accepts customer email + template ID + variables, POSTs to Resend
-- Wix Automations → triggers (session attended +7 days, no bookings 30/90 days) → "Send Webhook" action → points to Velo HTTP function URL
-- Stripe webhook → Velo HTTP function for failed payment alerts (`invoice.payment_failed`, `customer.subscription.deleted`)
-
-### Phase 5: Migration & launch
-- Import Mind Body customer CSV via Wix Contacts
-- Test every flow: free trial booking, paid drop-in, membership purchase, recurring debit, ClassPass booking (only after ClassPass approves)
+### 5. Migration & launch
+- Import Mind Body CSV via Wix Contacts (manual — Wix dashboard)
+- Test all booking flows: free trial, drop-in, membership purchase, recurring debit
+- ClassPass test booking (only after approval confirmed)
 - Custom domain → DNS → publish
-- Final client sign-off
 
-## Design references
-The user has created Claude design mockups for the admin Class Schedule view. Visual style:
-- Warm earthy palette (browns, cream, soft accents — NOT Mind Body green)
-- Clean typography
-- Sidebar nav: Dashboard, Classes, Courses, Rooms, Check In, Clients, Point of Sale, Insights, Marketing, Services & Products, Staff, Settings
-- Header: search bar, notification bell, profile avatar
-- Class rows: time, "Sign In (X/25)", class name with coloured pill icon, instructor checkbox + name, three-dot menu
+## Pricing structure (reference)
+| Plan | Price | Type |
+|------|-------|------|
+| Casual drop-in | ~$35 | Per session |
+| 5-class pack | ~$160, 2-month expiry | One-time |
+| 10-class pack | ~$300, 3-month expiry | One-time |
+| Bronze | $120/mo, 4 classes | Recurring |
+| Silver ★ | $200/mo, 8 classes | Recurring |
+| Unlimited | $260/mo | Recurring |
+| Free trial | $0 | One-time, max 1 per customer |
 
-Match the palette and information hierarchy from these mockups when building admin pages.
+Sessions don't roll over. ClassPass uses the Wix connector.
 
 ## Working rules
+1. **Australian English, AUD, metric** throughout.
+2. **Automation over manual** — if it can be a webhook, API call, or script, do that instead of manual steps.
+3. **Plain English** — no jargon unless asked. Short analogies welcome.
+4. **Wix MCP first** for any Wix API questions. Web search if MCP can't answer.
+5. **Never hardcode secrets** — use Vercel env vars (`process.env.X`). Never commit `.env`.
+6. **Mobile-first** on public pages — test at 390px width.
 
-1. **Always check Wix docs via the Wix MCP server before assuming API behaviour.** The user has explicitly asked for verification over guessing. If MCP is unavailable for a query, web search official Wix docs.
-
-2. **Use prior conversation/repo context before asking the user to repeat info.** The user has limited patience for repeated questions.
-
-3. **Plain English, short analogies, no jargon unless asked.** User is a beginner coder.
-
-4. **One terminal command at a time** when giving CLI instructions. Wait for confirmation before next.
-
-5. **Australian English, AUD, metric.**
-
-6. **Default to automation over manual workflows.** If something can be triggered by a webhook or automation, prefer that over manual admin steps.
-
-7. **When in doubt about a Wix-specific detail, use the Wix MCP first.** Don't guess.
-
-## Known gotchas (verified)
-- Wix Studio editor is read-only after GitHub connection. All code via Claude Code.
-- Custom Elements run in sandboxed iFrame — no browser storage APIs. Pass data via attributes.
-- Pricing Plan session limits ONLY appear when creating from inside a Booking Service. Always create plans from this path.
-- BECS Direct Debit needs Stripe approval (5–10 business days). Apply early.
-- ClassPass partner integration approval is 5–10 business days. Submitted already.
-- Wix Pricing Plans doesn't roll over unused sessions. Workaround needs custom Velo logic if required.
-- Wix's "My Subscriptions" page lets customers self-cancel — only if "Allow customers to cancel" is toggled on each plan.
-- Wix Bookings session capacity reads as `totalCapacity` and `remainingCapacity`. Display "X/Y" as `(totalCapacity - remainingCapacity)/totalCapacity`.
-- The official Wix Bookings ClassPass connector has a 1.6/5 rating on Wix App Market. Functional but rough — flag any odd ClassPass behaviour to user.
+## Known gotchas
+- Wix session capacity: `totalCapacity` and `remainingCapacity` — display as `(totalCapacity - remainingCapacity)/totalCapacity`.
+- Wix Pricing Plans session limits only appear when creating a plan from inside a Booking Service (not the standalone Plans dashboard).
+- Once a plan has active subscribers, payment type can't be changed — cancel + recreate.
+- ClassPass connector rated 1.6/5 on Wix App Market — functional but rough. Flag odd behaviour.
+- BECS Direct Debit still pending Stripe approval — test with card payments until approved.
+- Wix "My Subscriptions" self-cancel only works if toggled on per plan.
+- Resend free tier: 3,000 emails/mo, 100/day. Don't batch-send to all contacts at once.
 
 ## What NOT to do
-- Don't suggest Supabase, Next.js, or Wix Headless — these were ruled out for this build.
-- Don't write code in the Wix IDE — only via Claude Code through GitHub.
-- Don't hardcode API keys — use Wix Secrets Manager.
-- Don't reproduce Mind Body's exact UI for the admin (the user designed a warmer custom version).
-- Don't suggest reproducing copyrighted Mind Body templates or branding.
-- Don't add 7-day inactive email automation initially.
-- Don't build from-scratch booking UI when Wix Bookings widgets work fine — only customise where genuinely needed.
-- Don't begin work without verifying the current state via Wix MCP.
-
-## First action
-Before writing any code, run via the Wix MCP:
-1. List the connected Wix site's available business solutions (confirm Bookings + Pricing Plans + Members are installed).
-2. Query existing Booking Services to confirm what the user has already set up.
-3. Query existing Pricing Plans to confirm the membership/pack structure matches the brief.
-4. Query the Members collection to confirm the Staff role exists and the user is assigned.
-5. Confirm the "Admin - Schedule" page exists, is hidden, and has Staff-only permissions.
-
-Report findings before suggesting next steps. If anything is missing, list it for the user to fix in the Wix dashboard before code work begins.
-
-Then build the Class Schedule admin page first (Phase 2 step 1), following the Custom Element pattern described above.
+- Don't rebuild the Wix booking flow — link to Wix's booking URL instead.
+- Don't reproduce Mind Body's UI or branding.
+- Don't add the 7-day inactive email trigger (too noisy, revisit later).
+- Don't hardcode API keys anywhere.
+- Don't use Wix Velo / Custom Elements — all code lives in this Next.js repo.
