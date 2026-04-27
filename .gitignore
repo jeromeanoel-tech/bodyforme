@@ -15,3 +15,4 @@ npm-debug.log*
 
 # archived velo code
 _archive-velo/
+.vercel
