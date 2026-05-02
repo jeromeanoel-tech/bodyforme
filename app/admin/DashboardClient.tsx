@@ -105,7 +105,7 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
           {/* Today's classes */}
           <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
-              <h3 className="text-[13px] font-semibold text-neutral-900">Today's classes</h3>
+              <h3 className="text-[13px] font-semibold text-neutral-900">Today&apos;s classes</h3>
               <Link href="/admin/schedule" className="text-[12px] text-neutral-400 hover:text-neutral-700 transition-colors">
                 View schedule →
               </Link>

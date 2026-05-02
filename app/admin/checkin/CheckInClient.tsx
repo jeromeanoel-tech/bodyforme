@@ -88,7 +88,7 @@ export default function CheckInClient({ sessions, services }: Props) {
       {/* ── Session list ── */}
       <div className="w-72 shrink-0 border-r border-neutral-200 flex flex-col bg-white">
         <div className="px-4 py-4 border-b border-neutral-100">
-          <h2 className="text-[13px] font-semibold text-neutral-900">Today's classes</h2>
+          <h2 className="text-[13px] font-semibold text-neutral-900">Today&apos;s classes</h2>
           <p className="text-[11.5px] text-neutral-400 mt-0.5">{sessions.length} session{sessions.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex-1 overflow-y-auto">

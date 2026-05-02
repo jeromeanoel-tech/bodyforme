@@ -198,7 +198,7 @@ export default function MarketingClient() {
                           className="w-full px-3 py-2.5 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black resize-none"
                         />
                         <p className="text-[11px] text-neutral-400 mt-1">
-                          Plain text. Starts with "Hi [first name]," automatically.
+                          Plain text. Starts with &quot;Hi [first name],&quot; automatically.
                         </p>
                       </div>
                     </div>
