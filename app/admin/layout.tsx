@@ -10,6 +10,7 @@ const NAV: ({ href: string; label: string; exact?: boolean } | null)[] = [
   { href: '/admin/clients',     label: 'Clients' },
   { href: '/admin/memberships', label: 'Memberships' },
   { href: '/admin/insights',    label: 'Insights' },
+  { href: '/admin/marketing',   label: 'Marketing' },
   null,
   { href: '/admin/staff',       label: 'Staff' },
   { href: '/admin/settings',    label: 'Settings' },

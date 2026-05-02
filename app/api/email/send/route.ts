@@ -3,12 +3,15 @@ import { NextRequest, NextResponse } from 'next/server'
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
 
-type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed'
+type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'custom'
 
 interface EmailPayload {
   to:       string
   template: Template
   vars:     Record<string, string>
+  // used when template === 'custom'
+  subject?: string
+  body?:    string
 }
 
 function buildEmail(template: Template, vars: Record<string, string>) {
@@ -63,18 +66,28 @@ function buildEmail(template: Template, vars: Record<string, string>) {
           <p>The BodyForme Team</p>
         `,
       }
+
+    case 'custom':
+      return { subject: vars.subject ?? '(no subject)', html: vars.html ?? '' }
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { to, template, vars }: EmailPayload = await req.json()
+    const payload: EmailPayload = await req.json()
+    const { to, template, vars } = payload
 
     if (!to || !template) {
       return NextResponse.json({ error: 'to and template are required' }, { status: 400 })
     }
 
-    const { subject, html } = buildEmail(template, vars ?? {})
+    const mergedVars = {
+      ...(vars ?? {}),
+      ...(template === 'custom' && payload.subject ? { subject: payload.subject } : {}),
+      ...(template === 'custom' && payload.body    ? { html: payload.body.replace(/\n/g, '<br>') } : {}),
+    }
+
+    const { subject, html } = buildEmail(template, mergedVars)
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
