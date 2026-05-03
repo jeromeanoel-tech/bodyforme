@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { Plus_Jakarta_Sans, Cormorant_Garamond, DM_Sans } from 'next/font/google'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({
@@ -8,15 +8,30 @@ const jakarta = Plus_Jakarta_Sans({
   weight: ['300', '400', '500', '600'],
 })
 
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  variable: '--font-cormorant',
+  weight: ['300', '400', '500'],
+  style: ['normal', 'italic'],
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  weight: ['300', '400', '500'],
+})
+
 export const metadata: Metadata = {
   title: 'BodyForme Pilates | Doncaster',
-  description: 'Hot Pilates and yoga studio in Doncaster, Melbourne.',
+  description: 'Premium Pilates studio in Doncaster, Melbourne. Mat, Reformer and Barre classes. Book your free trial today.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${jakarta.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${jakarta.variable} ${cormorant.variable} ${dmSans.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   )
 }

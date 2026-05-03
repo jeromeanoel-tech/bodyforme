@@ -4,7 +4,114 @@
 
 :root {
   --font-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* Design system tokens */
+  --linen:  #f4ede1;
+  --l2:     #ede4d4;
+  --l3:     #e4d8c6;
+  --esp:    #2a1506;
+  --esp2:   #3d2210;
+  --brown:  #7a4a2a;
+  --blt:    #a0724e;
+  --text:   #2a1506;
+  --mid:    #6b4e36;
+  --muted:  #a08568;
+  --rule:   #d8ccba;
+  --canvas: #fdfaf6;
+  --sage:   #7a9478;
+  --rust:   #9a5a3a;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; font-family: var(--font-jakarta); }
+body { margin: 0; }
+
+/* ── Public site base ── */
+.site-body {
+  font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+  background: var(--linen);
+  color: var(--text);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Section label pattern ── */
+.slbl {
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+.slbl::after {
+  content: '';
+  height: 1px;
+  background: var(--rule);
+  width: 56px;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── Scroll reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .55s ease, transform .55s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Animated ticker ── */
+@keyframes tick {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.ticker-track {
+  animation: tick 30s linear infinite;
+  display: flex;
+  white-space: nowrap;
+}
+
+/* ── Nav underline hover ── */
+.nav-link {
+  position: relative;
+  padding-bottom: 2px;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: var(--brown);
+  transition: width .25s;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* ── FAQ accordion ── */
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .3s ease, padding .3s ease;
+}
+.faq-item.open .faq-answer {
+  max-height: 300px;
+  padding-bottom: 20px;
+}
+.faq-toggle {
+  transition: transform .2s;
+}
+.faq-item.open .faq-toggle {
+  transform: rotate(45deg);
+}
