@@ -7,18 +7,21 @@ import { getSessions, getServices, type WixSession, type WixService } from '@/li
 
 export const metadata = {
   title: 'Classes & Schedule | BodyForme Pilates',
-  description: 'Browse the BodyForme Pilates weekly timetable. Mat, Reformer, Barre and Sculpt classes in Doncaster.',
+  description: 'Browse the BodyForme weekly timetable. Hot Pilates, Bikram Yoga, Power HIIT, Cardio Boxing and more in Doncaster.',
 }
 
 export const revalidate = 300  // refresh schedule every 5 minutes
 
 const COLOR_MAP: Record<string, string> = {
-  'mat':        'var(--sage)',
-  'pilates':    'var(--sage)',
-  'reformer':   'var(--rust)',
-  'barre':      '#8a9ab0',
-  'sculpt':     '#b0906a',
-  'special':    '#b0906a',
+  'bikram':     'var(--sage)',
+  'hot mat':    'var(--rust)',
+  'hot pilates': 'var(--rust)',
+  'pilates':    'var(--rust)',
+  'power hiit': '#6a5a4e',
+  'special':    '#6a5a4e',
+  'cardio':     '#8a9ab0',
+  'boxing':     '#8a9ab0',
+  'mat':        'var(--rust)',
 }
 
 function classColor(name: string): string {
@@ -207,25 +210,47 @@ export default async function ClassesPage() {
           <ScrollReveal>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {classTypes.map((cls, i) => {
-                const gradMap = ['linear-gradient(150deg,#c8b090 0%,#8a5e3a 100%)', 'linear-gradient(150deg,#b0b8a8 0%,#5a6850 100%)', 'linear-gradient(150deg,#b0b8c8 0%,#5a6880 100%)', 'linear-gradient(150deg,#b8a898 0%,#6a4838 100%)']
+                const gradMap = [
+                  'linear-gradient(150deg,#c8a880 0%,#8a5030 100%)',
+                  'linear-gradient(150deg,#6a5a50 0%,#3a3028 100%)',
+                  'linear-gradient(150deg,#a8b898 0%,#486040 100%)',
+                  'linear-gradient(150deg,#98b0a8 0%,#406058 100%)',
+                  'linear-gradient(150deg,#b89878 0%,#785030 100%)',
+                  'linear-gradient(150deg,#706858 0%,#403830 100%)',
+                  'linear-gradient(150deg,#8898b0 0%,#485870 100%)',
+                ]
+                const isLastOdd = i === classTypes.length - 1 && classTypes.length % 2 !== 0
                 return (
-                  <div key={cls.slug} style={{ background: 'var(--linen)', display: 'grid', gridTemplateColumns: '280px 1fr', minHeight: '240px' }}>
+                  <div
+                    key={cls.slug}
+                    style={{
+                      background: 'var(--linen)',
+                      display: 'grid',
+                      gridTemplateColumns: isLastOdd ? '280px 1fr' : '280px 1fr',
+                      minHeight: '240px',
+                      ...(isLastOdd ? { gridColumn: '1 / -1', maxWidth: '50%' } : {}),
+                    }}
+                  >
                     <div style={{ background: gradMap[i % gradMap.length], position: 'relative', overflow: 'hidden', minHeight: '240px' }}>
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 16px', fontSize: '9px', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 500, color: 'rgba(244,237,225,.8)', background: classColor(cls.name) + 'cc' }}>
-                        {cls.name}
+                        {cls.duration}
                       </div>
                     </div>
                     <div style={{ padding: '32px 36px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
-                        <span style={{ fontSize: '11px', letterSpacing: '.1em', color: 'var(--muted)', marginBottom: '10px', display: 'block' }}>0{i + 1}</span>
-                        <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '32px', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', letterSpacing: '.1em', color: 'var(--muted)', marginBottom: '10px', display: 'block' }}>{String(i + 1).padStart(2, '0')}</span>
+                        <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '32px', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '12px' }}>
                           {cls.name} {cls.nameItalic && <em style={{ fontStyle: 'italic', fontWeight: 300 }}>{cls.nameItalic}</em>}
                         </div>
-                        <div style={{ display: 'flex', gap: '20px', marginBottom: '18px' }}>
-                          {[cls.duration, cls.level].map(m => (
-                            <span key={m} style={{ fontSize: '10px', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>{m}</span>
-                          ))}
-                        </div>
+                        {'tags' in cls && Array.isArray(cls.tags) && (
+                          <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', flexWrap: 'wrap' }}>
+                            {(cls.tags as string[]).map((tag, ti) => (
+                              <span key={tag} style={{ fontSize: '9.5px', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--blt)', fontWeight: 500 }}>
+                                {ti > 0 && <span style={{ color: 'var(--rule)', marginRight: '8px' }}>·</span>}{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.75 }}>{cls.desc}</p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '20px', borderTop: '1px solid var(--rule)', marginTop: '24px' }}>
