@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
 
-type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'custom'
+type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'custom'
 
 interface EmailPayload {
   to:       string
@@ -64,6 +64,20 @@ function buildEmail(template: Template, vars: Record<string, string>) {
           <p><a href="${vars.portalUrl ?? 'https://bodyforme.com.au/account'}">Update payment →</a></p>
           <p>If you have any questions, just reply to this email.</p>
           <p>The BodyForme Team</p>
+        `,
+      }
+
+    case 'welcome':
+      return {
+        subject: `Welcome to BodyForme — you're all set`,
+        html: `
+          <p>Hi ${first},</p>
+          <p>Your <strong>${vars.planName ?? 'plan'}</strong> is now active. You can start booking classes straight away.</p>
+          <p><a href="${vars.bookingUrl ?? 'https://bodyforme.com.au/classes'}">Browse the timetable →</a></p>
+          <p>If you have any questions, just reply to this email or call us on ${vars.phone ?? '(03) 9000 0000'}.</p>
+          <p>We look forward to seeing you on the mat.</p>
+          <br>
+          <p><strong>BodyForme Pilates</strong><br>132 Ayr Street, Doncaster VIC 3108</p>
         `,
       }
 

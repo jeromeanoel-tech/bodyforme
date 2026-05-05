@@ -29,9 +29,7 @@ export default function FreeTrialPage() {
             {freeTrial.body}
           </p>
           <Link
-            href={studio.bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/sign-up?plan=free-trial"
             style={{ fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'var(--linen)', padding: '16px 40px', textDecoration: 'none', display: 'inline-block', transition: 'background .2s' }}
           >
             {freeTrial.ctaText}
@@ -124,9 +122,7 @@ export default function FreeTrialPage() {
               View schedule
             </Link>
             <Link
-              href={studio.bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/sign-up?plan=free-trial"
               style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'var(--linen)', padding: '13px 28px', textDecoration: 'none', display: 'inline-block' }}
             >
               Book free trial

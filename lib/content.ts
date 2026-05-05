@@ -10,13 +10,13 @@
 
 export const studio = {
   name:        'BodyForme',
-  tagline:     'Precision Pilates. Doncaster.',
-  description: 'Premium Pilates studio in Doncaster, Melbourne — Mat, Reformer and Barre classes for every level.',
+  tagline:     'Hot Yoga & Hot Pilates. Doncaster.',
+  description: 'A complete approach to movement — combining hot yoga and hot mat Pilates to build strength, mobility and balance in one boutique space in Doncaster, Melbourne.',
   address:     '132 Ayr Street, Doncaster VIC 3108',
   phone:       '(03) 9000 0000',          // ← update with real number
   email:       'hello@bodyforme.com.au',
-  instagram:   '@bodyforme.pilates',       // ← update with real handle
-  facebook:    'BodyForme Pilates',
+  instagram:   '@bodyforme',              // ← update with real handle
+  facebook:    'BodyForme',
   // Wix booking page — replace with your actual Wix booking URL
   bookingUrl:  'https://www.bodyforme.com.au/book-online',
   founded:     '24 April 2026',
@@ -48,53 +48,54 @@ export const announce = {
 export const home = {
   hero: {
     eyebrow: 'Doncaster, Melbourne',
-    heading: 'Where focus meets',
-    headingItalic: 'form',
-    body:    'BodyForme is Doncaster\'s dedicated Pilates studio — expert-led classes, small group sessions, and a community built around mindful, effective movement.',
+    heading: 'Movement that finds',
+    headingItalic: 'your form',
+    body:    'BODYFORME combines hot yoga and hot mat Pilates to build both strength and mobility in one space. Every class is designed around form — not performance. You move at your own pace and progress on your terms.',
     cta1:    'Book a free trial',
     cta2:    'View the schedule',
-    stat1:   { value: '100%',    label: 'Expert-led classes' },
+    stat1:   { value: 'Hot',     label: 'Yoga & Pilates' },
     stat2:   { value: 'Small',   label: 'Group sizes' },
-    quote:   'Every session leaves you feeling stronger, taller, and more connected to your body.',
+    quote:   'At BODYFORME, movement is personal.',
   },
 
   ticker: [
-    'Mat Pilates',
+    'Hot Yoga',
+    'Hot Mat Pilates',
     'Reformer Pilates',
-    'Barre & Pilates',
     'Pilates Sculpt',
-    'Beginners Welcome',
+    'All Levels Welcome',
     'Expert Instructors',
     'Small Groups',
+    'Boutique Studio',
   ],
 
   classesSection: {
     eyebrow: 'What we offer',
     heading: 'Classes for every',
-    headingItalic: 'level',
-    intro:   'From complete beginners to experienced practitioners — our timetable has something for every body and every schedule.',
+    headingItalic: 'body',
+    intro:   'Hot yoga and hot Pilates under one roof. Whether you\'re brand new to movement or an experienced practitioner, our timetable has a class for where you are right now.',
   },
 
   benefitsSection: {
-    eyebrow:  'Why Pilates',
-    heading:  'Movement that',
-    headingItalic: 'transforms',
-    body1:    'Pilates is one of the most effective and sustainable forms of exercise available. Unlike high-impact training, it builds strength, flexibility and postural alignment from the inside out — without wear and tear on your joints.',
-    body2:    'Our classes are small by design. Every session, your instructor knows your name, your goals and where you are in your practice. That\'s the BodyForme difference.',
+    eyebrow:  'Why BodyForme',
+    heading:  'Strength and mobility,',
+    headingItalic: 'together',
+    body1:    'Most studios offer one thing. BODYFORME offers a complete approach — combining hot yoga for flexibility, breath and mental clarity with hot mat Pilates for deep core strength, posture and controlled movement. The result is a balanced practice that supports real, sustainable results.',
+    body2:    'Our focus is on form, not performance. Every class is designed to help you move better, feel stronger and progress at your own pace. With small group sizes, your instructor knows your name and where you are in your practice.',
     benefits: [
-      'Core strength and stability',
-      'Improved posture and alignment',
-      'Flexibility without injury risk',
-      'Stress reduction and mental clarity',
-      'Suitable for all fitness levels',
+      'Strength and mobility in one practice',
+      'Form-focused — not performance-driven',
+      'All levels, every class',
+      'Mental reset through heat and breath',
+      'Small groups, personal attention',
     ],
   },
 
   philosophySection: {
     eyebrow:  'Our philosophy',
-    pullQuote: '"Pilates is not just about the body. It is about learning to inhabit it."',
+    pullQuote: '"At BODYFORME, movement is personal."',
     quoteAttr: 'Suzanne Harb — Founder',
-    body:     'We built BodyForme around one belief: that precise, intentional movement creates lasting change. Every class is designed with progression in mind — so whether it\'s your first session or your hundredth, you leave feeling like you\'ve done something meaningful.',
+    body:     'Our name says it all. "Body" for strength and wellbeing. "Forme" for shape, condition — and for you. Every practice is yours. We built BodyForme as a place to train consistently, reset mentally and build a body you can rely on.',
     stats: [
       { value: '2026',  label: 'Founded' },
       { value: '< 12',  label: 'Students per class' },
@@ -116,13 +117,23 @@ export const home = {
 
 export const classTypes = [
   {
-    slug:     'mat-pilates',
-    name:     'Mat Pilates',
-    nameItalic: '',
+    slug:     'hot-yoga',
+    name:     'Hot',
+    nameItalic: 'Yoga',
     duration: '60 min',
     level:    'All levels',
     color:    'sage',          // sage green left border
-    desc:     'The foundation of Pilates practice. Mat classes build deep core strength, improve posture and develop body awareness using only your own bodyweight and a mat. Perfect for all levels.',
+    desc:     'A dynamic yoga practice in a heated studio. The heat allows deeper stretching, supports detoxification and trains the mind to stay present under pressure. Suitable for complete beginners through to experienced practitioners.',
+    priceNote: 'Included in all memberships',
+  },
+  {
+    slug:     'hot-mat-pilates',
+    name:     'Hot Mat',
+    nameItalic: 'Pilates',
+    duration: '60 min',
+    level:    'All levels',
+    color:    'rust',          // warm rust left border
+    desc:     'The foundation of the BodyForme method. Performed in a heated room, hot mat Pilates builds deep core strength, improves posture and develops precise body control. Form-focused, progressive and suitable for all levels.',
     priceNote: 'Included in all memberships',
   },
   {
@@ -131,18 +142,8 @@ export const classTypes = [
     nameItalic: 'Pilates',
     duration: '60 min',
     level:    'All levels',
-    color:    'rust',          // warm rust left border
-    desc:     'Our most popular class. The Reformer adds spring resistance to classical Pilates movements, creating a deeper challenge for strength and flexibility. Suitable for beginners to advanced.',
-    priceNote: 'Included in all memberships',
-  },
-  {
-    slug:     'barre-pilates',
-    name:     'Barre &',
-    nameItalic: 'Pilates',
-    duration: '45 min',
-    level:    'All levels',
     color:    'sculpt',        // slate blue
-    desc:     'A fusion of ballet-inspired barre work and Pilates principles. Targets the glutes, thighs and core with small, controlled movements set to music. High energy, low impact.',
+    desc:     'Spring resistance meets classical Pilates. The Reformer creates a deeper challenge for both strength and flexibility, supporting the full range of Pilates movements with controlled resistance. Suitable for beginners to advanced.',
     priceNote: 'Included in all memberships',
   },
   {
@@ -152,7 +153,7 @@ export const classTypes = [
     duration: '45 min',
     level:    'Intermediate',
     color:    'special',       // sand
-    desc:     'A more intense Pilates session designed to build lean muscle. Uses light weights and resistance bands alongside core Pilates sequences. Great for those looking to push further.',
+    desc:     'A more intense session designed to build lean strength. Combines Pilates sequences with light resistance work to challenge the body further. Great for those who want to push their practice into new territory.',
     priceNote: 'Included in all memberships',
   },
 ]
@@ -161,13 +162,13 @@ export const classesPage = {
   eyebrow: 'Weekly schedule',
   heading: 'Find your',
   headingItalic: 'class',
-  desc:    'Our timetable runs seven days a week. Book through the Wix app or drop in — we always have room for beginners.',
+  desc:    'Hot yoga and hot Pilates, seven days a week. All levels welcome — book through the app or drop in.',
   stats: [
     { value: '20+', label: 'Classes per week' },
     { value: '4',   label: 'Class types' },
     { value: '12',  label: 'Max class size' },
   ],
-  ctaHeading:   'Ready to start your practice?',
+  ctaHeading:   'Ready to find your form?',
   ctaHeadingItalic: '',
   ctaBody:      'Your first class is free — no credit card, no commitment. Just show up and see how you feel.',
 }
@@ -306,8 +307,8 @@ export const about = {
     eyebrow:    'Est. 2026 — Doncaster, Melbourne',
     heading:    'More than a',
     headingItalic: 'studio',
-    body:       'BodyForme was built on the belief that real transformation — physical, mental and emotional — happens in community. We are new, and prouder of our people than anything else.',
-    quote:      '"We didn\'t build a gym. We built a place where people become who they are meant to be."',
+    body:       'BODYFORME is a complete approach to movement — combining hot yoga and hot mat Pilates to build strength and mobility in one boutique space. We are new, and prouder of our community than anything else.',
+    quote:      '"At BODYFORME, movement is personal."',
     quoteAttr:  'Suzanne Harb — Founder',
     stats: [
       { value: '2026', label: 'Year founded' },
@@ -323,26 +324,26 @@ export const about = {
     name:      'Suzanne Harb',
     role:      'Founder, BodyForme',
     paragraphs: [
-      'Suzanne Harb discovered Pilates over a decade ago while recovering from a spinal injury. What began as rehabilitation became a practice that reshaped not just her body, but her entire relationship with movement and self-care.',
-      'After years of training and teaching in studios across Melbourne, Suzanne recognised a gap: a studio focused purely on Pilates, built for the local Doncaster community, with small class sizes and genuinely expert instruction.',
-      'On 24 April 2026, BodyForme opened its doors on Ayr Street. The studio was designed to feel like a home — warm, unhurried and free from the noise of a commercial gym. The community response was immediate.',
+      'BODYFORME is different because it\'s not just a studio — it\'s a complete approach to movement. We combine hot yoga and hot mat Pilates to build both strength and mobility in one space, creating a balanced practice that supports real, sustainable results.',
+      'Our focus is on form, not performance. Every class is designed to help you move better, feel stronger and progress at your own pace. With a boutique feel that\'s welcoming, structured and grounded, BODYFORME offers more than fitness — it\'s a place to train consistently, reset mentally and build a body you can rely on.',
+      'Our name reflects our philosophy. "Body" for strength and wellbeing. "Forme" for shape, condition — and for you. Every practice is yours. On 24 April 2026, we opened our doors at 132 Ayr Street, Doncaster. More than a workout, BODYFORME is your space to reset, reconnect and grow.',
     ],
     signature: 'Suzanne Harb',
   },
 
   values: [
-    { n: '01', title: 'Precision as', titleItalic: 'foundation', desc: 'We believe that doing one movement correctly is worth more than ten done carelessly. Precision is not perfectionism — it is the path to genuine progress.' },
-    { n: '02', title: 'No', titleItalic: 'ego', desc: 'Everyone was a beginner once. We celebrate the person attempting their first roll-up as much as the person achieving their hundredth.' },
-    { n: '03', title: 'Community', titleItalic: 'first', desc: 'We are not a transactional gym. We are a community. We remember names, celebrate milestones and show up for each other outside the studio.' },
-    { n: '04', title: 'Honest', titleItalic: 'teaching', desc: 'Our instructors correct and challenge. They don\'t offer empty encouragement — they offer the kind of feedback that actually creates change.' },
-    { n: '05', title: 'The long', titleItalic: 'game', desc: 'We build practices that last decades — because the benefits of consistent, mindful movement compound over a lifetime.' },
-    { n: '06', title: 'Space to', titleItalic: 'fail', desc: 'Falling out of a movement is not failure. It\'s information. We create an environment where trying is always celebrated, regardless of outcome.' },
+    { n: '01', title: 'Form over', titleItalic: 'performance', desc: 'We don\'t measure success in reps or speed. One movement done correctly is worth more than ten done carelessly. Form is the foundation everything else is built on.' },
+    { n: '02', title: 'Your pace,', titleItalic: 'your progress', desc: 'Classes are designed for all levels. There is no pressure to keep up, push through pain or perform for the room. You move at the pace that\'s right for your body today.' },
+    { n: '03', title: 'Heat as a', titleItalic: 'tool', desc: 'We use heat intentionally — to deepen stretching, build mental resilience and help the body work more efficiently. It\'s not a gimmick. It\'s part of the practice.' },
+    { n: '04', title: 'The complete', titleItalic: 'picture', desc: 'Strength without mobility is fragile. Flexibility without control is unstable. The combination of hot yoga and Pilates addresses both — giving you a practice that\'s genuinely balanced.' },
+    { n: '05', title: 'Reset and', titleItalic: 'reconnect', desc: 'We built BODYFORME to be a space where the outside world falls away. Every session is a chance to come back to your body, clear your head and leave feeling more yourself than when you walked in.' },
+    { n: '06', title: 'Movement', titleItalic: 'is personal', desc: 'Every body is different. Every practice is different. What works for one person may not work for another, and that\'s not a problem — it\'s the whole point. We meet you where you are.' },
   ],
 
   instructors: [
-    { name: 'Suzanne Harb',      role: 'Founder · Lead Instructor', bio: 'Pilates-certified with over 10 years of teaching experience. Suzanne\'s classes are known for their warmth, precision and deep anatomical knowledge.', tags: ['Mat Pilates', 'Reformer', 'Barre'] },
+    { name: 'Suzanne Harb',      role: 'Founder · Lead Instructor', bio: 'Certified in both hot yoga and Pilates with over 10 years of teaching experience. Suzanne built BODYFORME around her belief that movement is personal — and every class reflects that.', tags: ['Hot Yoga', 'Hot Mat Pilates', 'Reformer'] },
     { name: 'Coming soon',       role: 'Instructor',                 bio: 'We\'re building a team of exceptional instructors. Stay tuned for new class times and new faces.', tags: ['Reformer', 'Sculpt'] },
-    { name: 'Coming soon',       role: 'Instructor',                 bio: 'We\'re building a team of exceptional instructors. Stay tuned for new class times and new faces.', tags: ['Mat Pilates', 'Barre'] },
+    { name: 'Coming soon',       role: 'Instructor',                 bio: 'We\'re building a team of exceptional instructors. Stay tuned for new class times and new faces.', tags: ['Hot Yoga', 'Hot Mat Pilates'] },
     { name: 'Coming soon',       role: 'Instructor',                 bio: 'We\'re building a team of exceptional instructors. Stay tuned for new class times and new faces.', tags: ['Reformer', 'Sculpt'] },
   ],
 
@@ -355,9 +356,9 @@ export const about = {
   ],
 
   timeline: [
-    { year: 'Apr 2026', title: 'BodyForme opens', desc: 'Doors open at 132 Ayr Street, Doncaster. First classes run across Mat Pilates and Reformer.' },
-    { year: 'May 2026', title: 'Free trial programme', desc: 'Free trial week for all new members — no credit card, no commitment. Fifty students in the first month.' },
-    { year: '2026',     title: 'Growing the team', desc: 'Expanding the instructor team and class timetable to meet demand across the Doncaster community.' },
+    { year: 'Apr 2026', title: 'BodyForme opens', desc: 'Doors open at 132 Ayr Street, Doncaster. First classes run across Hot Yoga and Hot Mat Pilates.' },
+    { year: 'May 2026', title: 'Free trial programme', desc: 'First class free for all new members — no credit card, no commitment.' },
+    { year: '2026',     title: 'Growing the team', desc: 'Expanding the instructor team and class timetable across Reformer, Sculpt and beyond.' },
   ],
 
   cta: {
@@ -422,4 +423,90 @@ export const freeTrial = {
   ],
   whatToBring: 'Comfortable workout clothes, a water bottle and grip socks (available to purchase at the studio for $3).',
   ctaText: 'Book my free trial',
+}
+
+// ── Sign-up / checkout ────────────────────────────────────────────────────────
+
+export const signupPolicy = {
+  // ← Update this text when your Terms & Cancellation Policy are finalised
+  checkboxText: 'I agree to BodyForme\'s Terms & Conditions and Cancellation Policy',
+  policyLinkText: 'Terms & Conditions',
+  policyHref:     '/terms',           // create this page when policy is ready
+  cancelLinkText: 'Cancellation Policy',
+  cancelHref:     '/cancellation',
+  note: 'Memberships are billed monthly and can be cancelled with 7 days\' notice. Class packs do not expire.',
+}
+
+export const signupPlans: Record<string, {
+  name: string
+  tag: string
+  amount: number        // AUD cents
+  period: string
+  description: string
+  mode: 'subscription' | 'payment' | 'free'
+  features: string[]
+}> = {
+  bronze: {
+    name:        'Bronze Membership',
+    tag:         'Great value',
+    amount:      12000,
+    period:      '$120 / month',
+    description: '4 classes per month. Billed monthly, cancel anytime.',
+    mode:        'subscription',
+    features:    ['4 classes per month', 'All class types', 'Online booking', 'Pause up to 4 weeks/year'],
+  },
+  silver: {
+    name:        'Silver Membership',
+    tag:         'Most popular',
+    amount:      20000,
+    period:      '$200 / month',
+    description: '8 classes per month with priority booking. Billed monthly, cancel anytime.',
+    mode:        'subscription',
+    features:    ['8 classes per month', 'All class types', 'Priority booking', 'Pause up to 8 weeks/year', '1 guest pass/month'],
+  },
+  unlimited: {
+    name:        'Unlimited Membership',
+    tag:         'Best value',
+    amount:      26000,
+    period:      '$260 / month',
+    description: 'Unlimited classes every month. Billed monthly, cancel anytime.',
+    mode:        'subscription',
+    features:    ['Unlimited classes', 'All class types', 'Priority booking', 'Pause up to 8 weeks/year', '2 guest passes/month'],
+  },
+  'drop-in': {
+    name:        'Single Class',
+    tag:         'Casual',
+    amount:      3500,
+    period:      '$35 once',
+    description: 'Drop-in to any class, any type.',
+    mode:        'payment',
+    features:    ['Any class type', 'No expiry'],
+  },
+  '5pack': {
+    name:        '5-Class Pack',
+    tag:         'Flexible',
+    amount:      16000,
+    period:      '$160 once',
+    description: '5 classes. 2-month expiry. Works out to $32 per class.',
+    mode:        'payment',
+    features:    ['5 classes', 'All class types', '2-month expiry', '$32 per class'],
+  },
+  '10pack': {
+    name:        '10-Class Pack',
+    tag:         'Best pack value',
+    amount:      30000,
+    period:      '$300 once',
+    description: '10 classes. 3-month expiry. Works out to $30 per class.',
+    mode:        'payment',
+    features:    ['10 classes', 'All class types', '3-month expiry', '$30 per class'],
+  },
+  'free-trial': {
+    name:        'Free Trial Class',
+    tag:         'New members',
+    amount:      0,
+    period:      'Free — no card needed',
+    description: 'Your first class at BodyForme, completely free. New members only.',
+    mode:        'free',
+    features:    ['Any class type', 'New members only', 'No credit card required'],
+  },
 }

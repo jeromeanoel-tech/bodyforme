@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { signupPlans } from '@/lib/content'
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -49,7 +50,43 @@ export async function POST(req: NextRequest) {
 
   const obj = event.data.object
 
+  const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'hello@bodyforme.com.au'
+  const BASE_URL     = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+
   switch (event.type) {
+    case 'checkout.session.completed': {
+      const meta      = (obj.metadata ?? {}) as Record<string, string>
+      const email     = (obj.customer_email as string) ?? ''
+      const firstName = meta.firstName ?? ''
+      const lastName  = meta.lastName  ?? ''
+      const planKey   = meta.plan ?? ''
+      const planName  = signupPlans[planKey]?.name ?? planKey
+      const fullName  = `${firstName} ${lastName}`.trim()
+
+      if (email) {
+        await sendEmail(email, 'welcome', {
+          firstName,
+          planName,
+          bookingUrl: `${BASE_URL}/classes`,
+        })
+      }
+
+      await sendEmail(STUDIO_EMAIL, 'custom', {
+        subject: `New sign-up — ${fullName || email} (${planName})`,
+        html: `
+          <h2>New Sign-Up via Stripe Checkout</h2>
+          <table cellpadding="6">
+            <tr><td><strong>Name</strong></td><td>${fullName}</td></tr>
+            <tr><td><strong>Email</strong></td><td>${email}</td></tr>
+            <tr><td><strong>Plan</strong></td><td>${planName}</td></tr>
+            <tr><td><strong>Phone</strong></td><td>${meta.phone ?? ''}</td></tr>
+            <tr><td><strong>Address</strong></td><td>${[meta.address, meta.suburb, meta.state, meta.postcode].filter(Boolean).join(', ')}</td></tr>
+          </table>
+        `,
+      })
+      break
+    }
+
     case 'invoice.payment_failed': {
       const email     = (obj.customer_email as string) ?? ''
       const firstName = (obj.customer_name  as string)?.split(' ')[0] ?? ''

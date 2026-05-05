@@ -103,21 +103,28 @@ export default function MembershipsPage() {
           </ScrollReveal>
           <ScrollReveal>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
-              {memberships.packs.map((pack, i) => (
-                <div key={i} style={{ background: 'var(--linen)', padding: '36px 28px', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '42px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1, marginBottom: '12px' }}>{pack.price}</div>
-                  <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1.1, marginBottom: '8px' }}>{pack.name}</div>
-                  <p style={{ fontSize: '12.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.6, flex: 1 }}>{pack.detail}</p>
-                  <Link
-                    href={studio.bookingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ marginTop: '24px', display: 'block', textAlign: 'center', fontSize: '10px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', padding: '11px', border: '1px solid var(--esp)', color: 'var(--esp)', textDecoration: 'none', transition: 'all .2s' }}
-                  >
-                    {pack.price === '$0' ? 'Book free trial' : 'Buy now'}
-                  </Link>
-                </div>
-              ))}
+              {memberships.packs.map((pack, i) => {
+                const packPlanKey: Record<string, string> = {
+                  'Single class':  'drop-in',
+                  '5-class pack':  '5pack',
+                  '10-class pack': '10pack',
+                  'Free trial':    'free-trial',
+                }
+                const planKey = packPlanKey[pack.name] ?? 'free-trial'
+                return (
+                  <div key={i} style={{ background: 'var(--linen)', padding: '36px 28px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '42px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1, marginBottom: '12px' }}>{pack.price}</div>
+                    <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1.1, marginBottom: '8px' }}>{pack.name}</div>
+                    <p style={{ fontSize: '12.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.6, flex: 1 }}>{pack.detail}</p>
+                    <Link
+                      href={`/sign-up?plan=${planKey}`}
+                      style={{ marginTop: '24px', display: 'block', textAlign: 'center', fontSize: '10px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', padding: '11px', border: '1px solid var(--esp)', color: 'var(--esp)', textDecoration: 'none', transition: 'all .2s' }}
+                    >
+                      {pack.price === '$0' ? 'Book free trial' : 'Buy now'}
+                    </Link>
+                  </div>
+                )
+              })}
             </div>
           </ScrollReveal>
         </div>
@@ -281,9 +288,7 @@ function PlanCard({ plan }: { plan: typeof memberships.plans[0] }) {
         ))}
       </ul>
       <Link
-        href={studio.bookingUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={`/sign-up?plan=${plan.name.toLowerCase()}`}
         style={{ display: 'block', textAlign: 'center', fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', padding: '14px', border: `1px solid ${f ? 'rgba(255,255,255,.25)' : 'var(--esp)'}`, color: f ? 'var(--linen)' : 'var(--esp)', textDecoration: 'none', transition: 'all .2s' }}
       >
         {plan.cta}
