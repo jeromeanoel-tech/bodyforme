@@ -91,40 +91,31 @@ export default function MembershipsPage() {
           <ScrollReveal>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
-                <div className="slbl">No commitment</div>
+                <div className="slbl">Flexible options</div>
                 <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
-                  Class <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>packs</em>
+                  Passes &amp; <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>prepaid</em>
                 </h2>
               </div>
               <p style={{ fontSize: '13.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.75, maxWidth: '360px', textAlign: 'right' }}>
-                Prefer flexibility? Buy a pack or drop in. Credits never expire.
+                Class passes, short-stay options, and prepaid unlimited memberships. No weekly commitment required.
               </p>
             </div>
           </ScrollReveal>
           <ScrollReveal>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
-              {memberships.packs.map((pack, i) => {
-                const packPlanKey: Record<string, string> = {
-                  'Single class':  'drop-in',
-                  '5-class pack':  '5pack',
-                  '10-class pack': '10pack',
-                  'Free trial':    'free-trial',
-                }
-                const planKey = packPlanKey[pack.name] ?? 'free-trial'
-                return (
-                  <div key={i} style={{ background: 'var(--linen)', padding: '36px 28px', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '42px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1, marginBottom: '12px' }}>{pack.price}</div>
-                    <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1.1, marginBottom: '8px' }}>{pack.name}</div>
-                    <p style={{ fontSize: '12.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.6, flex: 1 }}>{pack.detail}</p>
-                    <Link
-                      href={`/sign-up?plan=${planKey}`}
-                      style={{ marginTop: '24px', display: 'block', textAlign: 'center', fontSize: '10px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', padding: '11px', border: '1px solid var(--esp)', color: 'var(--esp)', textDecoration: 'none', transition: 'all .2s' }}
-                    >
-                      {pack.price === '$0' ? 'Book free trial' : 'Buy now'}
-                    </Link>
-                  </div>
-                )
-              })}
+              {memberships.packs.map((pack, i) => (
+                <div key={i} style={{ background: 'var(--linen)', padding: '36px 28px', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '42px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1, marginBottom: '12px' }}>{pack.price}</div>
+                  <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1.1, marginBottom: '8px' }}>{pack.name}</div>
+                  <p style={{ fontSize: '12.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.6, flex: 1 }}>{pack.detail}</p>
+                  <Link
+                    href={`/sign-up?plan=${pack.planKey}`}
+                    style={{ marginTop: '24px', display: 'block', textAlign: 'center', fontSize: '10px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', padding: '11px', border: '1px solid var(--esp)', color: 'var(--esp)', textDecoration: 'none', transition: 'all .2s' }}
+                  >
+                    {pack.planKey.includes('month') || pack.planKey.includes('year') ? 'Buy membership' : 'Buy now'}
+                  </Link>
+                </div>
+              ))}
             </div>
           </ScrollReveal>
         </div>
@@ -288,7 +279,7 @@ function PlanCard({ plan }: { plan: typeof memberships.plans[0] }) {
         ))}
       </ul>
       <Link
-        href={`/sign-up?plan=${plan.name.toLowerCase()}`}
+        href={`/sign-up?plan=${plan.planKey}`}
         style={{ display: 'block', textAlign: 'center', fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', padding: '14px', border: `1px solid ${f ? 'rgba(255,255,255,.25)' : 'var(--esp)'}`, color: f ? 'var(--linen)' : 'var(--esp)', textDecoration: 'none', transition: 'all .2s' }}
       >
         {plan.cta}

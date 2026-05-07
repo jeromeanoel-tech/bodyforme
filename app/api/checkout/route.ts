@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
             description: plan.description,
           },
           ...(plan.mode === 'subscription' ? {
-            recurring: { interval: 'month' },
+            recurring: { interval: (plan as { billingInterval?: string }).billingInterval ?? 'week' },
           } : {}),
         },
       },
