@@ -7,21 +7,20 @@ import { getSessions, getServices, type WixSession, type WixService } from '@/li
 
 export const metadata = {
   title: 'Classes & Schedule | BodyForme Pilates',
-  description: 'Browse the BodyForme weekly timetable. Hot Pilates, Bikram Yoga, Power HIIT, Cardio Boxing and more in Doncaster.',
+  description: 'Browse the BodyForme weekly timetable. Hot Pilates, Bikram, Hot HIIT, Tabata, Yin Yoga, Special Forces and more in Doncaster.',
 }
 
 export const revalidate = 300  // refresh schedule every 5 minutes
 
 const COLOR_MAP: Record<string, string> = {
   'bikram':     'var(--sage)',
-  'hot mat':    'var(--rust)',
+  'yin':        'var(--sage)',
   'hot pilates': 'var(--rust)',
+  'hot hiit':   '#8a6a50',
+  'tabata':     '#8a6a50',
+  'special':    '#7a8898',
+  'aaa':        '#7a6858',
   'pilates':    'var(--rust)',
-  'power hiit': '#6a5a4e',
-  'special':    '#6a5a4e',
-  'cardio':     '#8a9ab0',
-  'boxing':     '#8a9ab0',
-  'mat':        'var(--rust)',
 }
 
 function classColor(name: string): string {
