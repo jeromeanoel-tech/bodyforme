@@ -72,7 +72,7 @@ export default function InstallPage() {
             </h1>
             <div style={{ paddingTop: 14 }}>
               <p style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 14, fontWeight: 300, lineHeight: 1.7, color: '#6b4e36', margin: '0 0 22px' }}>
-                Our member app lives on the web — there's nothing to download from a store. Just open the link below in your phone's browser, then add it to your home screen for one-tap access to bookings, schedule and your membership.
+                Our member app lives on the web — there&apos;s nothing to download from a store. Just open the link below in your phone&apos;s browser, then add it to your home screen for one-tap access to bookings, schedule and your membership.
               </p>
               <div style={{ background: '#2a1506', color: '#f4ede1', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
                 <div>
@@ -113,7 +113,7 @@ export default function InstallPage() {
                 <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Safari</div>
               </div>
 
-              <Step num="1" title="Open the link in Safari." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Safari's address bar. The browser must be Safari — not Chrome, not the in-app browser inside Instagram or Facebook.</>}>
+              <Step num="1" title="Open the link in Safari." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Safari&apos;s address bar. The browser must be Safari — not Chrome, not the in-app browser inside Instagram or Facebook.</>}>
                 <MockPhone type="ios">
                   <StatusBar />
                   <ChromeBar />
@@ -122,7 +122,7 @@ export default function InstallPage() {
                 </MockPhone>
               </Step>
 
-              <Step num="2" title="Tap the Share button." body={<>It's the square-with-an-arrow icon in the centre of Safari's bottom toolbar. On older iOS, it's at the top.</>} keytap={<><ShareIcon /> Share</>}>
+              <Step num="2" title="Tap the Share button." body={<>It&apos;s the square-with-an-arrow icon in the centre of Safari&apos;s bottom toolbar. On older iOS, it&apos;s at the top.</>} keytap={<><ShareIcon /> Share</>}>
                 <MockPhone type="ios">
                   <StatusBar />
                   <ChromeBar />
@@ -131,7 +131,7 @@ export default function InstallPage() {
                 </MockPhone>
               </Step>
 
-              <Step num="3" title={<>Choose "Add to Home Screen".</>} body="Scroll down through the share sheet until you see it. The icon looks like a square with a + inside.">
+              <Step num="3" title={<>Choose &ldquo;Add to Home Screen&rdquo;.</>} body="Scroll down through the share sheet until you see it. The icon looks like a square with a + inside.">
                 <MockPhone type="ios">
                   <StatusBar minimal />
                   <div style={{ height: '60%', background: 'rgba(42,21,6,0.35)' }} />
@@ -139,7 +139,7 @@ export default function InstallPage() {
                 </MockPhone>
               </Step>
 
-              <Step num="4" title={<>Tap "Add" in the top corner.</>} body={<>You'll see the Bodyforme icon and name — feel free to keep it as is, then tap <strong>Add</strong> in the top-right.</>}>
+              <Step num="4" title={<>Tap &ldquo;Add&rdquo; in the top corner.</>} body={<>You&apos;ll see the Bodyforme icon and name — feel free to keep it as is, then tap <strong>Add</strong> in the top-right.</>}>
                 <MockPhone type="ios">
                   <StatusBar minimal />
                   <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -185,7 +185,7 @@ export default function InstallPage() {
                 <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Chrome</div>
               </div>
 
-              <Step num="1" title="Open the link in Chrome." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Chrome's address bar. Chrome works best — Samsung Internet and Edge also support installing.</>}>
+              <Step num="1" title="Open the link in Chrome." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Chrome&apos;s address bar. Chrome works best — Samsung Internet and Edge also support installing.</>}>
                 <MockPhone type="android">
                   <StatusBar />
                   <ChromeBar android />
@@ -201,7 +201,7 @@ export default function InstallPage() {
                 </MockPhone>
               </Step>
 
-              <Step num="3" title={<>Choose "Install app" or "Add to Home screen".</>} body="The exact wording depends on your phone. Both options do the same thing.">
+              <Step num="3" title={<>Choose &ldquo;Install app&rdquo; or &ldquo;Add to Home screen&rdquo;.</>} body="The exact wording depends on your phone. Both options do the same thing.">
                 <MockPhone type="android">
                   <StatusBar minimal />
                   <ChromeBar android />
@@ -210,7 +210,7 @@ export default function InstallPage() {
                 </MockPhone>
               </Step>
 
-              <Step num="4" title={<>Confirm with "Install".</>} body={<>A small dialog will pop up showing the Bodyforme icon. Tap <strong>Install</strong> (or <strong>Add</strong>) to confirm.</>}>
+              <Step num="4" title={<>Confirm with &ldquo;Install&rdquo;.</>} body={<>A small dialog will pop up showing the Bodyforme icon. Tap <strong>Install</strong> (or <strong>Add</strong>) to confirm.</>}>
                 <MockPhone type="android">
                   <StatusBar minimal />
                   <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center' }}>
@@ -237,7 +237,7 @@ export default function InstallPage() {
           <div style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid #d8ccba', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'end' }}>
             <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, lineHeight: 1.3, color: '#2a1506', maxWidth: 600 }}>
               Stuck? Email <em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>hello@bodyforme.com.au</em><br />
-              or ask at the front desk — we'll get you sorted in a minute.
+              or ask at the front desk — we&apos;ll get you sorted in a minute.
             </div>
             <div style={{ textAlign: 'right', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568', lineHeight: 1.8 }}>
               Bodyforme · Doncaster<br />
