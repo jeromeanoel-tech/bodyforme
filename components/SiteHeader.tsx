@@ -50,11 +50,8 @@ export default function SiteHeader() {
           </nav>
 
           {/* Brand */}
-          <Link
-            href="/"
-            style={{ fontFamily: 'var(--font-cormorant)', fontSize: '21px', fontWeight: 500, letterSpacing: '.06em', color: 'var(--esp)', textDecoration: 'none', flexShrink: 0 }}
-          >
-            Body<em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>forme</em>
+          <Link href="/" style={{ flexShrink: 0, textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <img src="/bodyforme-wordmark.png" alt="Bodyforme" style={{ height: 20, width: 'auto', display: 'block' }} />
           </Link>
 
           {/* Right nav */}

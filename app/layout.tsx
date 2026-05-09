@@ -24,6 +24,10 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'BodyForme Pilates | Doncaster',
   description: 'Premium Pilates studio in Doncaster, Melbourne. Mat, Reformer and Barre classes. Book your free trial today.',
+  icons: {
+    icon:  '/icons/icon-192.png',
+    apple: '/icons/apple-touch-icon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
