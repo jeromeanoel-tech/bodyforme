@@ -14,6 +14,8 @@ const GRAD_COLORS = [
   'linear-gradient(150deg,#b8c8b8 0%,#4a6850 100%)',
   'linear-gradient(150deg,#c0b8d0 0%,#685878 100%)',
   'linear-gradient(150deg,#d0c0a8 0%,#8a6848 100%)',
+  'linear-gradient(150deg,#c8b0a0 0%,#7a4838 100%)',
+  'linear-gradient(150deg,#b0c0b8 0%,#4a6858 100%)',
 ]
 
 const GALLERY_GRADS = [
@@ -134,7 +136,7 @@ export default function AboutPage() {
             </h2>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '52px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '52px' }}>
               {about.instructors.map((inst, i) => (
                 <div key={i} style={{ background: 'var(--linen)', cursor: 'pointer', transition: 'background .2s' }}>
                   <div style={{ height: '280px', background: GRAD_COLORS[i % GRAD_COLORS.length], position: 'relative', overflow: 'hidden' }} />

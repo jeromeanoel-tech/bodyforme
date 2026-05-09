@@ -392,10 +392,42 @@ export const about = {
   ],
 
   instructors: [
-    { name: 'Suzanne Harb',      role: 'Founder · Lead Instructor', bio: 'Certified in both hot yoga and Pilates with over 10 years of teaching experience. Suzanne built BODYFORME around her belief that movement is personal — and every class reflects that.', tags: ['Hot Pilates', 'Bikram', 'Yin Yoga'] },
-    { name: 'Coming soon',       role: 'Instructor',                 bio: 'We\'re building a team of exceptional instructors. Stay tuned for new class times and new faces.', tags: ['Hot HIIT', 'Tabata', 'Special Forces'] },
-    { name: 'Coming soon',       role: 'Instructor',                 bio: 'We\'re building a team of exceptional instructors. Stay tuned for new class times and new faces.', tags: ['Bikram Express', 'Yin Yoga'] },
-    { name: 'Coming soon',       role: 'Instructor',                 bio: 'We\'re building a team of exceptional instructors. Stay tuned for new class times and new faces.', tags: ['Hot Pilates', 'AAA'] },
+    {
+      name: 'Gabe',
+      role: 'Bikram Yoga Instructor',
+      bio: 'Gabriel has been teaching Bikram Yoga for over a decade — beginning in Paris, then Geneva, and now Melbourne. Trained in the traditional lineage by Bikram Choudury in 2014, Gabe teaches the pure, unmodified 26+2 series and sees it as a path to clarity, unity and personal change.',
+      tags: ['Bikram 26+2'],
+    },
+    {
+      name: 'Sammy',
+      role: 'Pilates & Yoga Instructor',
+      bio: 'Pilates and yoga instructor with 10 years of experience.',
+      tags: ['Pilates', 'Yoga'],
+    },
+    {
+      name: 'Mish Gubbels',
+      role: 'Bikram & Pilates Instructor',
+      bio: 'Mish has taught Bikram Yoga for 16 years after graduating in Las Vegas in 2010, and Pilates for 11 years (Core Plus trained). Expect energy from the moment you walk in reception — sprinkled with a lot of laughter as you work hard and sweat together.',
+      tags: ['Bikram', 'Pilates'],
+    },
+    {
+      name: 'Jodie',
+      role: 'Mat Pilates Instructor',
+      bio: 'Certified Mat Pilates Instructor with over a decade of Pilates and Bikram practice. Jodie brings a background in Nursing and Midwifery and a passion for body awareness, mental wellness and strength training to help her students live their best active lives.',
+      tags: ['Mat Pilates', 'Bikram'],
+    },
+    {
+      name: 'Steph',
+      role: 'Yoga & Sculpt Instructor',
+      bio: 'Steph discovered yoga at age 11 and never looked back. With a 200hr YTT and Sculpt Teacher Training (2019), her classes are supportive and energising — nurturing strength, balance and flexibility with good vibes throughout.',
+      tags: ['Sculpt', 'Yoga'],
+    },
+    {
+      name: 'Hilory',
+      role: 'Pilates & Yoga Instructor',
+      bio: 'A decade of Pilates and Yoga teaching — and Hilory brings energy to every single class. No matter your ability or experience level, expect a mix of strength, flow and a touch of cardio, all set to great tunes.',
+      tags: ['Pilates', 'Yoga'],
+    },
   ],
 
   gallery: [
