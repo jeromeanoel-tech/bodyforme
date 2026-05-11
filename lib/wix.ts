@@ -195,6 +195,80 @@ export async function getContactBookings(contactId: string): Promise<WixContactB
   })
 }
 
+// ── Member credentials (Wix Collections) ─────────────────────────────────────
+
+export type MemberCredential = {
+  _id:              string
+  email:            string
+  passwordHash:     string
+  firstName:        string
+  lastName:         string
+  status:           string   // 'pending' | 'active' | 'paused' | 'cancelled'
+  wixContactId:     string
+  stripeCustomerId: string
+  planOverride:     string   // admin-set plan name (used during migration)
+  nextBillingDate:  string   // ISO date string
+  creditBalance:    number   // remaining class credits from Mind Body
+  adminNotes:       string   // internal migration notes
+}
+
+export async function createMemberCredential(data: Omit<MemberCredential, '_id'>): Promise<string> {
+  const res = await fetch(`${BASE}/wix-data/v2/items`, {
+    method: 'POST',
+    headers: { ...headers(), 'wix-suppress-auth': 'true' },
+    body: JSON.stringify({
+      collectionId: 'MemberCredentials',
+      dataItem: { data },
+    }),
+  })
+  if (!res.ok) throw new Error(`createMemberCredential → ${res.status}`)
+  const json = await res.json() as { dataItem: { id: string } }
+  return json.dataItem.id
+}
+
+export async function getMemberByEmail(email: string): Promise<MemberCredential | null> {
+  const res = await fetch(`${BASE}/wix-data/v2/items/query`, {
+    method: 'POST',
+    headers: { ...headers(), 'wix-suppress-auth': 'true' },
+    body: JSON.stringify({
+      collectionId: 'MemberCredentials',
+      query: { filter: { email: { $eq: email } }, paging: { limit: 1 } },
+    }),
+  })
+  if (!res.ok) return null
+  const json = await res.json() as { dataItems: Array<{ id: string; data: Record<string, unknown> }> }
+  const item = json.dataItems?.[0]
+  if (!item) return null
+  return { _id: item.id, ...(item.data as Omit<MemberCredential, '_id'>) }
+}
+
+export async function getMemberByContactId(wixContactId: string): Promise<MemberCredential | null> {
+  const res = await fetch(`${BASE}/wix-data/v2/items/query`, {
+    method: 'POST',
+    headers: { ...headers(), 'wix-suppress-auth': 'true' },
+    body: JSON.stringify({
+      collectionId: 'MemberCredentials',
+      query: { filter: { wixContactId: { $eq: wixContactId } }, paging: { limit: 1 } },
+    }),
+  })
+  if (!res.ok) return null
+  const json = await res.json() as { dataItems: Array<{ id: string; data: Record<string, unknown> }> }
+  const item = json.dataItems?.[0]
+  if (!item) return null
+  return { _id: item.id, ...(item.data as Omit<MemberCredential, '_id'>) }
+}
+
+export async function updateMemberCredential(id: string, patch: Partial<MemberCredential>): Promise<void> {
+  await fetch(`${BASE}/wix-data/v2/items/${id}`, {
+    method: 'PATCH',
+    headers: { ...headers(), 'wix-suppress-auth': 'true' },
+    body: JSON.stringify({
+      collectionId: 'MemberCredentials',
+      dataItem: { data: patch },
+    }),
+  })
+}
+
 // ── Mark attendance ───────────────────────────────────────────────────────────
 
 export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {

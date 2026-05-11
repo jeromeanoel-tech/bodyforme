@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import type { WixContact, WixContactBooking, WixMembership } from '@/lib/wix'
+import type { WixContact, WixContactBooking, WixMembership, MemberCredential } from '@/lib/wix'
 import { useSettings } from '@/lib/useSettings'
 
 type Props = {
@@ -498,11 +498,13 @@ function ClientDrawer({
   newMemberDays: number
   onClose: () => void
 }) {
-  const [bookings, setBookings] = useState<WixContactBooking[] | null>(null)
-  const [loading, setLoading]   = useState(false)
-  const [tab, setTab]           = useState<DrawerTab>('overview')
-  const [note, setNote]         = useState('')
-  const [notes, setNotes]       = useState<{ text: string; date: string }[]>([])
+  const [bookings, setBookings]   = useState<WixContactBooking[] | null>(null)
+  const [loading, setLoading]     = useState(false)
+  const [tab, setTab]             = useState<DrawerTab>('overview')
+  const [note, setNote]           = useState('')
+  const [notes, setNotes]         = useState<{ text: string; date: string }[]>([])
+  const [member, setMember]       = useState<MemberCredential | null | undefined>(undefined)
+  const [memberLoading, setMemberLoading] = useState(false)
 
   if (bookings === null && !loading) {
     setLoading(true)
@@ -510,6 +512,14 @@ function ClientDrawer({
       .then(r => r.json())
       .then(d => { setBookings(d.bookings ?? []); setLoading(false) })
       .catch(() => { setBookings([]); setLoading(false) })
+  }
+
+  if (member === undefined && !memberLoading) {
+    setMemberLoading(true)
+    fetch(`/api/admin/member-record?contactId=${contact.id}`)
+      .then(r => r.json())
+      .then(d => { setMember(d.member ?? null); setMemberLoading(false) })
+      .catch(() => { setMember(null); setMemberLoading(false) })
   }
 
   const attended      = bookings?.filter(b => b.status === 'ATTENDED').length  ?? 0
@@ -626,29 +636,13 @@ function ClientDrawer({
 
           {/* Memberships */}
           {tab === 'memberships' && (
-            <>
-              {memberships.length === 0 && (
-                <p className="px-6 py-6 text-sm text-neutral-400">No membership history found.</p>
-              )}
-              {memberships
-                .sort((a, b) => b.startDate.localeCompare(a.startDate))
-                .map((m, i) => (
-                  <div key={m.id} className={`px-6 py-4 ${i < memberships.length - 1 ? 'border-b border-neutral-100' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-[13px] font-semibold text-neutral-900">{m.planName || '—'}</p>
-                        <p className="text-[11.5px] text-neutral-400 mt-0.5">
-                          Started {fmtDate(m.startDate)}
-                          {m.endDate ? ` · Ends ${fmtDate(m.endDate)}` : ''}
-                        </p>
-                      </div>
-                      <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full ${MEM_STATUS_BADGE[m.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
-                        {m.status === 'ENDED' ? 'Expired' : m.status === 'CANCELED' ? 'Cancelled' : m.status.charAt(0) + m.status.slice(1).toLowerCase()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-            </>
+            <MembershipsTab
+              contact={contact}
+              memberships={memberships}
+              member={member}
+              memberLoading={memberLoading}
+              onMemberUpdate={setMember}
+            />
           )}
 
           {/* Notes */}
@@ -683,6 +677,196 @@ function ClientDrawer({
           )}
 
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Memberships tab ───────────────────────────────────────────────────────────
+
+const PLAN_OPTIONS = ['Bronze – $120/mo', 'Silver – $200/mo', 'Unlimited – $260/mo', '5-Class Pack', '10-Class Pack', 'Casual Drop-in', 'Free Trial']
+const STATUS_OPTIONS = ['active', 'paused', 'cancelled', 'pending']
+
+function MembershipsTab({ contact, memberships, member, memberLoading, onMemberUpdate }: {
+  contact:        WixContact
+  memberships:    WixMembership[]
+  member:         MemberCredential | null | undefined
+  memberLoading:  boolean
+  onMemberUpdate: (m: MemberCredential) => void
+}) {
+  const [form, setForm]     = useState<Partial<MemberCredential>>({})
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved]   = useState(false)
+  const [editing, setEditing] = useState(false)
+
+  useEffect(() => {
+    if (member) setForm({
+      status:          member.status,
+      planOverride:    member.planOverride    || '',
+      nextBillingDate: member.nextBillingDate || '',
+      creditBalance:   member.creditBalance   ?? 0,
+      adminNotes:      member.adminNotes      || '',
+    })
+  }, [member])
+
+  async function save() {
+    setSaving(true)
+    await fetch('/api/admin/update-member', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contactId: contact.id, ...form }),
+    })
+    setSaving(false)
+    setSaved(true)
+    setEditing(false)
+    if (member) onMemberUpdate({ ...member, ...form } as MemberCredential)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const stripeUrl = member?.stripeCustomerId
+    ? `https://dashboard.stripe.com/customers/${member.stripeCustomerId}`
+    : null
+
+  return (
+    <div>
+      {/* Wix memberships (read-only) */}
+      {memberships.length > 0 && (
+        <div className="border-b border-neutral-100">
+          <p className="px-6 pt-4 pb-2 text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Wix membership history</p>
+          {memberships
+            .sort((a, b) => b.startDate.localeCompare(a.startDate))
+            .map((m, i) => (
+              <div key={m.id} className={`flex items-start justify-between px-6 py-3.5 ${i < memberships.length - 1 ? 'border-b border-neutral-100' : ''}`}>
+                <div>
+                  <p className="text-[13px] font-semibold text-neutral-900">{m.planName || '—'}</p>
+                  <p className="text-[11.5px] text-neutral-400 mt-0.5">
+                    Started {fmtDate(m.startDate)}{m.endDate ? ` · Ends ${fmtDate(m.endDate)}` : ''}
+                  </p>
+                </div>
+                <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${MEM_STATUS_BADGE[m.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
+                  {m.status === 'ENDED' ? 'Expired' : m.status === 'CANCELED' ? 'Cancelled' : m.status.charAt(0) + m.status.slice(1).toLowerCase()}
+                </span>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {/* Admin override panel */}
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Admin adjustment</p>
+          <div className="flex items-center gap-2">
+            {stripeUrl && (
+              <a
+                href={stripeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              >
+                Open in Stripe ↗
+              </a>
+            )}
+            {!editing && (
+              <button
+                onClick={() => setEditing(true)}
+                className="text-[11px] font-medium text-neutral-600 hover:text-neutral-900 border border-neutral-200 px-2.5 py-1 rounded-md"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+        </div>
+
+        {memberLoading && <p className="text-sm text-neutral-400">Loading…</p>}
+
+        {!memberLoading && !member && (
+          <p className="text-[12px] text-neutral-400 italic">No app account found for this contact. They haven&apos;t signed up via the member portal yet.</p>
+        )}
+
+        {!memberLoading && member && !editing && (
+          <div className="space-y-2.5">
+            <InfoRow label="Status"         value={member.status || '—'} />
+            <InfoRow label="Plan override"  value={member.planOverride || '—'} />
+            <InfoRow label="Next billing"   value={member.nextBillingDate ? fmtDate(member.nextBillingDate) : '—'} />
+            <InfoRow label="Credit balance" value={member.creditBalance ? `${member.creditBalance} classes` : '—'} />
+            {member.adminNotes && (
+              <div className="mt-2 p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                <p className="text-[11.5px] text-amber-800 whitespace-pre-wrap">{member.adminNotes}</p>
+              </div>
+            )}
+            {saved && <p className="text-[11px] text-green-600 font-medium">Saved ✓</p>}
+          </div>
+        )}
+
+        {!memberLoading && member && editing && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Status</label>
+              <select
+                value={form.status || ''}
+                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
+              >
+                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Plan</label>
+              <select
+                value={form.planOverride || ''}
+                onChange={e => setForm(f => ({ ...f, planOverride: e.target.value }))}
+                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
+              >
+                <option value="">— Select plan —</option>
+                {PLAN_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Next billing date</label>
+              <input
+                type="date"
+                value={form.nextBillingDate || ''}
+                onChange={e => setForm(f => ({ ...f, nextBillingDate: e.target.value }))}
+                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Credit balance (classes remaining from Mind Body)</label>
+              <input
+                type="number"
+                min={0}
+                value={form.creditBalance ?? 0}
+                onChange={e => setForm(f => ({ ...f, creditBalance: Number(e.target.value) }))}
+                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Admin notes</label>
+              <textarea
+                value={form.adminNotes || ''}
+                onChange={e => setForm(f => ({ ...f, adminNotes: e.target.value }))}
+                placeholder="Migration notes, special arrangements, etc."
+                rows={3}
+                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black resize-none"
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={save}
+                disabled={saving}
+                className="h-8 px-4 text-sm bg-black text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800 transition-colors"
+              >
+                {saving ? 'Saving…' : 'Save changes'}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="h-8 px-4 text-sm border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
