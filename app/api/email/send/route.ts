@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
 
-type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'custom'
+type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'migration' | 'custom'
 
 interface EmailPayload {
   to:       string
@@ -78,6 +78,21 @@ function buildEmail(template: Template, vars: Record<string, string>) {
           <p>We look forward to seeing you on the mat.</p>
           <br>
           <p><strong>BodyForme Pilates</strong><br>132 Ayr Street, Doncaster VIC 3108</p>
+        `,
+      }
+
+    case 'migration':
+      return {
+        subject: 'BodyForme has a new booking system — action needed',
+        html: `
+          <p>Hi ${first},</p>
+          <p>We're excited to let you know that BodyForme has moved to a brand new booking and membership system. It's faster, easier to use, and works as an app right on your phone.</p>
+          <p>To keep enjoying classes without interruption, you'll need to create your new account — it only takes a couple of minutes:</p>
+          <p><a href="${vars.signupUrl ?? 'https://bodyforme.com.au/sign-up'}">Create your new account →</a></p>
+          <p>Once you're registered, our team will get your membership sorted on the other side. If you have any questions or run into any issues, just reply to this email or give us a call.</p>
+          <p>We look forward to seeing you on the mat.</p>
+          <br>
+          <p><strong>BodyForme Pilates</strong><br>132 Ayr Street, Doncaster VIC 3108<br><a href="tel:0390000000">(03) 9000 0000</a></p>
         `,
       }
 

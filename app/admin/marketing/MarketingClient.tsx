@@ -2,9 +2,24 @@
 
 import { useState, useEffect } from 'react'
 
-type Tab     = 'send' | 'automations'
-type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | 'no-membership'
+type Tab       = 'send' | 'automations'
+type Segment   = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | 'no-membership'
 type SendState = 'idle' | 'previewing' | 'sending' | 'done' | 'error'
+
+const QUICK_TEMPLATES = [
+  {
+    label:   'Migration campaign',
+    subject: 'BodyForme has a new booking system — action needed',
+    body:    "We're excited to let you know that BodyForme has moved to a brand new booking and membership system. It's faster, easier to use, and works as an app right on your phone.\n\nTo keep enjoying classes without interruption, you'll need to create your new account — it only takes a couple of minutes:\n\nhttps://bodyforme.com.au/sign-up\n\nOnce you're registered, our team will get your membership sorted. If you have any questions, just reply to this email or give us a call.\n\nWe look forward to seeing you on the mat.\n\nBodyForme Pilates\n132 Ayr Street, Doncaster VIC 3108",
+    segment: 'all' as Segment,
+  },
+  {
+    label:   'Membership renewal reminder',
+    subject: "Your BodyForme membership expires soon",
+    body:    "Just a heads-up that your membership is coming up for renewal soon.\n\nIf you'd like to continue, no action is needed — it will renew automatically. If you'd like to change your plan or pause, please contact us at least 5 business days before your renewal date.\n\nLog in to manage your membership:\n\nhttps://bodyforme.com.au/app/membership",
+    segment: 'expiring-soon' as Segment,
+  },
+]
 
 const SEGMENTS: { value: Segment; label: string; description: string }[] = [
   { value: 'active-members', label: 'Active members',      description: 'Everyone with a current active membership' },
@@ -166,6 +181,20 @@ export default function MarketingClient() {
                         </label>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Quick templates */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Quick templates:</span>
+                    {QUICK_TEMPLATES.map(t => (
+                      <button
+                        key={t.label}
+                        onClick={() => { setSubject(t.subject); setBody(t.body); setSegment(t.segment) }}
+                        className="text-[12px] px-3 py-1 rounded-full border border-neutral-200 text-neutral-600 hover:border-black hover:text-black transition-colors"
+                      >
+                        {t.label}
+                      </button>
+                    ))}
                   </div>
 
                   {/* Compose */}
