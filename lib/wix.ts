@@ -83,14 +83,13 @@ export async function getSessions(from: string, to: string): Promise<WixSession[
     const start       = (e.start as Record<string, string>)?.localDate ?? ''
     const end         = (e.end   as Record<string, string>)?.localDate ?? ''
     const resources   = (e.resources as Array<Record<string, string>>) ?? []
-    const bookedCount = (e.participation as Record<string, number>)?.numberOfParticipants ?? 0
     return {
       id:              e.id as string,
       title:           (e.title as string) ?? '',
       start,
       end,
-      capacity:        (e.capacity as number) ?? 0,
-      bookedCount,
+      capacity:        (e.totalCapacity as number) ?? 0,
+      bookedCount:     ((e.totalCapacity as number) ?? 0) - ((e.remainingCapacity as number) ?? 0),
       scheduleId:      (e.scheduleId as string) ?? '',
       staffResourceId: resources[0]?.id ?? '',
       status:          (e.status as string) ?? 'CONFIRMED',
