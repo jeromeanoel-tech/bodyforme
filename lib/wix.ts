@@ -216,7 +216,7 @@ export async function createMemberCredential(data: Omit<MemberCredential, '_id'>
     method: 'POST',
     headers: { ...headers(), 'wix-suppress-auth': 'true' },
     body: JSON.stringify({
-      collectionId: 'MemberCredentials',
+      dataCollectionId: 'MemberCredentials',
       dataItem: { data },
     }),
   })
@@ -230,7 +230,7 @@ export async function getMemberByEmail(email: string): Promise<MemberCredential 
     method: 'POST',
     headers: { ...headers(), 'wix-suppress-auth': 'true' },
     body: JSON.stringify({
-      collectionId: 'MemberCredentials',
+      dataCollectionId: 'MemberCredentials',
       query: { filter: { email: { $eq: email } }, paging: { limit: 1 } },
     }),
   })
@@ -246,7 +246,7 @@ export async function getMemberByContactId(wixContactId: string): Promise<Member
     method: 'POST',
     headers: { ...headers(), 'wix-suppress-auth': 'true' },
     body: JSON.stringify({
-      collectionId: 'MemberCredentials',
+      dataCollectionId: 'MemberCredentials',
       query: { filter: { wixContactId: { $eq: wixContactId } }, paging: { limit: 1 } },
     }),
   })
@@ -262,7 +262,7 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
     method: 'PATCH',
     headers: { ...headers(), 'wix-suppress-auth': 'true' },
     body: JSON.stringify({
-      collectionId: 'MemberCredentials',
+      dataCollectionId: 'MemberCredentials',
       dataItem: { data: patch },
     }),
   })
