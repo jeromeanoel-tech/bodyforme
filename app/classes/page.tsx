@@ -54,8 +54,9 @@ function getWeekDays(date: Date): Date[] {
 export default async function ClassesPage() {
   const today = new Date()
   const days  = getWeekDays(today)
-  const from  = days[0].toISOString().slice(0, 10)
-  const to    = days[6].toISOString().slice(0, 10)
+  const pad   = (d: Date) => d.toISOString().slice(0, 10)
+  const from  = `${pad(days[0])}T00:00:00`
+  const to    = `${pad(days[6])}T23:59:59`
 
   let sessions: WixSession[] = []
   let services: WixService[] = []

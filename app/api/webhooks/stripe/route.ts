@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { signupPlans } from '@/lib/content'
+import { getMemberByEmail, updateMemberCredential } from '@/lib/wix'
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -63,7 +64,14 @@ export async function POST(req: NextRequest) {
       const planName  = signupPlans[planKey]?.name ?? planKey
       const fullName  = `${firstName} ${lastName}`.trim()
 
+      // Activate member account
       if (email) {
+        const stripeCustomerId = (obj.customer as string) ?? ''
+        const member = await getMemberByEmail(email)
+        if (member) {
+          await updateMemberCredential(member._id, { status: 'active', stripeCustomerId })
+        }
+
         await sendEmail(email, 'welcome', {
           firstName,
           planName,

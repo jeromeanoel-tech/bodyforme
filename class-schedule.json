@@ -1,0 +1,267 @@
+{
+  "schedule": {
+    "week_starting": "2026-04-27",
+    "week_ending": "2026-05-03",
+    "timezone": "Australia/Melbourne",
+    "days": [
+      {
+        "date": "2026-04-27",
+        "day": "Monday",
+        "signed_in_count": 13,
+        "signed_in_percentage": 14.29,
+        "classes": [
+          {
+            "start_time": "06:30",
+            "end_time": "07:30",
+            "class_name": "AAA (Arms Abs Ass)",
+            "teacher": "Jodie",
+            "signed_in": 4,
+            "capacity": 16
+          },
+          {
+            "start_time": "09:30",
+            "end_time": "10:30",
+            "class_name": "Hot Pilates",
+            "teacher": "Suzanne",
+            "signed_in": 9,
+            "capacity": 25
+          },
+          {
+            "start_time": "17:45",
+            "end_time": "18:45",
+            "class_name": "Hot Pilates",
+            "teacher": "Angie",
+            "signed_in": 9,
+            "capacity": 25
+          },
+          {
+            "start_time": "19:00",
+            "end_time": "20:00",
+            "class_name": "Bikram Express",
+            "teacher": "Angie",
+            "signed_in": 9,
+            "capacity": 25
+          }
+        ]
+      },
+      {
+        "date": "2026-04-28",
+        "day": "Tuesday",
+        "signed_in_count": 0,
+        "signed_in_percentage": 0.00,
+        "classes": [
+          {
+            "start_time": "06:30",
+            "end_time": "07:30",
+            "class_name": "Bikram Express",
+            "teacher": "Gabriel",
+            "signed_in": 2,
+            "capacity": 25
+          },
+          {
+            "start_time": "09:30",
+            "end_time": "10:30",
+            "class_name": "AAA (Arms Abs Ass)",
+            "teacher": "Suzanne",
+            "signed_in": 2,
+            "capacity": 25
+          },
+          {
+            "start_time": "17:30",
+            "end_time": "18:30",
+            "class_name": "AAA (Arms Abs Ass)",
+            "teacher": "Suzanne",
+            "signed_in": 7,
+            "capacity": 25
+          },
+          {
+            "start_time": "18:45",
+            "end_time": "19:30",
+            "class_name": "Hot Pilates",
+            "teacher": "Suzanne",
+            "signed_in": 3,
+            "capacity": 25
+          }
+        ]
+      },
+      {
+        "date": "2026-04-29",
+        "day": "Wednesday",
+        "signed_in_count": 0,
+        "signed_in_percentage": 0.00,
+        "classes": [
+          {
+            "start_time": "06:30",
+            "end_time": "07:30",
+            "class_name": "AAA (Arms Abs Ass)",
+            "teacher": "Mish",
+            "signed_in": 2,
+            "capacity": 25
+          },
+          {
+            "start_time": "09:30",
+            "end_time": "10:30",
+            "class_name": "Hot Pilates",
+            "teacher": "Suzanne",
+            "signed_in": 2,
+            "capacity": 25
+          },
+          {
+            "start_time": "17:30",
+            "end_time": "18:15",
+            "class_name": "Hot Pilates",
+            "teacher": "Hiliory",
+            "signed_in": 5,
+            "capacity": 25
+          },
+          {
+            "start_time": "18:30",
+            "end_time": "19:15",
+            "class_name": "Hot HIIT",
+            "teacher": "Hiliory",
+            "signed_in": 1,
+            "capacity": 25
+          },
+          {
+            "start_time": "19:30",
+            "end_time": "20:30",
+            "class_name": "Cancelled",
+            "teacher": "Sam",
+            "signed_in": 2,
+            "capacity": 25,
+            "cancelled": true
+          }
+        ]
+      },
+      {
+        "date": "2026-04-30",
+        "day": "Thursday",
+        "signed_in_count": 0,
+        "signed_in_percentage": 0.00,
+        "classes": [
+          {
+            "start_time": "09:30",
+            "end_time": "10:30",
+            "class_name": "Special Forces",
+            "teacher": "Suzanne",
+            "signed_in": 0,
+            "capacity": 25
+          },
+          {
+            "start_time": "17:30",
+            "end_time": "18:15",
+            "class_name": "AAA (Arms Abs Ass)",
+            "teacher": "Mish",
+            "signed_in": 0,
+            "capacity": 25
+          },
+          {
+            "start_time": "18:30",
+            "end_time": "19:30",
+            "class_name": "Yin Yoga",
+            "teacher": "Angie",
+            "signed_in": 2,
+            "capacity": 25
+          }
+        ]
+      },
+      {
+        "date": "2026-05-01",
+        "day": "Friday",
+        "signed_in_count": 0,
+        "signed_in_percentage": 0.00,
+        "classes": [
+          {
+            "start_time": "09:30",
+            "end_time": "10:30",
+            "class_name": "Hot Pilates",
+            "teacher": "Suzanne",
+            "signed_in": 0,
+            "capacity": 25
+          },
+          {
+            "start_time": "17:00",
+            "end_time": "18:00",
+            "class_name": "Hot Pilates",
+            "teacher": "Sam",
+            "signed_in": 0,
+            "capacity": 25
+          },
+          {
+            "start_time": "18:15",
+            "end_time": "19:15",
+            "class_name": "Bikram Express",
+            "teacher": "Gabriel",
+            "signed_in": 0,
+            "capacity": 25
+          }
+        ]
+      },
+      {
+        "date": "2026-05-02",
+        "day": "Saturday",
+        "signed_in_count": 0,
+        "signed_in_percentage": 0.00,
+        "classes": [
+          {
+            "start_time": "07:00",
+            "end_time": "08:00",
+            "class_name": "Special Forces",
+            "teacher": "Jodie",
+            "signed_in": 0,
+            "capacity": 16
+          },
+          {
+            "start_time": "08:00",
+            "end_time": "09:00",
+            "class_name": "Sculpt Yoga",
+            "teacher": "Stephanie",
+            "signed_in": 1,
+            "capacity": 25
+          }
+        ]
+      },
+      {
+        "date": "2026-05-03",
+        "day": "Sunday",
+        "signed_in_count": 0,
+        "signed_in_percentage": 0.00,
+        "classes": [
+          {
+            "start_time": "07:00",
+            "end_time": "08:00",
+            "class_name": "Cancelled",
+            "teacher": "Suzanne",
+            "signed_in": 0,
+            "capacity": 25,
+            "cancelled": true
+          },
+          {
+            "start_time": "08:00",
+            "end_time": "09:00",
+            "class_name": "Hot Pilates",
+            "teacher": "Suzanne",
+            "signed_in": 1,
+            "capacity": 25
+          },
+          {
+            "start_time": "09:15",
+            "end_time": "10:45",
+            "class_name": "Bikram 90 min",
+            "teacher": "Mish",
+            "signed_in": 0,
+            "capacity": 25
+          },
+          {
+            "start_time": "17:00",
+            "end_time": "18:00",
+            "class_name": "Yin Yoga",
+            "teacher": "Sam",
+            "signed_in": 1,
+            "capacity": 25
+          }
+        ]
+      }
+    ]
+  }
+}
