@@ -9,14 +9,6 @@ export const metadata = {
   description: 'Meet Suzanne Harb and the BodyForme team. Our story, values and what makes our Doncaster Pilates studio different.',
 }
 
-const GRAD_COLORS = [
-  'linear-gradient(150deg,#c8b89a 0%,#7a5a3e 100%)',
-  'linear-gradient(150deg,#b8c8b8 0%,#4a6850 100%)',
-  'linear-gradient(150deg,#c0b8d0 0%,#685878 100%)',
-  'linear-gradient(150deg,#d0c0a8 0%,#8a6848 100%)',
-  'linear-gradient(150deg,#c8b0a0 0%,#7a4838 100%)',
-  'linear-gradient(150deg,#b0c0b8 0%,#4a6858 100%)',
-]
 
 const GALLERY_GRADS = [
   'linear-gradient(135deg,#d4c4ae 0%,#7a5838 100%)',
@@ -138,9 +130,8 @@ export default function AboutPage() {
           <ScrollReveal>
             <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '52px' }}>
               {about.instructors.map((inst, i) => (
-                <div key={i} style={{ background: 'var(--linen)', cursor: 'pointer', transition: 'background .2s' }}>
-                  <div style={{ height: '280px', background: GRAD_COLORS[i % GRAD_COLORS.length], position: 'relative', overflow: 'hidden' }} />
-                  <div style={{ padding: '22px 24px 28px' }}>
+                <div key={i} style={{ background: 'var(--linen)' }}>
+                  <div style={{ padding: '28px 24px 32px' }}>
                     <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1.1, marginBottom: '4px' }}>{inst.name}</div>
                     <div style={{ fontSize: '9.5px', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '12px' }}>{inst.role}</div>
                     <p style={{ fontSize: '12px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.65 }}>{inst.bio}</p>
