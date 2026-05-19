@@ -164,4 +164,8 @@ body { margin: 0; }
 
   /* Class type card inner grid (image + text) */
   .cls-card { grid-template-columns: 1fr !important; }
+
+  /* Sign-up page */
+  .r3-form  { grid-template-columns: 1fr !important; }
+  .nosticky { position: static !important; top: auto !important; }
 }

@@ -124,7 +124,7 @@ function SignUpForm() {
 
       {/* ── Breadcrumb ── */}
       <div style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)', padding: '14px 0' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Link href="/memberships" style={{ fontSize: '11px', color: 'var(--muted)', textDecoration: 'none', letterSpacing: '.08em' }}>Memberships</Link>
           <span style={{ fontSize: '11px', color: 'var(--rule)' }}>›</span>
           <span style={{ fontSize: '11px', color: 'var(--text)', letterSpacing: '.08em' }}>Sign up</span>
@@ -132,11 +132,11 @@ function SignUpForm() {
       </div>
 
       {/* ── Main ── */}
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 48px 96px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '80px', alignItems: 'start' }}>
+      <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 48px 96px' }}>
+        <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '80px', alignItems: 'start' }}>
 
           {/* ── Left: Plan summary ── */}
-          <div style={{ position: 'sticky', top: '100px' }}>
+          <div className="nosticky" style={{ position: 'sticky', top: '100px' }}>
             <div style={{ fontSize: '9.5px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '24px' }}>
               You&apos;re signing up for
             </div>
@@ -206,7 +206,7 @@ function SignUpForm() {
             <form onSubmit={handleSubmit} noValidate>
 
               {/* Name row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
+              <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
                 <Field label="First name" error={errors.firstName}>
                   <input
                     type="text"
@@ -228,7 +228,7 @@ function SignUpForm() {
               </div>
 
               {/* Email + phone */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
+              <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
                 <Field label="Email address" error={errors.email}>
                   <input
                     type="email"
@@ -254,7 +254,7 @@ function SignUpForm() {
               <div style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '24px' }}>
                 Create your account
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
+              <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
                 <Field label="Password" error={errors.password}>
                   <div style={{ position: 'relative' }}>
                     <input
@@ -313,7 +313,7 @@ function SignUpForm() {
               </div>
 
               {/* Suburb + state + postcode */}
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '20px', marginBottom: '28px' }}>
+              <div className="r3-form" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '20px', marginBottom: '28px' }}>
                 <Field label="Suburb" error={errors.suburb}>
                   <input
                     type="text"
