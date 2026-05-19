@@ -168,4 +168,8 @@ body { margin: 0; }
   /* Sign-up page */
   .r3-form  { grid-template-columns: 1fr !important; }
   .nosticky { position: static !important; top: auto !important; }
+
+  /* Footer */
+  .footer-grid   { grid-template-columns: 1fr 1fr !important; gap: 40px !important; }
+  .footer-bottom { flex-direction: column !important; gap: 10px !important; align-items: flex-start !important; }
 }

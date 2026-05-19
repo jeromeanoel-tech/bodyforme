@@ -55,7 +55,7 @@ export default function SignUpSuccessPage({ searchParams }: Props) {
 
       {/* ── Success section ── */}
       <section style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
 
           {/* Left: confirmation message */}
           <div>

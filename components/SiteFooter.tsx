@@ -6,10 +6,10 @@ export default function SiteFooter() {
 
   return (
     <footer style={{ background: 'var(--esp2)', paddingTop: '64px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px' }}>
+      <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px' }}>
 
         {/* Top grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '64px', paddingBottom: '56px', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
+        <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '64px', paddingBottom: '56px', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
 
           {/* Brand col */}
           <div>
@@ -67,7 +67,7 @@ export default function SiteFooter() {
         </div>
 
         {/* Bottom bar */}
-        <div style={{ padding: '20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="footer-bottom" style={{ padding: '20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '11px', color: 'rgba(244,237,225,.25)', letterSpacing: '.04em' }}>
             © {year} BodyForme Pilates. All rights reserved.
           </span>

@@ -14,7 +14,7 @@ export default function MembershipsPage() {
 
       {/* ── PAGE HERO ── */}
       <div style={{ background: 'var(--esp)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px 64px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'end' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px 64px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'end' }}>
           <div>
             <div style={{ fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.35)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.4)', display: 'block' }} />
@@ -43,7 +43,7 @@ export default function MembershipsPage() {
 
       {/* ── TRIAL BANNER ── */}
       <div style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px' }}>
+        <div className="rcta sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '40px' }}>
           <div>
             <strong style={{ display: 'block', fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--esp)', marginBottom: '2px' }}>
               {memberships.trial.heading}
@@ -61,9 +61,9 @@ export default function MembershipsPage() {
 
       {/* ── PLAN CARDS ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
+            <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
                 <div className="slbl">Membership plans</div>
                 <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
@@ -76,7 +76,7 @@ export default function MembershipsPage() {
             </div>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {memberships.plans.map(plan => (
                 <PlanCard key={plan.name} plan={plan} />
               ))}
@@ -87,9 +87,9 @@ export default function MembershipsPage() {
 
       {/* ── CASUAL PACKS ── */}
       <div style={{ background: 'var(--canvas)', borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
+            <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
                 <div className="slbl">Flexible options</div>
                 <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
@@ -102,7 +102,7 @@ export default function MembershipsPage() {
             </div>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {memberships.packs.map((pack, i) => (
                 <div key={i} style={{ background: 'var(--linen)', padding: '36px 28px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '42px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1, marginBottom: '12px' }}>{pack.price}</div>
@@ -123,7 +123,7 @@ export default function MembershipsPage() {
 
       {/* ── HOW IT WORKS ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div className="slbl">Getting started</div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)' }}>
@@ -131,7 +131,7 @@ export default function MembershipsPage() {
             </h2>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '56px' }}>
+            <div className="r4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '56px' }}>
               {memberships.howItWorks.map((step, i) => (
                 <div key={i} style={{ background: 'var(--linen)', padding: '40px 32px' }}>
                   <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '48px', fontWeight: 300, color: 'var(--l3)', lineHeight: 1, marginBottom: '24px' }}>{step.step}</div>
@@ -148,7 +148,7 @@ export default function MembershipsPage() {
 
       {/* ── TESTIMONIALS ── */}
       <div style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div className="slbl">What members say</div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)' }}>
@@ -156,7 +156,7 @@ export default function MembershipsPage() {
             </h2>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '52px' }}>
+            <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '52px' }}>
               {memberships.testimonials.map((t, i) => (
                 <div key={i} style={{ background: 'var(--canvas)', padding: '36px 32px' }}>
                   <div style={{ color: 'var(--blt)', fontSize: '13px', letterSpacing: '2px', marginBottom: '20px' }}>{'★'.repeat(t.stars)}</div>
@@ -175,9 +175,9 @@ export default function MembershipsPage() {
 
       {/* ── FAQ ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '80px' }}>
+            <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '80px' }}>
               <div>
                 <div className="slbl">Questions</div>
                 <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '20px' }}>
@@ -200,8 +200,8 @@ export default function MembershipsPage() {
       </div>
 
       {/* ── SIGN-UP CTA ── */}
-      <div style={{ background: 'var(--esp)', padding: '80px 48px' }} id="signup">
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+      <div className="sp" style={{ background: 'var(--esp)', padding: '80px 48px' }} id="signup">
+        <div className="r2" style={{ maxWidth: '1280px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--linen)', marginBottom: '16px' }}>
               Ready to <em style={{ fontStyle: 'italic', color: '#c4a882' }}>start?</em>

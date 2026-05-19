@@ -38,7 +38,7 @@ export default function TermsPage() {
     <div className="site-body">
       <SiteHeader />
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '64px 48px 96px' }}>
+      <div className="sp" style={{ maxWidth: 800, margin: '0 auto', padding: '64px 48px 96px' }}>
 
         {/* Header */}
         <div style={{ marginBottom: 56, paddingBottom: 32, borderBottom: '1px solid var(--rule)' }}>

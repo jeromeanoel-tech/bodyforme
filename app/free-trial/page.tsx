@@ -16,7 +16,7 @@ export default function FreeTrialPage() {
 
       {/* ── HERO ── */}
       <section style={{ background: 'var(--esp)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '80px 48px 72px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '80px 48px 72px' }}>
           <div style={{ fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.35)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.4)', display: 'block' }} />
             New members only · No credit card required
@@ -39,7 +39,7 @@ export default function FreeTrialPage() {
 
       {/* ── HOW IT WORKS ── */}
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div className="slbl">How it works</div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '56px' }}>
@@ -47,7 +47,7 @@ export default function FreeTrialPage() {
             </h2>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {freeTrial.steps.map((step, i) => (
                 <div key={i} style={{ background: 'var(--linen)', padding: '40px 32px' }}>
                   <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '48px', fontWeight: 300, color: 'var(--l3)', lineHeight: 1, marginBottom: '24px' }}>{step.n}</div>
@@ -62,7 +62,7 @@ export default function FreeTrialPage() {
 
       {/* ── WHAT TO BRING ── */}
       <section style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
           <ScrollReveal>
             <div className="slbl">Be prepared</div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(32px,3.5vw,48px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '24px' }}>
@@ -105,7 +105,7 @@ export default function FreeTrialPage() {
 
       {/* ── CTA ── */}
       <section style={{ background: 'var(--esp)', padding: '80px 48px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
+        <div className="rcta sp" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
           <div>
             <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(28px,3vw,42px)', fontWeight: 300, color: 'var(--linen)', marginBottom: '8px' }}>
               Ready to <em style={{ fontStyle: 'italic', color: '#c4a882' }}>begin?</em>
