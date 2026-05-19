@@ -39,7 +39,7 @@ export default function ContactPage() {
       <SiteHeader />
 
       {/* ── PAGE HERO ── */}
-      <div style={{ borderBottom: '1px solid var(--rule)', display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '52vh' }}>
+      <div className="pg-hero-grid" style={{ borderBottom: '1px solid var(--rule)', display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '52vh' }}>
         {/* Left dark */}
         <div style={{ background: 'var(--esp)', padding: '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% 60%,oklch(0.38 0.06 40 / .4) 0%,transparent 60%)' }} />
@@ -102,7 +102,7 @@ export default function ContactPage() {
       {/* ── CONTACT FORM + INFO ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px' }}>
+          <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px' }}>
 
             {/* Form */}
             <div>
@@ -124,7 +124,7 @@ export default function ContactPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
+                  <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
                     <div>
                       <label style={lblStyle}>First name</label>
                       <input

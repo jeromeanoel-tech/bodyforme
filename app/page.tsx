@@ -13,7 +13,7 @@ export default function HomePage() {
 
       {/* ── HERO ── */}
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px', minHeight: '88vh', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+        <div className="hero-grid sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px', minHeight: '88vh', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
 
           {/* Left: copy */}
           <div>
@@ -45,7 +45,7 @@ export default function HomePage() {
           </div>
 
           {/* Right: image placeholder + stats */}
-          <div style={{ position: 'relative' }}>
+          <div className="hero-right" style={{ position: 'relative' }}>
             {/* Main image placeholder */}
             <div style={{ height: '520px', background: 'linear-gradient(150deg,#d4c4ae 0%,#7a5838 100%)', position: 'relative' }}>
               {/* Floating stat card */}
@@ -80,7 +80,7 @@ export default function HomePage() {
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
+            <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
                 <div className="slbl">{home.classesSection.eyebrow}</div>
                 <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
@@ -96,7 +96,7 @@ export default function HomePage() {
 
           {/* 4-col hover-fill cards */}
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {classTypes.map((cls, i) => (
                 <ClassCard key={cls.slug} cls={cls} index={i} />
               ))}
@@ -116,7 +116,7 @@ export default function HomePage() {
 
       {/* ── BENEFITS (dark) ── */}
       <section style={{ background: 'var(--esp)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
           <ScrollReveal>
             <div className="slbl" style={{ color: 'rgba(244,237,225,.3)' }}><span>{home.benefitsSection.eyebrow}</span></div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--linen)', marginBottom: '24px' }}>
@@ -143,7 +143,7 @@ export default function HomePage() {
 
       {/* ── PHILOSOPHY ── */}
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
           <ScrollReveal>
             <div className="slbl">{home.philosophySection.eyebrow}</div>
             <blockquote style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(24px,2.8vw,36px)', fontStyle: 'italic', fontWeight: 300, color: 'var(--esp)', lineHeight: 1.3, borderTop: '2px solid var(--esp)', paddingTop: '24px', marginBottom: '28px' }}>
@@ -175,7 +175,7 @@ export default function HomePage() {
       <section style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
+            <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
                 <div className="slbl">Membership plans</div>
                 <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
@@ -188,7 +188,7 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {memberships.plans.map(plan => (
                 <MembershipCard key={plan.name} plan={plan} />
               ))}
@@ -207,7 +207,7 @@ export default function HomePage() {
 
       {/* ── CONTACT STRIP ── */}
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
           <ScrollReveal>
             <div className="slbl">{home.contactSection.eyebrow}</div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '24px' }}>
@@ -333,7 +333,7 @@ function ContactForm({ compact }: { compact?: boolean }) {
         We aim to respond within one business day.
       </p>
       <form action="/api/contact" method="POST" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+        <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
           <div>
             <label style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '8px' }}>Name</label>
             <input name="name" type="text" required style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid var(--rule)', padding: '8px 0', fontFamily: 'var(--font-dm-sans)', fontSize: '13.5px', fontWeight: 300, color: 'var(--text)', outline: 'none' }} />

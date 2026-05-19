@@ -75,7 +75,7 @@ export default async function ClassesPage() {
 
       {/* ── PAGE HERO ── */}
       <div style={{ background: 'var(--esp)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 48px 56px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'end' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 48px 56px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'end' }}>
           <div>
             <div style={{ fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.4)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.5)', display: 'block' }} />
@@ -121,7 +121,8 @@ export default async function ClassesPage() {
         </div>
 
         {/* 7-col day grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+        <div className="sched-wrap">
+        <div className="sched-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
           {days.map((day, di) => {
             const dayStr = day.toISOString().slice(0, 10)
             const isToday = dayStr === todayStr
@@ -189,13 +190,14 @@ export default async function ClassesPage() {
             )
           })}
         </div>
+        </div>
       </div>
 
       {/* ── CLASS TYPE CARDS ── */}
       <div style={{ borderTop: '1px solid var(--rule)', borderBottom: '1px solid var(--rule)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px' }}>
           <ScrollReveal>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
+            <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
                 <div className="slbl">Class types</div>
                 <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
@@ -208,7 +210,7 @@ export default async function ClassesPage() {
             </div>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r2c" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {classTypes.map((cls, i) => {
                 const gradMap = [
                   'linear-gradient(150deg,#c8a880 0%,#8a5030 100%)',
@@ -223,6 +225,7 @@ export default async function ClassesPage() {
                 return (
                   <div
                     key={cls.slug}
+                    className="cls-card"
                     style={{
                       background: 'var(--linen)',
                       display: 'grid',
@@ -277,7 +280,7 @@ export default async function ClassesPage() {
 
       {/* ── CTA ── */}
       <div style={{ background: 'var(--esp)', marginTop: 0, padding: '60px 48px' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
+        <div className="rcta" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
           <div>
             <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(28px,3vw,40px)', fontWeight: 300, color: 'var(--linen)', marginBottom: '8px' }}>
               {classesPage.ctaHeading}{' '}

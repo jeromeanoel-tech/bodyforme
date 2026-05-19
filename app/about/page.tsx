@@ -32,7 +32,7 @@ export default function AboutPage() {
       <SiteHeader />
 
       {/* ── PAGE HERO ── */}
-      <div style={{ minHeight: '72vh', display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid var(--rule)' }}>
+      <div className="pg-hero-grid" style={{ minHeight: '72vh', display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid var(--rule)' }}>
         {/* Left dark */}
         <div style={{ background: 'var(--esp)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '64px 56px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 30% 50%,oklch(0.38 0.06 40 / .45) 0%,transparent 65%)' }} />
@@ -51,7 +51,7 @@ export default function AboutPage() {
           </div>
         </div>
         {/* Right linen */}
-        <div style={{ background: 'var(--l2)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '64px 56px', gap: '36px' }}>
+        <div className="pg-hero-right" style={{ background: 'var(--l2)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '64px 56px', gap: '36px' }}>
           <blockquote style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(24px,2.8vw,36px)', fontStyle: 'italic', fontWeight: 300, color: 'var(--esp)', lineHeight: 1.3, borderTop: '2px solid var(--esp)', paddingTop: '24px' }}>
             {about.hero.quote}
           </blockquote>
@@ -73,7 +73,7 @@ export default function AboutPage() {
       {/* ── FOUNDER STORY ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
         <ScrollReveal>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '600px' }}>
+          <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '600px' }}>
             {/* Image */}
             <div style={{ background: 'linear-gradient(150deg,#c8b090 0%,#6a3c18 100%)', position: 'relative', overflow: 'hidden', minHeight: '560px' }}>
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(42,21,6,.4) 0%,transparent 55%)' }} />
@@ -111,7 +111,7 @@ export default function AboutPage() {
             <p style={{ fontSize: '14px', fontWeight: 300, color: 'rgba(244,237,225,.55)', lineHeight: 1.75, maxWidth: '480px', margin: '20px 0 64px' }}>
               These aren&apos;t words on a wall. They shape how we teach, how we welcome, and how we build this community every day.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderTop: '1px solid rgba(255,255,255,.08)' }}>
+            <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderTop: '1px solid rgba(255,255,255,.08)' }}>
               {about.values.map((v, i) => (
                 <div key={i} style={{ padding: '44px 48px 44px 0', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
                   <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '11px', color: 'rgba(244,237,225,.2)', letterSpacing: '.1em', marginBottom: '20px' }}>{v.n}</div>
@@ -136,7 +136,7 @@ export default function AboutPage() {
             </h2>
           </ScrollReveal>
           <ScrollReveal>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '52px' }}>
+            <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '52px' }}>
               {about.instructors.map((inst, i) => (
                 <div key={i} style={{ background: 'var(--linen)', cursor: 'pointer', transition: 'background .2s' }}>
                   <div style={{ height: '280px', background: GRAD_COLORS[i % GRAD_COLORS.length], position: 'relative', overflow: 'hidden' }} />

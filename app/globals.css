@@ -115,3 +115,53 @@ body { margin: 0; }
 .faq-item.open .faq-toggle {
   transform: rotate(45deg);
 }
+
+/* ── Mobile nav ── */
+.mob-hamburger { display: none; }
+.mob-menu      { display: none; flex-direction: column; }
+.mob-menu-open { display: flex !important; }
+
+/* ── Responsive overrides ── */
+@media (max-width: 767px) {
+  /* Header */
+  .desk-nav      { display: none !important; }
+  .desk-book-btn { display: none !important; }
+  .mob-hamburger { display: flex !important; align-items: center; justify-content: center; }
+
+  /* Side padding */
+  .sp { padding-left: 20px !important; padding-right: 20px !important; }
+
+  /* Hero */
+  .hero-grid  { grid-template-columns: 1fr !important; gap: 0 !important; min-height: auto !important; padding-top: 52px !important; padding-bottom: 52px !important; }
+  .hero-right { display: none !important; }
+
+  /* Page heroes (2-col dark/light split) */
+  .pg-hero-grid  { grid-template-columns: 1fr !important; min-height: auto !important; }
+  .pg-hero-right { display: none !important; }
+
+  /* 2-col → 1-col */
+  .r2 { grid-template-columns: 1fr !important; gap: 40px !important; }
+
+  /* 3-col → 1-col */
+  .r3 { grid-template-columns: 1fr !important; }
+
+  /* 4-col → 2-col */
+  .r4 { grid-template-columns: repeat(2,1fr) !important; }
+
+  /* 2-col card grid → 1-col */
+  .r2c { grid-template-columns: 1fr !important; }
+
+  /* Flex space-between → column */
+  .rflex     { flex-direction: column !important; align-items: flex-start !important; gap: 20px !important; }
+  .rflex > p { text-align: left !important; max-width: 100% !important; }
+
+  /* Flex CTA row → column */
+  .rcta { flex-direction: column !important; align-items: flex-start !important; gap: 24px !important; }
+
+  /* Wix schedule — horizontal scroll */
+  .sched-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sched-grid { min-width: 700px !important; }
+
+  /* Class type card inner grid (image + text) */
+  .cls-card { grid-template-columns: 1fr !important; }
+}
