@@ -96,7 +96,7 @@ function isoSlice(ts: string) {
   return new Date(ts).toISOString().slice(0, 19)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line
 function rowToCredential(r: any): MemberCredential {
   return {
     _id:              r.id,
@@ -180,7 +180,7 @@ export async function getSessions(from: string, to: string): Promise<WixSession[
     countMap[b.session_id] = (countMap[b.session_id] ?? 0) + 1
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   return sessions.map((s: any) => ({
     id:              s.id,
     title:           s.title,
@@ -219,7 +219,7 @@ export async function getMemberships(): Promise<WixMembership[]> {
     .select('*')
     .order('created_at', { ascending: false })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
     id:        r.id,
     contactId: r.member_id,
@@ -240,7 +240,7 @@ export async function getContacts(): Promise<WixContact[]> {
     .order('last_name')
     .order('first_name')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
     id:          r.id,
     firstName:   r.first_name,
@@ -323,7 +323,7 @@ export async function getContactBookings(memberId: string): Promise<WixContactBo
     .order('created_at', { ascending: false })
     .limit(50)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
     id:     r.id,
     status: r.status,
@@ -340,7 +340,7 @@ export async function getSessionBookings(sessionId: string): Promise<WixBooking[
     .select('id, status, members(first_name, last_name, email)')
     .eq('session_id', sessionId)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
     id:     r.id,
     status: r.status,
@@ -392,7 +392,7 @@ export async function getMemberBookingsForRange(
     .gte('sessions.start_time', from)
     .lte('sessions.start_time', to + 'T23:59:59')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
     bookingId: r.id,
     sessionId: r.session_id,
