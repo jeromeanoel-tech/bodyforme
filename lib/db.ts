@@ -1,12 +1,11 @@
-import { neon } from '@neondatabase/serverless'
+import postgres from 'postgres'
 
-const sql = neon(process.env.DATABASE_URL!)
-
-// Raw parameterised helper for the one dynamic UPDATE — neon supports this
-// call form at runtime but TS types only expose the tagged-template overload.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rawSql = (query: string, params: (string | number | boolean | null)[]) =>
-  (sql as any)(query, params) as Promise<Record<string, unknown>[]>
+const sql = postgres(process.env.DATABASE_URL!, {
+  ssl:          'require',
+  max:          1,           // one connection per serverless function instance
+  idle_timeout: 20,
+  connect_timeout: 10,
+})
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -361,7 +360,7 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
   if (!fields.length) return
   values.push(id)
 
-  await rawSql(`UPDATE members SET ${fields.join(', ')} WHERE id = $${i}`, values)
+  await sql.unsafe(`UPDATE members SET ${fields.join(', ')} WHERE id = $${i}`, values as (string | number | boolean | null)[])
 }
 
 // ── Bookings for a member ─────────────────────────────────────────────────────
