@@ -427,3 +427,32 @@ export async function cancelBooking(bookingId: string, memberId: string): Promis
     WHERE id = ${bookingId} AND member_id = ${memberId}
   `
 }
+
+// ── Member bookings for a date range (schedule page) ─────────────────────────
+
+export type MemberBooking = {
+  bookingId: string
+  sessionId: string
+  status: string
+}
+
+export async function getMemberBookingsForRange(
+  memberId: string,
+  from: string,
+  to: string,
+): Promise<MemberBooking[]> {
+  const rows = await sql`
+    SELECT b.id AS booking_id, b.session_id, b.status
+    FROM bookings b
+    JOIN sessions s ON s.id = b.session_id
+    WHERE b.member_id = ${memberId}
+      AND s.start_time >= ${from}::date
+      AND s.start_time <  (${to}::date + INTERVAL '1 day')
+    ORDER BY s.start_time
+  `
+  return rows.map(r => ({
+    bookingId: r.booking_id as string,
+    sessionId: r.session_id as string,
+    status:    r.status as string,
+  }))
+}
