@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
     "@types/bcryptjs": "^2.4.6",
     "@wix/bookings": "^1.0.0",
     "@wix/contacts": "^1.0.0",
@@ -18,7 +19,6 @@
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
     "next": "^14.2.0",
-    "postgres": "^3.4.9",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
