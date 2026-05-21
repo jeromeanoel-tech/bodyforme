@@ -1,6 +1,6 @@
 'use client'
 
-import type { WixStaff, WixService, WixSession } from '@/lib/wix'
+import type { WixStaff, WixService, WixSession } from '@/lib/db'
 
 type Props = {
   staff:    WixStaff[]

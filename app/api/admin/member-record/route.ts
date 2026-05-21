@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberByContactId } from '@/lib/wix'
+import { getMemberByContactId } from '@/lib/db'
 
 export async function GET(req: NextRequest) {
   const contactId = req.nextUrl.searchParams.get('contactId')

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getContacts, getMemberships } from '@/lib/wix'
+import { getContacts, getMemberships } from '@/lib/db'
 
 type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | 'no-membership'
 

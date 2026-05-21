@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
-import type { WixContactBooking } from '@/lib/wix'
+import type { WixContactBooking } from '@/lib/db'
 
 const T = {
   linen:  '#f4ede1',
@@ -43,12 +43,12 @@ export default function BookingsPage() {
   const [tab,      setTab]      = useState<'upcoming' | 'past'>('upcoming')
 
   useEffect(() => {
-    if (!session.wixContactId) { setLoading(false); return }
-    fetch(`/api/admin/contact-bookings?contactId=${session.wixContactId}`)
+    if (!session.id) { setLoading(false); return }
+    fetch(`/api/admin/contact-bookings?contactId=${session.id}`)
       .then(r => r.json())
       .then(d => { setBookings(d.bookings ?? []); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [session.wixContactId])
+  }, [session.id])
 
   const now       = new Date()
   const upcoming  = bookings.filter(b => b.status !== 'CANCELED' && new Date(b.start) >= now)

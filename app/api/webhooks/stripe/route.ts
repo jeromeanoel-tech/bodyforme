@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { signupPlans } from '@/lib/content'
-import { getMemberByEmail, updateMemberCredential } from '@/lib/wix'
+import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { markAttendance } from '@/lib/wix'
+import { markAttendance } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {

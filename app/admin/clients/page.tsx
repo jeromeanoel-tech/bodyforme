@@ -1,5 +1,5 @@
-import { getContacts, getMemberships } from '@/lib/wix'
-import type { WixMembership } from '@/lib/wix'
+import { getContacts, getMemberships } from '@/lib/db'
+import type { WixMembership } from '@/lib/db'
 import ClientsClient from './ClientsClient'
 
 export const revalidate = 60

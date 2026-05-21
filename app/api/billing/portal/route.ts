@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { getMemberByEmail } from '@/lib/wix'
+import { getMemberByEmail } from '@/lib/db'
 
 export async function GET(req: NextRequest) {
   const session = await getSession()

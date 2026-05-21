@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import type { WixContact, WixContactBooking, WixMembership, MemberCredential } from '@/lib/wix'
+import type { WixContact, WixContactBooking, WixMembership, MemberCredential } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
 type Props = {

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { createMemberCredential, getMemberByEmail } from '@/lib/wix'
+import { createMemberCredential, getMemberByEmail } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
-  const { email, password, firstName, lastName } = await req.json()
+  const { email, password, firstName, lastName, phone, suburb } = await req.json()
 
   if (!email || !password || !firstName) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -26,6 +26,8 @@ export async function POST(req: NextRequest) {
     passwordHash,
     firstName,
     lastName:         lastName ?? '',
+    phone:            phone ?? '',
+    suburb:           suburb ?? '',
     status:           'pending',
     wixContactId:     '',
     stripeCustomerId: '',

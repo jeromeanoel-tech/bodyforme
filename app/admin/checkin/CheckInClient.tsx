@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { WixSession, WixService, WixBooking } from '@/lib/wix'
+import type { WixSession, WixService, WixBooking } from '@/lib/db'
 
 type Props = {
   sessions: WixSession[]

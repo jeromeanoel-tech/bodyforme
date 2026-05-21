@@ -1,4 +1,4 @@
-import { getContacts, getMemberships, getSessions, getServices } from '@/lib/wix'
+import { getContacts, getMemberships, getSessions, getServices } from '@/lib/db'
 import InsightsClient from './InsightsClient'
 
 export const revalidate = 60

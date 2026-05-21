@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import type { WixMembership, WixContact, WixSession, WixService } from '@/lib/wix'
+import type { WixMembership, WixContact, WixSession, WixService } from '@/lib/db'
 
 type Props = {
   sessions:    WixSession[]

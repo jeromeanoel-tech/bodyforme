@@ -1,4 +1,4 @@
-import { getSessions, getServices, getStaff } from '@/lib/wix'
+import { getSessions, getServices, getStaff } from '@/lib/db'
 import ScheduleClient from './ScheduleClient'
 
 export const revalidate = 30

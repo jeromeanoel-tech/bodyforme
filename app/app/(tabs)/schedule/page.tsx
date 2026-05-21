@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { WixSession } from '@/lib/wix'
+import type { WixSession } from '@/lib/db'
 
 const T = {
   linen:  '#f4ede1',

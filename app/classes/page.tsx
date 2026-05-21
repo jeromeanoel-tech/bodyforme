@@ -3,7 +3,7 @@ import SiteFooter from '@/components/SiteFooter'
 import ScrollReveal from '@/components/ScrollReveal'
 import Link from 'next/link'
 import { classTypes, classesPage, studio } from '@/lib/content'
-import { getSessions, getServices, type WixSession, type WixService } from '@/lib/wix'
+import { getSessions, getServices, type WixSession, type WixService } from '@/lib/db'
 
 export const metadata = {
   title: 'Classes & Schedule | BodyForme Pilates',

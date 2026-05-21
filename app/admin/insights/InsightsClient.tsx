@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import type { WixMembership } from '@/lib/wix'
+import type { WixMembership } from '@/lib/db'
 import { DEFAULT_SETTINGS, SETTINGS_KEY } from '@/lib/settings'
 
 type ContactSlim  = { id: string; createdDate: string }

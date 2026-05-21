@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberByContactId, updateMemberCredential } from '@/lib/wix'
+import { getMemberByContactId, updateMemberCredential } from '@/lib/db'
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json() as {

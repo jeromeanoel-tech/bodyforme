@@ -1,4 +1,4 @@
-import { getMemberships, getContacts } from '@/lib/wix'
+import { getMemberships, getContacts } from '@/lib/db'
 import MembershipsClient from './MembershipsClient'
 
 export const revalidate = 60

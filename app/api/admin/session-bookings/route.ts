@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionBookings } from '@/lib/wix'
+import { getSessionBookings } from '@/lib/db'
 
 export async function GET(req: NextRequest) {
   const eventId = req.nextUrl.searchParams.get('eventId')
