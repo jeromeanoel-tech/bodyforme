@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   if (plan.mode === 'subscription') {
     sessionPayload['subscription_data'] = {
       metadata: {
-        plan,
+        plan: planKey,
         firstName,
         lastName,
         phone,
