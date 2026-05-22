@@ -599,20 +599,14 @@ function ClientDrawer({
 
           {/* Overview */}
           {tab === 'overview' && (
-            <>
-              <div className="grid grid-cols-2 gap-3 px-6 py-4 border-b border-neutral-100">
-                <StatCard label="Total bookings"   value={loading ? '—' : String(totalBookings)} />
-                <StatCard label="Classes attended" value={loading ? '—' : String(attended)} />
-                <StatCard label="Cancellations"    value={loading ? '—' : String(cancelled)} />
-                <StatCard label="Last visit"        value={loading ? '—' : fmtDate(lastVisit)} />
-              </div>
-              <div className="px-6 py-4 space-y-3">
-                <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Contact</p>
-                <InfoRow label="Email" value={contact.email || '—'} />
-                <InfoRow label="Phone" value={contact.phone || '—'} />
-                <InfoRow label="Member since" value={fmtDate(contact.createdDate)} />
-              </div>
-            </>
+            <OverviewTab
+              contact={contact}
+              loading={loading}
+              totalBookings={totalBookings}
+              attended={attended}
+              cancelled={cancelled}
+              lastVisit={lastVisit}
+            />
           )}
 
           {/* Bookings */}
@@ -679,6 +673,106 @@ function ClientDrawer({
         </div>
       </div>
     </div>
+  )
+}
+
+// ── Overview tab (with editable email/phone) ─────────────────────────────────
+
+function OverviewTab({ contact, loading, totalBookings, attended, cancelled, lastVisit }: {
+  contact:       WixContact
+  loading:       boolean
+  totalBookings: number
+  attended:      number
+  cancelled:     number
+  lastVisit:     string
+}) {
+  const [editing, setEditing] = useState(false)
+  const [email,   setEmail]   = useState(contact.email || '')
+  const [phone,   setPhone]   = useState(contact.phone || '')
+  const [saving,  setSaving]  = useState(false)
+  const [saved,   setSaved]   = useState(false)
+
+  async function saveContact() {
+    setSaving(true)
+    await fetch('/api/admin/update-member', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contactId: contact.id, email, phone }),
+    })
+    setSaving(false)
+    setSaved(true)
+    setEditing(false)
+    contact.email = email
+    contact.phone = phone
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3 px-6 py-4 border-b border-neutral-100">
+        <StatCard label="Total bookings"   value={loading ? '—' : String(totalBookings)} />
+        <StatCard label="Classes attended" value={loading ? '—' : String(attended)} />
+        <StatCard label="Cancellations"    value={loading ? '—' : String(cancelled)} />
+        <StatCard label="Last visit"        value={loading ? '—' : fmtDate(lastVisit)} />
+      </div>
+      <div className="px-6 py-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Contact</p>
+          {!editing && (
+            <button
+              onClick={() => setEditing(true)}
+              className="text-[11px] font-medium text-neutral-600 hover:text-neutral-900 border border-neutral-200 px-2.5 py-1 rounded-md"
+            >
+              Edit
+            </button>
+          )}
+        </div>
+        {editing ? (
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Phone</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={saveContact}
+                disabled={saving}
+                className="h-8 px-4 text-sm bg-black text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800 transition-colors"
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="h-8 px-4 text-sm border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <InfoRow label="Email" value={contact.email || '—'} />
+            <InfoRow label="Phone" value={contact.phone || '—'} />
+            <InfoRow label="Member since" value={fmtDate(contact.createdDate)} />
+            {saved && <p className="text-[11px] text-green-600 font-medium">Saved ✓</p>}
+          </>
+        )}
+      </div>
+    </>
   )
 }
 

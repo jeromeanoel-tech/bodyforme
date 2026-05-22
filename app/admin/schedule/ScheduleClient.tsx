@@ -34,6 +34,11 @@ function isToday(date: Date) {
 export default function ScheduleClient({ sessions, scheduleToService, resourceToStaff, weekStart }: Props) {
   const [selectedSession, setSelectedSession] = useState<WixSession | null>(null)
   const [search, setSearch] = useState('')
+  const [cancelledIds, setCancelledIds] = useState<Set<string>>(new Set())
+
+  function handleCancelled(id: string) {
+    setCancelledIds(s => new Set([...s, id]))
+  }
   const { settings } = useSettings()
 
   const monday = new Date(weekStart)
@@ -45,7 +50,7 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
     const dateStr = date.toISOString().slice(0, 10)
     const daySessions = sessions
       .filter(s => s.start.startsWith(dateStr))
-      .filter(s => settings.showCancelledClasses || s.status !== 'CANCELLED')
+      .filter(s => settings.showCancelledClasses || (s.status !== 'CANCELLED' && !cancelledIds.has(s.id)))
       .filter(s => {
         if (!search) return true
         const svc = scheduleToService[s.scheduleId]
@@ -226,6 +231,7 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
           serviceName={scheduleToService[selectedSession.scheduleId]?.name ?? selectedSession.title}
           staffName={resourceToStaff[selectedSession.staffResourceId]?.name}
           onClose={() => setSelectedSession(null)}
+          onCancelled={handleCancelled}
         />
       )}
     </div>
@@ -235,15 +241,18 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
 // ── Attendee drawer ───────────────────────────────────────────────────────────
 
 function AttendeeDrawer({
-  session, serviceName, staffName, onClose,
+  session, serviceName, staffName, onClose, onCancelled,
 }: {
   session: WixSession
   serviceName: string
   staffName?: string
   onClose: () => void
+  onCancelled: (id: string) => void
 }) {
-  const [bookings, setBookings] = useState<WixBooking[] | null>(null)
-  const [loading, setLoading]   = useState(false)
+  const [bookings,    setBookings]    = useState<WixBooking[] | null>(null)
+  const [loading,     setLoading]     = useState(false)
+  const [cancelling,  setCancelling]  = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   if (bookings === null && !loading) {
     setLoading(true)
@@ -253,17 +262,54 @@ function AttendeeDrawer({
       .catch(() => { setBookings([]); setLoading(false) })
   }
 
+  async function cancelSession() {
+    setCancelling(true)
+    await fetch('/api/admin/cancel-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: session.id }),
+    })
+    setCancelling(false)
+    onCancelled(session.id)
+    onClose()
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
       <div className="relative w-[380px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
         {/* Header */}
         <div className="px-6 py-5 border-b border-neutral-200 flex items-start justify-between">
-          <div>
+          <div className="flex-1 pr-4">
             <h2 className="font-semibold text-neutral-900">{serviceName}</h2>
             <p className="text-sm text-neutral-500 mt-0.5">
               {fmt12(session.start)} · {staffName ?? 'No instructor'} · {session.bookedCount}/{session.capacity} booked
             </p>
+            {!confirmCancel ? (
+              <button
+                onClick={() => setConfirmCancel(true)}
+                className="mt-3 text-[11px] font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors"
+              >
+                Cancel class
+              </button>
+            ) : (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-[11px] text-neutral-600">Cancel this class?</span>
+                <button
+                  onClick={cancelSession}
+                  disabled={cancelling}
+                  className="text-[11px] font-semibold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-md disabled:opacity-40"
+                >
+                  {cancelling ? '…' : 'Yes, cancel'}
+                </button>
+                <button
+                  onClick={() => setConfirmCancel(false)}
+                  className="text-[11px] text-neutral-500 hover:text-neutral-800"
+                >
+                  No
+                </button>
+              </div>
+            )}
           </div>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl mt-0.5">×</button>
         </div>

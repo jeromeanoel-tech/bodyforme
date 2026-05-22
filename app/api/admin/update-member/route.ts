@@ -3,12 +3,14 @@ import { getMemberByContactId, updateMemberCredential } from '@/lib/db'
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json() as {
-    contactId:      string
-    status?:        string
-    planOverride?:  string
+    contactId:        string
+    email?:           string
+    phone?:           string
+    status?:          string
+    planOverride?:    string
     nextBillingDate?: string
-    creditBalance?: number
-    adminNotes?:    string
+    creditBalance?:   number
+    adminNotes?:      string
   }
 
   const { contactId, ...patch } = body
