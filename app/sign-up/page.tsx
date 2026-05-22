@@ -351,6 +351,7 @@ function SignUpForm() {
               <div style={{ marginBottom: '32px' }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', cursor: 'pointer' }}>
                   <div
+                    data-testid="agree-checkbox"
                     onClick={() => set('agreePolicy', !form.agreePolicy)}
                     style={{ width: '18px', height: '18px', border: `1px solid ${errors.agreePolicy ? '#c44' : form.agreePolicy ? 'var(--esp)' : 'var(--rule)'}`, background: form.agreePolicy ? 'var(--esp)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px', cursor: 'pointer', transition: 'all .15s' }}
                   >
