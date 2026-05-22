@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   // Build the base URL from the request headers
   const host   = req.headers.get('host') ?? 'localhost:3000'
   const proto  = host.startsWith('localhost') ? 'http' : 'https'
-  const base   = process.env.NEXT_PUBLIC_BASE_URL ?? `${proto}://${host}`
+  const base   = (process.env.NEXT_PUBLIC_BASE_URL ?? `${proto}://${host}`).trim()
 
   const fullName   = `${firstName} ${lastName}`.trim()
   const successUrl = `${base}/sign-up/success?type=${plan.mode}&session_id={CHECKOUT_SESSION_ID}`
