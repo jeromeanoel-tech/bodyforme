@@ -19,11 +19,11 @@ const T = {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-function getWeekDays(): { date: Date; iso: string }[] {
+function getWeekDays(weekOffset = 0): { date: Date; iso: string }[] {
   const today = new Date()
   const day   = today.getDay()
   const mon   = new Date(today)
-  mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
+  mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1) + weekOffset * 7)
   mon.setHours(0, 0, 0, 0)
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(mon)
@@ -64,21 +64,25 @@ function classDuration(start: string, end: string): string {
 type BookedMap = Record<string, { bookingId: string }>
 
 export default function SchedulePage() {
-  const weekDays  = getWeekDays()
   const todayISO  = new Date().toISOString().slice(0, 10)
-  const defaultIdx = weekDays.findIndex(d => d.iso === todayISO)
 
-  const [selIdx,    setSelIdx]    = useState(defaultIdx >= 0 ? defaultIdx : 0)
+  const [weekOffset, setWeekOffset] = useState(0)
+  const weekDays  = getWeekDays(weekOffset)
+  const defaultIdx = weekOffset === 0 ? (weekDays.findIndex(d => d.iso === todayISO) >= 0 ? weekDays.findIndex(d => d.iso === todayISO) : 0) : 0
+
+  const [selIdx,    setSelIdx]    = useState(defaultIdx)
   const [sessions,  setSessions]  = useState<WixSession[]>([])
   const [staffMap,  setStaffMap]  = useState<Record<string, string>>({})
   const [bookedMap, setBookedMap] = useState<BookedMap>({})
   const [loading,   setLoading]   = useState(true)
-  const [pending,   setPending]   = useState<string | null>(null)  // sessionId in-flight
+  const [pending,   setPending]   = useState<string | null>(null)
   const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null)
 
   useEffect(() => {
-    const from = weekDays[0].iso
-    const to   = weekDays[6].iso
+    setLoading(true)
+    const days = getWeekDays(weekOffset)
+    const from = days[0].iso
+    const to   = days[6].iso
     Promise.all([
       fetch(`/api/app/schedule?from=${from}T00:00:00&to=${to}T23:59:59`).then(r => r.json()),
       fetch(`/api/app/my-bookings?from=${from}&to=${to}`).then(r => r.json()),
@@ -94,7 +98,13 @@ export default function SchedulePage() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [weekOffset]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const days = getWeekDays(weekOffset)
+    const todayIdx = days.findIndex(d => d.iso === todayISO)
+    setSelIdx(weekOffset === 0 && todayIdx >= 0 ? todayIdx : 0)
+  }, [weekOffset]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function showToast(msg: string, ok: boolean) {
     setToast({ msg, ok })
@@ -184,11 +194,28 @@ export default function SchedulePage() {
       </div>
 
       {/* Week label */}
-      <div style={{ padding: '18px 20px 10px', flexShrink: 0 }}>
-        <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>Week of</div>
-        <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 24, fontWeight: 400, color: T.esp, marginTop: 2 }}>
-          <em style={{ color: T.brown }}>{weekLabel}</em>{' '}
-          {weekDays[0].date.getDate()}–{weekDays[6].date.getDate()}
+      <div style={{ padding: '18px 20px 10px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>Week of</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 24, fontWeight: 400, color: T.esp, marginTop: 2 }}>
+            <em style={{ color: T.brown }}>{weekLabel}</em>{' '}
+            {weekDays[0].date.getDate()}–{weekDays[6].date.getDate()}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button
+            onClick={() => setWeekOffset(o => o - 1)}
+            disabled={weekOffset === 0}
+            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: `1px solid ${T.rule}`, cursor: weekOffset === 0 ? 'not-allowed' : 'pointer', opacity: weekOffset === 0 ? 0.35 : 1 }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2.5L4.5 6L7.5 9.5" stroke={T.esp} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+          <button
+            onClick={() => setWeekOffset(o => o + 1)}
+            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: `1px solid ${T.rule}`, cursor: 'pointer' }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6L4.5 9.5" stroke={T.esp} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
         </div>
       </div>
 
