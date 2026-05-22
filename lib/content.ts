@@ -280,8 +280,8 @@ export const memberships = {
   ],
 
   testimonials: [
-    { stars: 5, quote: 'I booked a free trial expecting nothing. Six months later I\'m on the Silver plan and Pilates has genuinely changed how I carry myself.', name: 'Claire M.', detail: 'Silver member' },
-    { stars: 5, quote: 'The Bronze plan is perfect for my schedule. Four classes a month, no pressure, and the instructors remember my name every single time.', name: 'Tom R.', detail: 'Bronze member' },
+    { stars: 5, quote: 'I booked a free trial expecting nothing. Six months later I\'m on the unlimited membership and Pilates has genuinely changed how I carry myself.', name: 'Claire M.', detail: 'Unlimited member' },
+    { stars: 5, quote: 'The weekly membership fits perfectly around my schedule. I come as often as I want, no pressure, and the instructors remember my name every single time.', name: 'Tom R.', detail: 'Unlimited member' },
     { stars: 5, quote: 'I travel for work so the class packs are ideal. Credits never expire and booking is seamless through the app.', name: 'Priya S.', detail: 'Class pack member' },
   ],
 
