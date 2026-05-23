@@ -382,6 +382,80 @@ export async function cancelBooking(bookingId: string, memberId: string): Promis
     .eq('member_id', memberId)
 }
 
+// ── Session lookup ────────────────────────────────────────────────────────────
+
+export async function getSessionById(id: string): Promise<{ title: string; start_time: string; instructor_name: string } | null> {
+  const { data } = await supabase
+    .from('sessions')
+    .select('title, start_time, instructor_name')
+    .eq('id', id)
+    .single()
+  return data ?? null
+}
+
+// ── Booking with session details (for cancel flow) ────────────────────────────
+
+export async function getBookingWithSession(bookingId: string, memberId: string): Promise<{
+  sessionId: string; title: string; start_time: string
+} | null> {
+  const { data } = await supabase
+    .from('bookings')
+    .select('session_id, sessions(title, start_time)')
+    .eq('id', bookingId)
+    .eq('member_id', memberId)
+    .single()
+  if (!data) return null
+  // eslint-disable-next-line
+  const s = (data as any).sessions
+  return { sessionId: data.session_id, title: s?.title ?? '', start_time: s?.start_time ?? '' }
+}
+
+// ── Waitlist ──────────────────────────────────────────────────────────────────
+
+export async function joinWaitlist(memberId: string, sessionId: string): Promise<void> {
+  await supabase
+    .from('waitlist')
+    .upsert({ member_id: memberId, session_id: sessionId }, { onConflict: 'member_id,session_id' })
+}
+
+export async function leaveWaitlist(memberId: string, sessionId: string): Promise<void> {
+  await supabase
+    .from('waitlist')
+    .delete()
+    .eq('member_id', memberId)
+    .eq('session_id', sessionId)
+}
+
+export async function getMemberWaitlistInRange(
+  memberId: string,
+  from: string,
+  to: string,
+): Promise<string[]> {
+  const { data } = await supabase
+    .from('waitlist')
+    .select('session_id, sessions!inner(start_time)')
+    .eq('member_id', memberId)
+    .gte('sessions.start_time', from)
+    .lte('sessions.start_time', to + 'T23:59:59')
+  return (data ?? []).map((r: { session_id: string }) => r.session_id)
+}
+
+export async function getFirstOnWaitlist(sessionId: string): Promise<{
+  memberId: string; email: string; firstName: string
+} | null> {
+  const { data } = await supabase
+    .from('waitlist')
+    .select('member_id, members(email, first_name)')
+    .eq('session_id', sessionId)
+    .order('created_at')
+    .limit(1)
+    .single()
+  if (!data) return null
+  // eslint-disable-next-line
+  const m = (data as any).members
+  return { memberId: data.member_id, email: m?.email ?? '', firstName: m?.first_name ?? '' }
+}
+
 // ── Member bookings for a date range ─────────────────────────────────────────
 
 export async function getMemberBookingsForRange(

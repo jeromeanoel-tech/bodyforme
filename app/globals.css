@@ -25,6 +25,12 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+.skeleton-pulse { animation: skeleton-pulse 1.4s ease-in-out infinite; }
+
 /* ── Public site base ── */
 .site-body {
   font-family: var(--font-dm-sans, 'DM Sans', sans-serif);

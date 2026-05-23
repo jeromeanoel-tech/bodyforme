@@ -61,7 +61,29 @@ function classDuration(start: string, end: string): string {
   return `${m} min`
 }
 
-type BookedMap = Record<string, { bookingId: string }>
+type BookedMap    = Record<string, { bookingId: string }>
+type WaitlistMap  = Record<string, true>
+
+function SkeletonCard() {
+  return (
+    <div className="skeleton-pulse" style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '16px 20px', borderBottom: `1px solid ${T.rule}`,
+    }}>
+      <div style={{ width: 3, height: 48, background: T.rule, borderRadius: 2, flexShrink: 0 }} />
+      <div style={{ width: 50, flexShrink: 0 }}>
+        <div style={{ width: 44, height: 22, background: T.rule, borderRadius: 3 }} />
+        <div style={{ width: 32, height: 10, background: T.l2, borderRadius: 3, marginTop: 6 }} />
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ width: '55%', height: 10, background: T.l2, borderRadius: 3, marginBottom: 7 }} />
+        <div style={{ width: '80%', height: 18, background: T.rule, borderRadius: 3, marginBottom: 7 }} />
+        <div style={{ width: '40%', height: 10, background: T.l2, borderRadius: 3 }} />
+      </div>
+      <div style={{ width: 52, height: 32, background: T.rule, borderRadius: 2, flexShrink: 0 }} />
+    </div>
+  )
+}
 
 export default function SchedulePage() {
   const todayISO  = new Date().toISOString().slice(0, 10)
@@ -70,13 +92,14 @@ export default function SchedulePage() {
   const weekDays  = getWeekDays(weekOffset)
   const defaultIdx = weekOffset === 0 ? (weekDays.findIndex(d => d.iso === todayISO) >= 0 ? weekDays.findIndex(d => d.iso === todayISO) : 0) : 0
 
-  const [selIdx,    setSelIdx]    = useState(defaultIdx)
-  const [sessions,  setSessions]  = useState<WixSession[]>([])
-  const [staffMap,  setStaffMap]  = useState<Record<string, string>>({})
-  const [bookedMap, setBookedMap] = useState<BookedMap>({})
-  const [loading,   setLoading]   = useState(true)
-  const [pending,   setPending]   = useState<string | null>(null)
-  const [toast,     setToast]     = useState<{ msg: string; ok: boolean } | null>(null)
+  const [selIdx,       setSelIdx]       = useState(defaultIdx)
+  const [sessions,     setSessions]     = useState<WixSession[]>([])
+  const [staffMap,     setStaffMap]     = useState<Record<string, string>>({})
+  const [bookedMap,    setBookedMap]    = useState<BookedMap>({})
+  const [waitlistMap,  setWaitlistMap]  = useState<WaitlistMap>({})
+  const [loading,      setLoading]      = useState(true)
+  const [pending,      setPending]      = useState<string | null>(null)
+  const [toast,        setToast]        = useState<{ msg: string; ok: boolean } | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -86,8 +109,9 @@ export default function SchedulePage() {
     Promise.all([
       fetch(`/api/app/schedule?from=${from}T00:00:00&to=${to}T23:59:59`).then(r => r.json()),
       fetch(`/api/app/my-bookings?from=${from}&to=${to}`).then(r => r.json()),
+      fetch(`/api/app/waitlist?from=${from}&to=${to}`).then(r => r.json()).catch(() => ({ sessionIds: [] })),
     ])
-      .then(([schedData, bookingsData]) => {
+      .then(([schedData, bookingsData, waitlistData]) => {
         setSessions(schedData.sessions ?? [])
         setStaffMap(schedData.resourceToStaff ?? {})
         const bm: BookedMap = {}
@@ -95,6 +119,9 @@ export default function SchedulePage() {
           if (b.status === 'CONFIRMED') bm[b.sessionId] = { bookingId: b.bookingId }
         })
         setBookedMap(bm)
+        const wm: WaitlistMap = {}
+        ;(waitlistData.sessionIds as string[] ?? []).forEach(id => { wm[id] = true })
+        setWaitlistMap(wm)
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -124,7 +151,7 @@ export default function SchedulePage() {
       if (res.ok) {
         setBookedMap(m => ({ ...m, [sessionId]: { bookingId: data.bookingId } }))
         setSessions(s => s.map(x => x.id === sessionId ? { ...x, bookedCount: x.bookedCount + 1 } : x))
-        showToast('Booking confirmed', true)
+        showToast('Booking confirmed — check your email', true)
       } else {
         showToast(data.error ?? 'Booking failed', false)
       }
@@ -158,6 +185,48 @@ export default function SchedulePage() {
     }
   }
 
+  async function handleJoinWaitlist(sessionId: string) {
+    if (pending) return
+    setPending(sessionId)
+    try {
+      const res = await fetch('/api/app/waitlist', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ sessionId }),
+      })
+      if (res.ok) {
+        setWaitlistMap(m => ({ ...m, [sessionId]: true }))
+        showToast("You're on the waitlist — we'll email you if a spot opens", true)
+      } else {
+        showToast('Could not join waitlist', false)
+      }
+    } catch {
+      showToast('Network error', false)
+    } finally {
+      setPending(null)
+    }
+  }
+
+  async function handleLeaveWaitlist(sessionId: string) {
+    if (pending) return
+    setPending(sessionId)
+    try {
+      const res = await fetch('/api/app/waitlist', {
+        method:  'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ sessionId }),
+      })
+      if (res.ok) {
+        setWaitlistMap(m => { const n = { ...m }; delete n[sessionId]; return n })
+        showToast('Removed from waitlist', true)
+      }
+    } catch {
+      showToast('Network error', false)
+    } finally {
+      setPending(null)
+    }
+  }
+
   const selectedISO = weekDays[selIdx].iso
   const dayClasses  = sessions
     .filter(s => s.start.startsWith(selectedISO) && s.status !== 'CANCELLED')
@@ -177,6 +246,7 @@ export default function SchedulePage() {
           fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, fontWeight: 500,
           letterSpacing: '0.06em', zIndex: 100, pointerEvents: 'none',
           boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+          maxWidth: 'calc(100vw - 40px)', textAlign: 'center',
         }}>
           {toast.msg}
         </div>
@@ -246,37 +316,37 @@ export default function SchedulePage() {
           {DAYS[selIdx]} · {loading ? '…' : `${dayClasses.length} class${dayClasses.length !== 1 ? 'es' : ''}`}
         </div>
 
-        {loading && (
-          <div style={{ padding: '40px 20px', textAlign: 'center', color: T.muted, fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13 }}>Loading…</div>
-        )}
+        {/* Skeleton cards while loading */}
+        {loading && Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
 
         {!loading && dayClasses.length === 0 && (
-          <div style={{ padding: '40px 20px', textAlign: 'center' }}>
+          <div style={{ padding: '48px 20px', textAlign: 'center' }}>
             <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, color: T.mid, fontStyle: 'italic' }}>No classes today</div>
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, color: T.muted, marginTop: 8 }}>Try a different day</div>
+            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, color: T.muted, marginTop: 8 }}>Try a different day or week</div>
           </div>
         )}
 
         {dayClasses.map(s => {
-          const spots    = s.capacity - s.bookedCount
-          const isFull   = spots <= 0
-          const isLow    = spots > 0 && spots <= 3
-          const isBooked = !!bookedMap[s.id]
-          const isPast   = new Date(s.start) < new Date()
-          const inFlight = pending === s.id
-          const color    = classColor(s.title)
-          const duration = classDuration(s.start, s.end)
-          const teacher  = staffMap[s.staffResourceId] ?? ''
+          const spots       = s.capacity - s.bookedCount
+          const isFull      = spots <= 0
+          const isLow       = spots > 0 && spots <= 3
+          const isBooked    = !!bookedMap[s.id]
+          const onWaitlist  = !!waitlistMap[s.id]
+          const isPast      = new Date(s.start) < new Date()
+          const inFlight    = pending === s.id
+          const color       = classColor(s.title)
+          const duration    = classDuration(s.start, s.end)
+          const teacher     = staffMap[s.staffResourceId] ?? ''
 
           return (
             <div key={s.id} style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '16px 20px', borderBottom: `1px solid ${T.rule}`,
-              background: isBooked ? 'rgba(122,148,120,0.06)' : 'transparent',
-              opacity: (isFull && !isBooked) || isPast ? 0.55 : 1,
+              background: isBooked ? 'rgba(122,148,120,0.06)' : onWaitlist ? 'rgba(160,133,104,0.06)' : 'transparent',
+              opacity: (isFull && !isBooked && !onWaitlist) || isPast ? 0.55 : 1,
             }}>
               {/* Color dot */}
-              <div style={{ width: 3, height: 48, background: isBooked ? T.sage : color, borderRadius: 2, flexShrink: 0 }} />
+              <div style={{ width: 3, height: 48, background: isBooked ? T.sage : onWaitlist ? T.sand : color, borderRadius: 2, flexShrink: 0 }} />
 
               {/* Time */}
               <div style={{ width: 50, flexShrink: 0 }}>
@@ -311,8 +381,34 @@ export default function SchedulePage() {
                       {inFlight ? '…' : 'Cancel'}
                     </button>
                   </>
+                ) : onWaitlist ? (
+                  <>
+                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.sand }}>Waitlisted</div>
+                    <button
+                      onClick={() => handleLeaveWaitlist(s.id)}
+                      disabled={inFlight}
+                      style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, color: T.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', opacity: inFlight ? 0.4 : 1 }}
+                    >
+                      {inFlight ? '…' : 'Leave'}
+                    </button>
+                  </>
                 ) : isFull ? (
-                  <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Full</div>
+                  <>
+                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Full</div>
+                    <button
+                      onClick={() => handleJoinWaitlist(s.id)}
+                      disabled={inFlight}
+                      style={{
+                        fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500,
+                        letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: T.brown, background: 'none',
+                        border: `1px solid ${T.brown}`, padding: '5px 10px',
+                        cursor: 'pointer', opacity: inFlight ? 0.5 : 1,
+                      }}
+                    >
+                      {inFlight ? '…' : 'Waitlist'}
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button

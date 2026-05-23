@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
 import { useRouter } from 'next/navigation'
 
@@ -45,10 +46,21 @@ function NavRow({ label, sub, last, onClick, href }: {
   return inner
 }
 
+type Stats = { completed: number; upcoming: number; favourite: string | null }
+
 export default function ProfilePage() {
   const session = useSession()
   const router  = useRouter()
   const initials = `${session.firstName[0] ?? ''}${session.lastName[0] ?? ''}`.toUpperCase()
+
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  useEffect(() => {
+    fetch('/api/app/stats')
+      .then(r => r.json())
+      .then(d => setStats(d))
+      .catch(() => {})
+  }, [])
 
   async function handleSignOut() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -93,6 +105,28 @@ export default function ProfilePage() {
             fontFamily: "'DM Sans', system-ui, sans-serif",
             fontSize: 9, fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase',
           }}>Active member</div>
+        </div>
+
+        {/* Activity stats */}
+        <div style={{ margin: '20px 20px 0', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', border: `1px solid ${T.rule}` }}>
+          {[
+            { n: stats?.completed ?? '—', l: 'This year' },
+            { n: stats?.upcoming  ?? '—', l: 'Upcoming' },
+            { n: stats?.favourite ?? '—', l: 'Favourite' },
+          ].map(s => (
+            <div key={s.l} style={{
+              background: T.canvas, padding: '14px 10px', textAlign: 'center',
+              borderRight: `1px solid ${T.rule}`,
+            }}>
+              <div style={{
+                fontFamily: "'Cormorant Garamond', 'Times New Roman', serif",
+                fontSize: typeof s.n === 'string' && s.n.length > 4 ? 13 : 26,
+                fontStyle: typeof s.n === 'string' && s.n.length > 4 ? 'italic' : 'normal',
+                color: T.esp, lineHeight: 1.2,
+              }}>{s.n ?? '—'}</div>
+              <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginTop: 6 }}>{s.l}</div>
+            </div>
+          ))}
         </div>
 
         {/* Account */}
