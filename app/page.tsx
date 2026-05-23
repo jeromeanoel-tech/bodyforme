@@ -227,7 +227,7 @@ export default function HomePage() {
           </ScrollReveal>
           <ScrollReveal>
             <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
-              {home.testimonials.map((t, i) => (
+              {memberships.testimonials.map((t, i) => (
                 <div key={i} style={{ background: 'var(--linen)', padding: '40px 36px 44px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', gap: '3px', marginBottom: '28px' }}>
                     {Array.from({ length: t.stars }).map((_, si) => (
