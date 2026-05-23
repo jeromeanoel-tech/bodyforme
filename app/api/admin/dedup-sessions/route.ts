@@ -15,10 +15,10 @@ export async function POST() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Group by dedup key: start_time + service_id + instructor_name
+  // Group by dedup key: start_time + instructor_name (service_id may differ if services were also duped)
   const groups: Record<string, { id: string; hasBookings: boolean }[]> = {}
   for (const s of (sessions ?? [])) {
-    const key = `${s.start_time}|${s.service_id ?? ''}|${s.instructor_name ?? ''}`
+    const key = `${s.start_time}|${s.instructor_name ?? ''}`
     if (!groups[key]) groups[key] = []
     groups[key].push({ id: s.id, hasBookings: false })
   }
