@@ -171,6 +171,48 @@ export default function InsightsClient({ contacts, memberships, sessions }: Prop
           <TopStat label="Avg fill rate"      value={`${avgFill}%`}                   sub={`${totalBooked} bookings · ${recentSessions.length} sessions`} />
         </div>
 
+        {/* ── Conversion funnel ── */}
+        {(() => {
+          const memberedIds    = new Set(memberships.map(m => m.contactId))
+          const registered     = contacts.length
+          const converted      = contacts.filter(c => memberedIds.has(c.id)).length
+          const unconverted    = registered - converted
+          const rate           = pct(converted, registered)
+          const recentReg      = recentContacts.length
+          const recentConverted = recentContacts.filter(c => memberedIds.has(c.id)).length
+          return (
+            <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-[13px] font-semibold text-neutral-900">Registration → membership conversion</h3>
+                  <p className="text-[11.5px] text-neutral-400 mt-0.5">Members who registered and then purchased a plan</p>
+                </div>
+                <span className="text-[22px] font-semibold text-neutral-900">{rate}%</span>
+              </div>
+              <div className="grid grid-cols-4 divide-x divide-neutral-100">
+                {[
+                  { label: 'Registered',   value: registered,      sub: 'all time' },
+                  { label: 'Converted',    value: converted,       sub: 'have a plan' },
+                  { label: 'Unconverted',  value: unconverted,     sub: 'no membership' },
+                  { label: 'New in period',value: recentReg,       sub: `${recentConverted} converted` },
+                ].map(s => (
+                  <div key={s.label} className="px-5 py-4">
+                    <p className="text-[22px] font-semibold text-neutral-900 leading-none">{s.value}</p>
+                    <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mt-1.5">{s.label}</p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">{s.sub}</p>
+                  </div>
+                ))}
+              </div>
+              {/* Funnel bar */}
+              <div className="px-5 pb-4 pt-1">
+                <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-black rounded-full" style={{ width: `${rate}%` }} />
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
         {/* ── Charts row ── */}
         <div className="grid grid-cols-2 gap-4">
 

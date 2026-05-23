@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
 
 const T = {
@@ -15,19 +16,20 @@ const T = {
   rust:   '#9a5a3a',
 }
 
-function ActionRow({ icon, label, sub, danger, last }: {
-  icon:    React.ReactNode
-  label:   string
-  sub?:    string
-  danger?: boolean
-  last?:   boolean
-  href?:   string
+function ActionRow({ icon, label, sub, danger, last, onClick }: {
+  icon:     React.ReactNode
+  label:    string
+  sub?:     string
+  danger?:  boolean
+  last?:    boolean
+  onClick?: () => void
 }) {
-  return (
+  const inner = (
     <div style={{
       padding: '16px 20px',
       borderBottom: last ? 'none' : `1px solid ${T.rule}`,
       display: 'flex', alignItems: 'center', gap: 14,
+      cursor: onClick ? 'pointer' : 'default',
     }}>
       <div style={{
         width: 32, height: 32, border: `1px solid ${T.rule}`,
@@ -44,15 +46,184 @@ function ActionRow({ icon, label, sub, danger, last }: {
       </svg>
     </div>
   )
+  if (onClick) return <button onClick={onClick} style={{ width: '100%', background: 'none', border: 'none', padding: 0, textAlign: 'left' }}>{inner}</button>
+  return inner
 }
+
+type PauseState = 'idle' | 'open' | 'sending' | 'done'
 
 export default function MembershipPage() {
   const session = useSession()
 
   const stripePortalUrl = session ? `/api/billing/portal?email=${encodeURIComponent(session.email)}` : '#'
 
+  const [pauseState,  setPauseState]  = useState<PauseState>('idle')
+  const [pauseStart,  setPauseStart]  = useState('')
+  const [pauseWeeks,  setPauseWeeks]  = useState(2)
+  const [pauseReason, setPauseReason] = useState('')
+  const [pauseError,  setPauseError]  = useState('')
+
+  // default start date to next Monday
+  const nextMonday = (() => {
+    const d = new Date(); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7)); return d.toISOString().slice(0, 10)
+  })()
+
+  function openPause() { setPauseState('open'); if (!pauseStart) setPauseStart(nextMonday) }
+
+  async function submitPause() {
+    if (!pauseStart) { setPauseError('Please select a start date'); return }
+    setPauseState('sending')
+    setPauseError('')
+    try {
+      const res = await fetch('/api/app/pause-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: pauseStart, weeks: pauseWeeks, reason: pauseReason }),
+      })
+      if (res.ok) {
+        setPauseState('done')
+      } else {
+        const d = await res.json()
+        setPauseError(d.error ?? 'Something went wrong')
+        setPauseState('open')
+      }
+    } catch {
+      setPauseError('Network error — please try again')
+      setPauseState('open')
+    }
+  }
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.linen, overflow: 'hidden' }}>
+
+      {/* Pause modal overlay */}
+      {(pauseState === 'open' || pauseState === 'sending' || pauseState === 'done') && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(42,21,6,0.55)', zIndex: 50,
+          display: 'flex', alignItems: 'flex-end',
+        }}>
+          <div style={{
+            width: '100%', background: T.canvas, borderTop: `1px solid ${T.rule}`,
+            padding: '24px 20px 40px',
+          }}>
+            {pauseState === 'done' ? (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 26, fontStyle: 'italic', color: T.esp, marginBottom: 10 }}>Request sent</div>
+                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 24 }}>
+                  We'll confirm your pause by email within 1 business day.
+                </div>
+                <button
+                  onClick={() => setPauseState('idle')}
+                  style={{
+                    fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, fontWeight: 500,
+                    letterSpacing: '0.14em', textTransform: 'uppercase',
+                    background: T.esp, color: T.linen, border: 'none', padding: '12px 28px', cursor: 'pointer',
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, fontStyle: 'italic', color: T.esp }}>
+                    Pause membership
+                  </div>
+                  <button
+                    onClick={() => { setPauseState('idle'); setPauseError('') }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.muted, fontSize: 20, lineHeight: 1 }}
+                    aria-label="Close"
+                  >×</button>
+                </div>
+
+                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, color: T.mid, marginBottom: 20, lineHeight: 1.7 }}>
+                  Pauses are available for 1–4 weeks. Your billing will be held during the pause and resume automatically when it ends.
+                </div>
+
+                {/* Start date */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
+                    Pause starts
+                  </label>
+                  <input
+                    type="date"
+                    value={pauseStart}
+                    min={new Date().toISOString().slice(0, 10)}
+                    onChange={e => setPauseStart(e.target.value)}
+                    style={{
+                      width: '100%', height: 44, padding: '0 12px', border: `1px solid ${T.rule}`,
+                      background: T.linen, fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 14,
+                      color: T.esp, outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                {/* Duration */}
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
+                    Duration
+                  </label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[1, 2, 3, 4].map(w => (
+                      <button
+                        key={w}
+                        onClick={() => setPauseWeeks(w)}
+                        style={{
+                          flex: 1, height: 44,
+                          background: pauseWeeks === w ? T.esp : T.linen,
+                          color: pauseWeeks === w ? T.linen : T.esp,
+                          border: `1px solid ${pauseWeeks === w ? T.esp : T.rule}`,
+                          fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {w}w
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Reason (optional) */}
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
+                    Reason <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={pauseReason}
+                    onChange={e => setPauseReason(e.target.value)}
+                    placeholder="e.g. Holiday, injury recovery…"
+                    style={{
+                      width: '100%', height: 44, padding: '0 12px', border: `1px solid ${T.rule}`,
+                      background: T.linen, fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 14,
+                      color: T.esp, outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
+                {pauseError && (
+                  <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, color: T.rust, marginBottom: 14 }}>{pauseError}</div>
+                )}
+
+                <button
+                  onClick={submitPause}
+                  disabled={pauseState === 'sending'}
+                  style={{
+                    width: '100%', height: 48,
+                    background: T.esp, color: T.linen, border: 'none',
+                    fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11,
+                    fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    cursor: pauseState === 'sending' ? 'not-allowed' : 'pointer',
+                    opacity: pauseState === 'sending' ? 0.6 : 1,
+                  }}
+                >
+                  {pauseState === 'sending' ? 'Sending request…' : 'Request pause'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{
@@ -86,9 +257,7 @@ export default function MembershipPage() {
 
             <div style={{ display: 'flex', gap: 8 }}>
               <a
-                href="https://www.bodyforme.com.au/book-online"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/app/schedule"
                 style={{
                   flex: 1, padding: '12px 0', background: T.brown,
                   textAlign: 'center',
@@ -131,7 +300,8 @@ export default function MembershipPage() {
             <ActionRow
               icon={<><rect x="4" y="3" width="2" height="10" fill={T.esp}/><rect x="10" y="3" width="2" height="10" fill={T.esp}/></>}
               label="Pause membership"
-              sub="Contact us to arrange a pause"
+              sub="Hold your billing for 1–4 weeks"
+              onClick={openPause}
             />
             <ActionRow
               icon={<><path d="M4 4l8 8M12 4l-8 8" stroke={T.rust} strokeWidth="1.4" strokeLinecap="round"/></>}

@@ -205,6 +205,52 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── TESTIMONIALS ── */}
+      <section style={{ borderBottom: '1px solid var(--rule)', background: 'var(--canvas)' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+          <ScrollReveal>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
+              <div>
+                <div className="slbl">Member stories</div>
+                <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
+                  What our{' '}
+                  <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>members say</em>
+                </h2>
+              </div>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {[1,2,3,4,5].map(i => (
+                  <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="var(--brown)"><path d="M7 1l1.5 4.2H13L9.3 7.8l1.4 4.2L7 9.5l-3.7 2.5 1.4-4.2L1 5.2h4.5z"/></svg>
+                ))}
+                <span style={{ fontSize: '12px', fontWeight: 300, color: 'var(--muted)', marginLeft: '8px', lineHeight: '14px' }}>Google reviews</span>
+              </div>
+            </div>
+          </ScrollReveal>
+          <ScrollReveal>
+            <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+              {home.testimonials.map((t, i) => (
+                <div key={i} style={{ background: 'var(--linen)', padding: '40px 36px 44px', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', gap: '3px', marginBottom: '28px' }}>
+                    {Array.from({ length: t.stars }).map((_, si) => (
+                      <svg key={si} width="12" height="12" viewBox="0 0 14 14" fill="var(--brown)"><path d="M7 1l1.5 4.2H13L9.3 7.8l1.4 4.2L7 9.5l-3.7 2.5 1.4-4.2L1 5.2h4.5z"/></svg>
+                    ))}
+                  </div>
+                  <blockquote style={{
+                    fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontStyle: 'italic',
+                    fontWeight: 300, color: 'var(--esp)', lineHeight: 1.45, margin: '0 0 28px', flex: 1,
+                  }}>
+                    &ldquo;{t.quote}&rdquo;
+                  </blockquote>
+                  <div style={{ borderTop: '1px solid var(--rule)', paddingTop: '20px' }}>
+                    <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12px', fontWeight: 500, color: 'var(--esp)', margin: '0 0 2px' }}>{t.name}</p>
+                    <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '10.5px', fontWeight: 300, color: 'var(--muted)', margin: 0, letterSpacing: '.04em' }}>{t.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
       {/* ── CONTACT STRIP ── */}
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
         <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>

@@ -134,6 +134,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
   const [filterOpen, setFilterOpen] = useState(false)
   const [selected, setSelected]     = useState<WixContact | null>(null)
   const [menuId, setMenuId]         = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const { settings } = useSettings()
   const newMemberDays = settings.newMemberDays
 
@@ -191,10 +192,56 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
   }, [contacts, filters, search, sort, membershipsByContact, newMemberDays])
 
   const gridCols = [
+    '32px',
     '2fr',
     ...ALL_COLS.filter(c => cols.includes(c.key)).map(c => c.width),
     '48px',
   ].join(' ')
+
+  const allFilteredSelected = filtered.length > 0 && filtered.every(c => selectedIds.has(c.id))
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (allFilteredSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        filtered.forEach(c => next.delete(c.id))
+        return next
+      })
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        filtered.forEach(c => next.add(c.id))
+        return next
+      })
+    }
+  }
+
+  function exportCSV() {
+    const rows = filtered.filter(c => selectedIds.has(c.id))
+    const header = 'First name,Last name,Email,Phone,Member since,Membership'
+    const lines  = rows.map(c => {
+      const mem = activeMembership(membershipsByContact[c.id] ?? [])
+      return [
+        c.firstName, c.lastName, c.email, c.phone,
+        c.createdDate ? new Date(c.createdDate).toLocaleDateString('en-AU') : '',
+        mem?.planName ?? c.planOverride ?? '',
+      ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')
+    })
+    const csv  = [header, ...lines].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url; a.download = `bodyforme-clients-${new Date().toISOString().slice(0,10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+  }
 
   // Build available filter options grouped into sections
   const planFilters: FilterDef[] = planNames.map(n => ({ key: `plan:${n}`, label: n }))
@@ -310,6 +357,13 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
         className="shrink-0 grid px-6 py-2 border-b border-neutral-200 bg-neutral-50"
         style={{ gridTemplateColumns: gridCols }}
       >
+        <input
+          type="checkbox"
+          checked={allFilteredSelected}
+          onChange={toggleSelectAll}
+          className="accent-black self-center"
+          title="Select all"
+        />
         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Name</span>
         {ALL_COLS.filter(c => cols.includes(c.key)).map(c => (
           <span key={c.key} className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">
@@ -334,10 +388,18 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
             return (
               <div
                 key={contact.id}
-                className="grid items-center px-6 py-3 border-b border-neutral-100 hover:bg-neutral-50 transition-colors cursor-pointer"
+                className={`grid items-center px-6 py-3 border-b border-neutral-100 hover:bg-neutral-50 transition-colors cursor-pointer ${selectedIds.has(contact.id) ? 'bg-neutral-50' : ''}`}
                 style={{ gridTemplateColumns: gridCols }}
                 onClick={() => setSelected(contact)}
               >
+                {/* Checkbox */}
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(contact.id)}
+                  onChange={() => toggleSelect(contact.id)}
+                  onClick={e => e.stopPropagation()}
+                  className="accent-black self-center"
+                />
                 {/* Name */}
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-neutral-900 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
@@ -393,6 +455,34 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
           })
         )}
       </div>
+
+      {/* ── Bulk action bar ── */}
+      {selectedIds.size > 0 && (
+        <div className="shrink-0 px-6 py-3 border-t border-neutral-200 bg-black flex items-center gap-3">
+          <span className="text-[13px] font-medium text-white">
+            {selectedIds.size} selected
+          </span>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-[12px] text-white/50 hover:text-white transition-colors underline"
+          >
+            Clear
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={exportCSV}
+            className="h-8 px-4 text-[12.5px] font-medium bg-white text-black rounded-lg hover:bg-neutral-100 transition-colors"
+          >
+            Export CSV
+          </button>
+          <a
+            href="/admin/marketing"
+            className="h-8 px-4 text-[12.5px] font-medium bg-neutral-700 text-white rounded-lg hover:bg-neutral-600 transition-colors flex items-center"
+          >
+            Send email
+          </a>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <div className="px-6 py-5 border-t border-neutral-200 bg-white flex items-center gap-8">
