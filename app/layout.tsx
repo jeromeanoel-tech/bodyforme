@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   title: 'BodyForme Pilates | Doncaster',
   description: 'Premium Pilates studio in Doncaster, Melbourne. Mat, Reformer and Barre classes. Book your free trial today.',
   icons: {
-    icon:  '/icons/icon-192.png',
-    apple: '/icons/apple-touch-icon.png',
+    icon:  '/icons/app-icon.png',
+    apple: '/icons/app-icon.png',
   },
 }
 

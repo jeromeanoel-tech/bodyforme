@@ -10,8 +10,8 @@ export const metadata: Metadata = {
     statusBarStyle:   'black-translucent',
   },
   icons: {
-    apple: '/icons/apple-touch-icon.png',
-    icon:  '/icons/icon-192.png',
+    apple: '/icons/app-icon.png',
+    icon:  '/icons/app-icon.png',
   },
 }
 

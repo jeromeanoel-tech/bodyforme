@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
@@ -31,12 +32,16 @@ export default function AdminSidebar({ name, role }: { name: string; role: strin
   return (
     <aside className="w-[220px] shrink-0 bg-black flex flex-col border-r border-neutral-800">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-neutral-800">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center">
-            <span className="text-black text-xs font-bold">B</span>
-          </div>
-          <span className="text-white text-sm font-semibold tracking-wide">BodyForme</span>
+      <div className="px-5 py-4 border-b border-neutral-800 flex justify-center">
+        <div className="bg-white rounded-xl px-3 py-2.5 flex items-center justify-center">
+          <Image
+            src="/bodyformeBlogo.png"
+            alt="BodyForme"
+            width={22}
+            height={44}
+            className="h-10 w-auto"
+            priority
+          />
         </div>
       </div>
 
