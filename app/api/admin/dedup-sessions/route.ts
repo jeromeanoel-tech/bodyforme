@@ -10,11 +10,11 @@ export async function GET() {
   const { data: sessions, error } = await supabase
     .from('sessions')
     .select('id, start_time, instructor_name, title')
-    .gte('start_time', '2026-05-18')
-    .lte('start_time', '2026-05-24T23:59:59')
+    .gte('start_time', '2026-05-01')
+    .lte('start_time', '2026-06-30T23:59:59')
     .order('start_time')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ count: sessions?.length ?? 0, sessions: sessions?.slice(0, 20) })
+  return NextResponse.json({ count: sessions?.length ?? 0, sessions: sessions })
 }
 
 export async function POST(_req: NextRequest) {
