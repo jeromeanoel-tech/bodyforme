@@ -1,21 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!,
 )
-
-export async function GET() {
-  const { data: sessions, error } = await supabase
-    .from('sessions')
-    .select('id, start_time, instructor_name, title')
-    .gte('start_time', '2026-05-01')
-    .lte('start_time', '2026-06-30T23:59:59')
-    .order('start_time')
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ count: sessions?.length ?? 0, sessions: sessions })
-}
 
 export async function POST(_req: NextRequest) {
   // Fetch all sessions
