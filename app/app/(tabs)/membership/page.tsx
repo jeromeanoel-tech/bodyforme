@@ -110,7 +110,7 @@ export default function MembershipPage() {
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
                 <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 26, fontStyle: 'italic', color: T.esp, marginBottom: 10 }}>Request sent</div>
                 <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 24 }}>
-                  We'll confirm your pause by email within 1 business day.
+                  We&apos;ll confirm your pause by email within 1 business day.
                 </div>
                 <button
                   onClick={() => setPauseState('idle')}
