@@ -26,9 +26,9 @@
 - [ ] Mind Body member import — run `npx tsx scripts/import-members.ts "Members Report - as of 09-May-2026 (1).xlsx"` once Supabase keys are in `.env.local`
 
 ### Payments
-- [ ] Confirm Stripe keys are **live** (not test — live keys start with `sk_live_` / `pk_live_`)
+- [x] Confirm Stripe keys are **live** ✓
 - [ ] Update Stripe webhook URL to `https://bodyforme.com.au/api/webhooks/stripe` once DNS is live
-- [ ] BECS Direct Debit — decision: launch card-only now or wait for Stripe approval?
+- [ ] BECS Direct Debit — submit request in Stripe Dashboard → Settings → Payment methods → BECS Direct Debit → Request access. Launch with cards in the meantime.
 
 ---
 
