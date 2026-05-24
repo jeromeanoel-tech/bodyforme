@@ -247,6 +247,15 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+            <div style={{ textAlign: 'center', paddingTop: '32px' }}>
+              <Link
+                href="/about#stories"
+                style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--brown)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                Read the full stories
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+              </Link>
+            </div>
           </ScrollReveal>
         </div>
       </section>

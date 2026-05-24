@@ -280,9 +280,27 @@ export const memberships = {
   ],
 
   testimonials: [
-    { stars: 5, quote: 'I booked a free trial expecting nothing. Six months later I\'m on the unlimited membership and Pilates has genuinely changed how I carry myself.', name: 'Claire M.', detail: 'Unlimited member' },
-    { stars: 5, quote: 'The weekly membership fits perfectly around my schedule. I come as often as I want, no pressure, and the instructors remember my name every single time.', name: 'Tom R.', detail: 'Unlimited member' },
-    { stars: 5, quote: 'I travel for work so the class packs are ideal. Credits never expire and booking is seamless through the app.', name: 'Priya S.', detail: 'Class pack member' },
+    {
+      stars: 5,
+      quote: 'I feel less pain, my menopause symptoms feel more regulated, and I generally have a much greater sense of wellbeing. It is such a warm, welcoming and supportive space.',
+      name: 'Michelle Edwards',
+      detail: 'Hot Pilates & Yoga member',
+      fullReview: 'I\'ve been going to Bodyforme for hot Pilates and yoga, and I absolutely love the way it makes me feel. The more I go, the more I notice a real difference in my body. I feel less pain, my menopause symptoms feel more regulated, and I generally have a much greater sense of wellbeing.\n\nBeyond the classes, Bodyforme has such a lovely community of people. The new owner genuinely cares about the gym, listens to what the students want, and is already making thoughtful changes to take Bodyforme to the next level. It is such a warm, welcoming and supportive space, and I\'m so grateful to have found it. Highly recommend.',
+    },
+    {
+      stars: 5,
+      quote: 'The owner is so passionate and welcoming, and all the teachers are amazing and supportive. Every class is well run and leaves you feeling great.',
+      name: 'Tina Tsang',
+      detail: 'Member',
+      fullReview: 'Love this studio! The owner is so passionate and welcoming, and all the teachers are amazing and supportive. Every class is well run and leaves you feeling great. Such a lovely atmosphere and community!',
+    },
+    {
+      stars: 5,
+      quote: 'You no longer view working out as a chore. A celebration of what your body can do. I feel stronger and mentally lighter and more confident.',
+      name: 'Annabel Crake',
+      detail: 'Member',
+      fullReview: 'Its my one true hour of peace! The focus required to move with your breath creates an almost meditative grounding effect that completely silences the outside world. It\'s my favourite part of the day! You no longer view working out as a chore. A celebration of what your body can do.\n\nThe support and encouragement is outstanding from the amazing instructors! They actually care about my journey. They help you safely navigate your limits and always notice your progress! I feel stronger and mentally lighter and more confident! Can\'t put into words how grateful and appreciative I am of Bodyforme.',
+    },
   ],
 
   faqs: [

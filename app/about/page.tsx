@@ -2,7 +2,7 @@ import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ScrollReveal from '@/components/ScrollReveal'
 import Link from 'next/link'
-import { about, studio } from '@/lib/content'
+import { about, studio, memberships } from '@/lib/content'
 
 export const metadata = {
   title: 'About Us | BodyForme Pilates',
@@ -204,6 +204,49 @@ export default function AboutPage() {
               ))}
             </div>
           </ScrollReveal>
+        </div>
+      </div>
+
+      {/* ── MEMBER STORIES ── */}
+      <div id="stories" style={{ borderBottom: '1px solid var(--rule)' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+          <ScrollReveal>
+            <div style={{ marginBottom: '56px' }}>
+              <div className="slbl">Member stories</div>
+              <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: '0 0 16px' }}>
+                In their own <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>words</em>
+              </h2>
+              <p style={{ fontSize: '13.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.75, maxWidth: '480px', margin: 0 }}>
+                Real experiences from members who found something they weren&apos;t expecting.
+              </p>
+            </div>
+          </ScrollReveal>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {memberships.testimonials.map((t, i) => (
+              <ScrollReveal key={i}>
+                <div style={{ background: i % 2 === 0 ? 'var(--linen)' : 'white', padding: '48px 56px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '64px', alignItems: 'start' }}>
+                  {/* Left — name + stars */}
+                  <div style={{ paddingTop: '6px' }}>
+                    <div style={{ display: 'flex', gap: '3px', marginBottom: '20px' }}>
+                      {Array.from({ length: t.stars }).map((_, si) => (
+                        <svg key={si} width="12" height="12" viewBox="0 0 14 14" fill="var(--brown)"><path d="M7 1l1.5 4.2H13L9.3 7.8l1.4 4.2L7 9.5l-3.7 2.5 1.4-4.2L1 5.2h4.5z"/></svg>
+                      ))}
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '14px', fontWeight: 600, color: 'var(--esp)', margin: '0 0 4px' }}>{t.name}</p>
+                    <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '11px', fontWeight: 300, color: 'var(--muted)', margin: 0, letterSpacing: '.04em' }}>{t.detail}</p>
+                  </div>
+                  {/* Right — full review */}
+                  <div>
+                    {t.fullReview.split('\n\n').map((para, pi) => (
+                      <p key={pi} style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '14px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.8, margin: pi === 0 ? '0 0 16px' : '0' }}>
+                        {pi === 0 ? <em style={{ fontFamily: 'var(--font-cormorant)', fontSize: '19px', fontStyle: 'italic', fontWeight: 300, color: 'var(--esp)' }}>&ldquo;{para}&rdquo;</em> : para}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
         </div>
       </div>
 
