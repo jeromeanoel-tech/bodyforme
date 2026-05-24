@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bodyforme — Contact</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --linen:#f4ede1;--l2:#ede4d4;--l3:#e4d8c6;
+  --esp:#2a1506;--esp2:#3d2210;
+  --brown:#7a4a2a;--blt:#a0724e;
+  --text:#2a1506;--mid:#6b4e36;--muted:#a08568;
+  --rule:#d8ccba;--canvas:#fdfaf6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--linen);color:var(--text);font-weight:300;font-size:14px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.announce{background:var(--esp);color:oklch(.82 .02 60);text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:9px 20px}
+.announce a{color:#c4a882;border-bottom:1px solid currentColor;text-decoration:none}
+header{position:sticky;top:0;z-index:100;background:var(--linen);border-bottom:1px solid var(--rule)}
+.hdr{max-width:1280px;margin:0 auto;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nav-l,.nav-r{display:flex;align-items:center;gap:32px;flex:1}
+.nav-r{justify-content:flex-end}
+nav a{font-size:10.5px;font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color .2s;position:relative;padding-bottom:2px}
+nav a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--brown);transition:width .25s}
+nav a:hover{color:var(--text)}
+nav a:hover::after{width:100%}
+nav a.active{color:var(--text)}
+nav a.active::after{width:100%}
+.brand{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;letter-spacing:.06em;color:var(--esp);text-decoration:none;flex-shrink:0}
+.brand em{font-style:italic;font-weight:300;color:var(--brown)}
+.btn-book{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:9px 20px;text-decoration:none;transition:background .2s;white-space:nowrap}
+.btn-book:hover{background:var(--brown)}
+
+/* ── SHARED ── */
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .55s ease,transform .55s ease}
+.reveal.visible{opacity:1;transform:none}
+.slbl{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:36px}
+.slbl::after{content:'';height:1px;background:var(--rule);width:56px}
+h2{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,54px);font-weight:400;line-height:1.1;color:var(--esp)}
+h2 em{font-style:italic;font-weight:300;color:var(--brown)}
+
+/* ── PAGE HERO ── */
+.page-hero{border-bottom:1px solid var(--rule);display:grid;grid-template-columns:1fr 1fr;min-height:52vh}
+.ph-left{background:var(--esp);padding:64px 56px;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+.ph-left::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,oklch(0.38 0.06 40 / .4) 0%,transparent 60%)}
+.ph-content{position:relative;z-index:2}
+.ph-eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.35);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.ph-eyebrow::before{content:'';width:28px;height:1px;background:rgba(196,168,130,.4);display:block}
+.ph-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,5.5vw,76px);font-weight:400;line-height:1.05;color:var(--linen);letter-spacing:-.01em;margin-bottom:24px}
+.ph-h1 em{font-style:italic;font-weight:300;color:#c4a882}
+.ph-desc{font-size:14px;font-weight:300;color:rgba(244,237,225,.55);line-height:1.8;max-width:380px}
+
+.ph-right{background:var(--l2);padding:64px 56px;display:flex;flex-direction:column;justify-content:flex-end;gap:0}
+.contact-details-hero{display:flex;flex-direction:column;gap:0;margin-bottom:0}
+.cdh-item{padding:22px 0;border-top:1px solid var(--rule);display:grid;grid-template-columns:100px 1fr;gap:16px;align-items:start}
+.cdh-item:last-child{border-bottom:1px solid var(--rule)}
+.cdh-label{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.cdh-val{font-size:13.5px;font-weight:300;color:var(--text);line-height:1.6}
+.cdh-val a{color:var(--brown);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}
+.cdh-val a:hover{border-bottom-color:var(--brown)}
+
+/* ── MAP PLACEHOLDER ── */
+.map-section{border-bottom:1px solid var(--rule)}
+.map-wrap{height:380px;background:var(--l3);position:relative;overflow:hidden}
+.map-placeholder{width:100%;height:100%;background:linear-gradient(135deg,#e0d4c0 0%,#c8b898 50%,#b0a080 100%);display:flex;align-items:center;justify-content:center;position:relative}
+.map-placeholder::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(42,21,6,.04) 40px,rgba(42,21,6,.04) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(42,21,6,.04) 40px,rgba(42,21,6,.04) 41px)}
+.map-pin{text-align:center;position:relative;z-index:2}
+.map-pin-dot{width:20px;height:20px;border-radius:50%;background:var(--esp);margin:0 auto 8px;box-shadow:0 0 0 6px rgba(42,21,6,.15)}
+.map-pin-label{background:var(--esp);color:var(--linen);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;font-weight:400;font-family:'DM Sans',sans-serif}
+.map-overlay{position:absolute;bottom:24px;left:48px;background:var(--canvas);border:1px solid var(--rule);padding:20px 24px;z-index:3}
+.map-overlay-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--esp);margin-bottom:4px}
+.map-overlay-addr{font-size:12px;font-weight:300;color:var(--mid);margin-bottom:12px}
+.map-overlay-link{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brown);border-bottom:1px solid var(--brown);padding-bottom:2px;text-decoration:none;transition:opacity .2s}
+.map-overlay-link:hover{opacity:.6}
+
+/* ── CONTACT FORM + INFO ── */
+.contact-main{max-width:1280px;margin:0 auto;padding:88px 48px}
+.contact-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px}
+
+/* Form */
+.form-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--esp);margin-bottom:8px}
+.form-sub{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.7;margin-bottom:40px}
+.contact-form{display:flex;flex-direction:column;gap:0}
+.cf-row{margin-bottom:28px}
+.cf-grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px}
+.cf-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.cf-input,.cf-select,.cf-ta{width:100%;background:transparent;border:none;border-bottom:1px solid var(--rule);padding:8px 0;font-family:'DM Sans',sans-serif;font-size:13.5px;font-weight:300;color:var(--text);outline:none;transition:border-color .2s;appearance:none}
+.cf-input::placeholder,.cf-ta::placeholder{color:var(--muted)}
+.cf-input:focus,.cf-select:focus,.cf-ta:focus{border-bottom-color:var(--brown)}
+.cf-ta{height:100px;resize:none}
+.cf-select option{color:var(--text)}
+.btn-send{font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:15px 36px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;margin-top:8px;display:inline-block}
+.btn-send:hover{background:var(--brown)}
+.form-success{display:none;background:var(--l2);border:1px solid var(--rule);padding:24px 28px;margin-top:24px}
+.form-success.show{display:block}
+.fs-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--esp);margin-bottom:6px}
+.fs-body{font-size:13px;font-weight:300;color:var(--mid);line-height:1.65}
+
+/* Info sidebar */
+.contact-info-aside{padding-top:60px}
+.info-block{margin-bottom:40px}
+.info-block-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--esp);margin-bottom:20px}
+.info-rows{display:flex;flex-direction:column}
+.info-row{padding:16px 0;border-top:1px solid var(--rule);display:grid;grid-template-columns:100px 1fr;gap:12px}
+.info-row:last-child{border-bottom:1px solid var(--rule)}
+.ir-lbl{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.ir-val{font-size:13px;font-weight:300;color:var(--text);line-height:1.6}
+.ir-val a{color:var(--brown);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}
+.ir-val a:hover{border-bottom-color:var(--brown)}
+
+/* Social links */
+.social-links{display:flex;flex-direction:column;gap:0}
+.social-link{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-top:1px solid var(--rule);text-decoration:none;transition:background .15s;cursor:pointer}
+.social-link:last-child{border-bottom:1px solid var(--rule)}
+.social-link:hover .sl-name{color:var(--brown)}
+.social-link:hover .sl-arrow{transform:translateX(4px)}
+.sl-left{display:flex;align-items:center;gap:14px}
+.sl-icon{width:36px;height:36px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);flex-shrink:0;transition:all .2s}
+.social-link:hover .sl-icon{border-color:var(--brown);color:var(--brown)}
+.sl-name{font-size:13px;font-weight:400;color:var(--text);transition:color .2s}
+.sl-handle{font-size:11px;font-weight:300;color:var(--muted)}
+.sl-arrow{color:var(--muted);font-size:14px;transition:transform .2s}
+
+/* ── HOURS TABLE ── */
+.hours-section{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:var(--l2)}
+.hours-inner{max-width:1280px;margin:0 auto;padding:80px 48px;display:grid;grid-template-columns:1fr 2fr;gap:80px;align-items:start}
+.hours-left h2{margin-bottom:16px}
+.hours-note{font-size:13px;font-weight:300;color:var(--mid);line-height:1.75;margin-top:16px}
+.hours-table{width:100%;border-collapse:collapse;border:1px solid var(--rule)}
+.hours-table tr{border-bottom:1px solid var(--rule)}
+.hours-table tr:last-child{border-bottom:none}
+.hours-table td{padding:16px 24px;font-size:13px;font-weight:300;color:var(--text)}
+.hours-table td:first-child{color:var(--mid);width:180px;font-size:12.5px;letter-spacing:.02em}
+.hours-table td:last-child{text-align:right;color:var(--muted);font-size:12px;letter-spacing:.04em}
+.hours-table tr.today-row td{font-weight:500;color:var(--esp) !important}
+.hours-table tr.today-row{background:var(--canvas)}
+.today-marker{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;background:var(--brown);color:var(--canvas);padding:2px 7px;margin-left:8px;font-weight:500;vertical-align:middle}
+
+/* ── TEAM STRIP ── */
+.team-strip{border-bottom:1px solid var(--rule)}
+.team-strip-inner{max-width:1280px;margin:0 auto;padding:72px 48px;display:flex;align-items:center;justify-content:space-between;gap:48px}
+.ts-text h3{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,2.8vw,38px);font-weight:400;color:var(--esp);margin-bottom:8px}
+.ts-text h3 em{font-style:italic;font-weight:300;color:var(--brown)}
+.ts-text p{font-size:13px;font-weight:300;color:var(--mid);line-height:1.65;max-width:420px}
+.ts-links{display:flex;gap:16px;flex-shrink:0}
+.btn-outline{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--esp);border:1px solid var(--esp);padding:12px 24px;text-decoration:none;display:inline-block;transition:all .2s}
+.btn-outline:hover{background:var(--esp);color:var(--canvas)}
+.btn-solid{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:12px 24px;text-decoration:none;display:inline-block;transition:background .2s}
+.btn-solid:hover{background:var(--brown)}
+
+/* ── FOOTER ── */
+footer{background:var(--esp2);padding:64px 0 0}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 48px}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.07)}
+.footer-brand-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:.06em;color:var(--linen);margin-bottom:14px}
+.footer-brand-name em{font-style:italic;color:#c4a882}
+.footer-tagline{font-size:12.5px;font-weight:300;color:rgba(244,237,225,.45);line-height:1.7;max-width:240px}
+.fc-head{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.3);margin-bottom:20px}
+.fc-links{display:flex;flex-direction:column;gap:12px}
+.fc-links a{font-size:12.5px;font-weight:300;color:rgba(244,237,226,.5);text-decoration:none;transition:color .2s}
+.fc-links a:hover{color:rgba(244,237,226,.9)}
+.footer-bottom{padding:20px 0;display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:11px;color:rgba(244,237,225,.25);letter-spacing:.04em}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:11px;color:rgba(244,237,225,.25);text-decoration:none;transition:color .2s}
+.footer-legal a:hover{color:rgba(244,237,225,.6)}
+</style>
+</head>
+<body>
+
+<div class="announce">New members — <a href="Bodyforme Memberships.html">first week free</a> when you join before 31 May 2026</div>
+
+<header>
+  <div class="hdr">
+    <nav class="nav-l">
+      <a href="Bodyforme Classes.html" class="nav-link">Classes</a>
+      <a href="Bodyforme Memberships.html" class="nav-link">Memberships</a>
+    </nav>
+    <a href="Bodyforme Home.html" class="brand">Body<em>forme</em></a>
+    <nav class="nav-r">
+      <a href="Bodyforme About.html" class="nav-link">About Us</a>
+      <a href="Bodyforme Contact.html" class="nav-link active">Contact</a>
+      <a href="Bodyforme Classes.html" class="btn-book">Book a Class</a>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="ph-left">
+    <div class="ph-content">
+      <div class="ph-eyebrow">Collingwood, Melbourne</div>
+      <h1 class="ph-h1">Come say <em>hello</em></h1>
+      <p class="ph-desc">We'd love to show you around, answer your questions, or simply have you in for a class. Drop in any time during opening hours — the kettle is always on.</p>
+    </div>
+  </div>
+  <div class="ph-right">
+    <div class="contact-details-hero reveal">
+      <div class="cdh-item">
+        <span class="cdh-label">Address</span>
+        <span class="cdh-val">Level 1, 142 Smith Street<br>Collingwood VIC 3066</span>
+      </div>
+      <div class="cdh-item">
+        <span class="cdh-label">Phone</span>
+        <span class="cdh-val"><a href="tel:0394128800">(03) 9412 8800</a></span>
+      </div>
+      <div class="cdh-item">
+        <span class="cdh-label">Email</span>
+        <span class="cdh-val"><a href="mailto:hello@bodyforme.com.au">hello@bodyforme.com.au</a></span>
+      </div>
+      <div class="cdh-item">
+        <span class="cdh-label">Parking</span>
+        <span class="cdh-val">Street parking on Smith St.<br>Victoria Gardens car park (5 min walk)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAP -->
+<div class="map-section">
+  <div class="map-wrap">
+    <div class="map-placeholder">
+      <div class="map-pin">
+        <div class="map-pin-dot"></div>
+        <div class="map-pin-label">Bodyforme Studio</div>
+      </div>
+    </div>
+    <div class="map-overlay">
+      <div class="map-overlay-name">Bodyforme</div>
+      <div class="map-overlay-addr">Level 1, 142 Smith Street, Collingwood VIC 3066</div>
+      <a href="#" class="map-overlay-link">Get directions →</a>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT FORM + INFO -->
+<div class="contact-main">
+  <div class="contact-layout reveal">
+
+    <!-- Form -->
+    <div>
+      <div class="form-title">Send us a message</div>
+      <p class="form-sub">Whether you have a question about classes, memberships, or just want to say hello — we respond to every message within one business day.</p>
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="cf-grid2">
+          <div>
+            <label class="cf-lbl">First name</label>
+            <input class="cf-input" type="text" placeholder="Jane" required>
+          </div>
+          <div>
+            <label class="cf-lbl">Last name</label>
+            <input class="cf-input" type="text" placeholder="Smith" required>
+          </div>
+        </div>
+        <div class="cf-row">
+          <label class="cf-lbl">Email address</label>
+          <input class="cf-input" type="email" placeholder="jane@example.com" required>
+        </div>
+        <div class="cf-row">
+          <label class="cf-lbl">I'm enquiring about</label>
+          <select class="cf-select">
+            <option>Classes &amp; schedule</option>
+            <option>Memberships &amp; pricing</option>
+            <option>Trial week</option>
+            <option>Corporate &amp; group bookings</option>
+            <option>Something else</option>
+          </select>
+        </div>
+        <div class="cf-row">
+          <label class="cf-lbl">Message</label>
+          <textarea class="cf-ta" placeholder="Tell us how we can help…" required></textarea>
+        </div>
+        <button class="btn-send" type="submit">Send message</button>
+      </form>
+      <div class="form-success" id="form-success">
+        <div class="fs-title">Message received — thank you.</div>
+        <p class="fs-body">We'll be in touch within one business day. In the meantime, feel free to browse the <a href="Bodyforme Classes.html" style="color:var(--brown);border-bottom:1px solid var(--brown)">class schedule</a> or <a href="Bodyforme Memberships.html" style="color:var(--brown);border-bottom:1px solid var(--brown)">membership options</a>.</p>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="contact-info-aside">
+      <div class="info-block">
+        <div class="slbl">Studio details</div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="ir-lbl">Address</span>
+            <span class="ir-val">Level 1, 142 Smith Street<br>Collingwood VIC 3066</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-lbl">Phone</span>
+            <span class="ir-val"><a href="tel:0394128800">(03) 9412 8800</a></span>
+          </div>
+          <div class="info-row">
+            <span class="ir-lbl">Email</span>
+            <span class="ir-val"><a href="mailto:hello@bodyforme.com.au">hello@bodyforme.com.au</a></span>
+          </div>
+          <div class="info-row">
+            <span class="ir-lbl">Tram</span>
+            <span class="ir-val">Route 86 — stop 22<br>(Smith St / Peel St)</span>
+          </div>
+          <div class="info-row">
+            <span class="ir-lbl">Parking</span>
+            <span class="ir-val">2hr parking on Smith St.<br>Victoria Gardens car park nearby.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="slbl">Follow us</div>
+        <div class="social-links">
+          <a href="#" class="social-link">
+            <div class="sl-left">
+              <div class="sl-icon">▶</div>
+              <div>
+                <div class="sl-name">Instagram</div>
+                <div class="sl-handle">@bodyforme.studio</div>
+              </div>
+            </div>
+            <span class="sl-arrow">→</span>
+          </a>
+          <a href="#" class="social-link">
+            <div class="sl-left">
+              <div class="sl-icon">f</div>
+              <div>
+                <div class="sl-name">Facebook</div>
+                <div class="sl-handle">Bodyforme Studio</div>
+              </div>
+            </div>
+            <span class="sl-arrow">→</span>
+          </a>
+          <a href="#" class="social-link">
+            <div class="sl-left">
+              <div class="sl-icon">◈</div>
+              <div>
+                <div class="sl-name">Mindbody</div>
+                <div class="sl-handle">Book via the app</div>
+              </div>
+            </div>
+            <span class="sl-arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOURS -->
+<div class="hours-section">
+  <div class="hours-inner reveal">
+    <div class="hours-left">
+      <div class="slbl">Opening hours</div>
+      <h2>When we're <em>open</em></h2>
+      <p class="hours-note">Public holiday hours may vary. Check the <a href="Bodyforme Classes.html" style="color:var(--brown);border-bottom:1px solid var(--brown)">class schedule</a> for up-to-date session times.</p>
+    </div>
+    <table class="hours-table">
+      <tbody>
+        <tr><td>Monday</td><td>First class 6:00 am — Last class 7:00 pm</td><td>Open</td></tr>
+        <tr><td>Tuesday</td><td>First class 6:00 am — Last class 7:00 pm</td><td>Open</td></tr>
+        <tr><td>Wednesday</td><td>First class 6:00 am — Last class 7:00 pm</td><td>Open</td></tr>
+        <tr><td>Thursday</td><td>First class 6:00 am — Last class 7:00 pm</td><td>Open</td></tr>
+        <tr><td>Friday</td><td>First class 6:00 am — Last class 6:00 pm</td><td>Open</td></tr>
+        <tr class="today-row"><td>Saturday <span class="today-marker">Today</span></td><td>First class 8:00 am — Last class 11:00 am</td><td>Open now</td></tr>
+        <tr><td>Sunday</td><td>First class 7:00 am — Last class 5:30 pm</td><td>Open</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TEAM STRIP -->
+<div class="team-strip">
+  <div class="team-strip-inner reveal">
+    <div class="ts-text">
+      <h3>Want to meet the <em>team?</em></h3>
+      <p>Our instructors are the heart of Bodyforme. Read about their backgrounds, specialities and what drives them to teach — then come and experience their classes for yourself.</p>
+    </div>
+    <div class="ts-links">
+      <a href="Bodyforme About.html" class="btn-outline">Meet the team</a>
+      <a href="Bodyforme Classes.html" class="btn-solid">View schedule</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">Body<em>forme</em></div>
+        <p class="footer-tagline">A premium hot yoga and pilates studio committed to transformation through heat, breath and movement.</p>
+      </div>
+      <div>
+        <div class="fc-head">Studio</div>
+        <div class="fc-links">
+          <a href="Bodyforme Classes.html">Classes</a>
+          <a href="Bodyforme Memberships.html">Memberships</a>
+          <a href="Bodyforme About.html">About</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Visit</div>
+        <div class="fc-links">
+          <a href="#">142 Smith St, Collingwood</a>
+          <a href="#">(03) 9412 8800</a>
+          <a href="#">hello@bodyforme.com.au</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Account</div>
+        <div class="fc-links">
+          <a href="#">Sign In</a>
+          <a href="#">Create Account</a>
+          <a href="#">Gift Cards</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Bodyforme Pty Ltd.</span>
+      <div class="footer-legal">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function handleSubmit(e) {
+  e.preventDefault();
+  e.target.style.display = 'none';
+  document.getElementById('form-success').classList.add('show');
+}
+
+// Highlight today based on real day
+const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const today = days[new Date().getDay()];
+document.querySelectorAll('.hours-table td:first-child').forEach(td => {
+  if (td.textContent.trim().startsWith(today)) {
+    td.closest('tr').classList.add('today-row');
+    if (!td.querySelector('.today-marker')) {
+      const badge = document.createElement('span');
+      badge.className = 'today-marker';
+      badge.textContent = 'Today';
+      td.appendChild(badge);
+    }
+  } else {
+    td.closest('tr').classList.remove('today-row');
+  }
+});
+
+const io = new IntersectionObserver(
+  entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
+  { threshold: 0.08 }
+);
+document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+</script>
+</body>
+</html>

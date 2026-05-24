@@ -142,7 +142,7 @@ export default function ProfilePage() {
         <div style={{ paddingTop: 24 }}>
           <div style={{ padding: '0 24px', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 10 }}>Studio</div>
           <div style={{ background: T.canvas, borderTop: `1px solid ${T.rule}`, borderBottom: `1px solid ${T.rule}` }}>
-            <NavRow label="Studio info" sub="Hours, location, parking" href="https://www.bodyforme.com.au/contact" />
+            <NavRow label="Studio info" sub="Hours, location, parking" href="/contact" />
             <NavRow label="Refer a friend" sub="2 weeks free for both of you" last />
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function ProfilePage() {
         <div style={{ paddingTop: 24 }}>
           <div style={{ padding: '0 24px', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 10 }}>Support</div>
           <div style={{ background: T.canvas, borderTop: `1px solid ${T.rule}`, borderBottom: `1px solid ${T.rule}` }}>
-            <NavRow label="Contact the studio" href="https://www.bodyforme.com.au/contact" />
+            <NavRow label="Contact the studio" href="/contact" />
             <NavRow label="Terms & privacy" href="/terms" />
             <NavRow label="Sign out" onClick={handleSignOut} last />
           </div>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bodyforme — Bikram &amp; Pilates Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --linen:#f4ede1;--l2:#ede4d4;--l3:#e4d8c6;
+  --esp:#2a1506;--esp2:#3d2210;
+  --brown:#7a4a2a;--blt:#a0724e;
+  --text:#2a1506;--mid:#6b4e36;--muted:#a08568;
+  --rule:#d8ccba;--canvas:#fdfaf6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--linen);color:var(--text);font-weight:300;font-size:14px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ANNOUNCE */
+.announce{background:var(--esp);color:oklch(.82 .02 60);text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:9px 20px}
+.announce a{color:#c4a882;border-bottom:1px solid currentColor}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:var(--linen);border-bottom:1px solid var(--rule)}
+.hdr{max-width:1280px;margin:0 auto;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nav-l,.nav-r{display:flex;align-items:center;gap:32px;flex:1}
+.nav-r{justify-content:flex-end}
+nav a{font-size:10.5px;font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color .2s;position:relative;padding-bottom:2px}
+nav a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--brown);transition:width .25s}
+nav a:hover{color:var(--text)}
+nav a:hover::after{width:100%}
+.brand{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;letter-spacing:.06em;color:var(--esp);text-decoration:none;flex-shrink:0}
+.brand em{font-style:italic;font-weight:300;color:var(--brown)}
+.btn-book{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:9px 20px;text-decoration:none;transition:background .2s;white-space:nowrap}
+.btn-book:hover{background:var(--brown)}
+
+/* HERO */
+.hero{max-width:1280px;margin:0 auto;padding:80px 48px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;border-bottom:1px solid var(--rule)}
+.eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.eyebrow::before{content:'';width:28px;height:1px;background:var(--blt);display:block}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,6vw,84px);font-weight:400;line-height:1.05;letter-spacing:-.01em;color:var(--esp);margin-bottom:26px}
+h1 em{font-style:italic;font-weight:300;color:var(--brown)}
+.hero-p{font-size:14px;font-weight:300;color:var(--mid);line-height:1.8;max-width:400px;margin-bottom:40px}
+.ctas{display:flex;align-items:center;gap:28px}
+.btn-dark{font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:14px 32px;text-decoration:none;transition:background .2s;display:inline-block}
+.btn-dark:hover{background:var(--brown)}
+.btn-ghost{font-size:10.5px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px;transition:color .2s,border-color .2s}
+.btn-ghost:hover{color:var(--text);border-color:var(--text)}
+.hero-visual{position:relative;height:480px}
+.hero-img{width:100%;height:100%;background:linear-gradient(155deg,#d4c2a8 0%,#9a7858 50%,#5a3820 100%);position:relative;overflow:hidden}
+.hero-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(42,21,6,.28) 0%,transparent 55%)}
+.hero-float{position:absolute;background:var(--canvas);border:1px solid var(--rule);padding:16px 20px;text-align:center}
+.hero-float.tl{bottom:-20px;left:-28px;z-index:2}
+.hero-float.tr{top:24px;right:-24px;z-index:2}
+.f-num{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;color:var(--esp);line-height:1;display:block}
+.f-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-top:4px}
+.f-quote{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:13px;color:var(--mid);max-width:150px;line-height:1.45;display:block}
+
+/* TICKER */
+.ticker{border-bottom:1px solid var(--rule);overflow:hidden;white-space:nowrap;background:var(--l2)}
+.ticker-track{display:inline-flex;animation:tick 30s linear infinite;padding:12px 0}
+.ticker-item{display:inline-flex;align-items:center;gap:16px;padding:0 24px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.ticker-dot{width:3px;height:3px;border-radius:50%;background:var(--blt);flex-shrink:0}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* SHARED */
+.section{border-bottom:1px solid var(--rule)}
+.si{max-width:1280px;margin:0 auto;padding:88px 48px}
+.slbl{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:40px}
+.slbl::after{content:'';height:1px;background:var(--rule);width:56px}
+h2{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,54px);font-weight:400;line-height:1.1;color:var(--esp)}
+h2 em{font-style:italic;font-weight:300;color:var(--brown)}
+.s-hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:52px}
+.s-intro{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.75;max-width:300px;text-align:right}
+
+/* CLASSES */
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.cc{background:var(--linen);padding:32px 28px 36px;cursor:pointer;transition:background .25s}
+.cc:hover{background:var(--esp)}
+.cc:hover .cc-n,.cc:hover .cc-name,.cc:hover .cc-desc,.cc:hover .cc-dur{color:rgba(244,237,225,.8) !important}
+.cc:hover .cc-arrow{border-color:rgba(255,255,255,.2);color:rgba(244,237,225,.8)}
+.cc-n{font-family:'Cormorant Garamond',serif;font-size:12px;color:var(--muted);display:block;margin-bottom:40px;transition:color .25s}
+.cc-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;line-height:1.2;margin-bottom:12px;transition:color .25s}
+.cc-name em{font-style:italic;font-weight:300}
+.cc-desc{font-size:12.5px;font-weight:300;color:var(--mid);line-height:1.7;margin-bottom:24px;transition:color .25s}
+.cc-dur{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:24px;transition:color .25s}
+.cc-arrow{width:32px;height:32px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:16px;transition:all .25s}
+
+/* BENEFITS dark */
+.dark-section{background:var(--esp);border-bottom:none}
+.dark-section .si{padding:88px 48px}
+.dark-section .slbl{color:rgba(244,237,225,.3)}
+.dark-section .slbl::after{background:rgba(255,255,255,.1)}
+.dark-section h2{color:var(--linen)}
+.dark-section h2 em{color:#c4a882}
+.ben-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.ben-txt h2{margin-bottom:20px}
+.ben-sub{font-size:14px;font-weight:300;color:rgba(244,237,225,.55);line-height:1.8;margin-bottom:48px}
+.ben-list{display:flex;flex-direction:column}
+.bi{display:flex;gap:18px;align-items:flex-start;padding:20px 0;border-top:1px solid rgba(255,255,255,.08)}
+.bi:last-child{border-bottom:1px solid rgba(255,255,255,.08)}
+.bi-n{font-family:'Cormorant Garamond',serif;font-size:13px;color:rgba(244,237,225,.25);min-width:22px;padding-top:2px;flex-shrink:0}
+.bi-head{font-size:13px;font-weight:500;color:var(--linen);margin-bottom:4px}
+.bi-text{font-size:12.5px;font-weight:300;color:rgba(244,237,225,.5);line-height:1.65}
+.ben-img{height:520px;background:linear-gradient(150deg,#c8b89a 0%,#7a5a3e 100%);position:relative}
+.ben-caption{position:absolute;bottom:24px;left:0;background:rgba(42,21,6,.75);padding:14px 20px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--linen)}
+
+/* PHILOSOPHY split */
+.phil{display:grid;grid-template-columns:5fr 4fr;gap:80px}
+.phil-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,3vw,44px);font-weight:300;font-style:italic;line-height:1.25;border-top:2px solid var(--esp);padding-top:28px;margin-bottom:32px}
+.phil-body{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.8;margin-bottom:14px}
+.link-underline{font-size:10.5px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--brown);border-bottom:1px solid var(--brown);padding-bottom:2px;display:inline-block;margin-top:16px;transition:opacity .2s}
+.link-underline:hover{opacity:.6}
+.phil-r{padding-top:48px}
+.facts{display:flex;flex-direction:column}
+.fact{padding:22px 0;border-top:1px solid var(--rule);display:flex;align-items:baseline;gap:16px}
+.fact:last-child{border-bottom:1px solid var(--rule)}
+.fact-n{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:300;line-height:1;color:var(--esp);flex-shrink:0}
+.fact-copy strong{display:block;font-size:12.5px;font-weight:500;color:var(--text);margin-bottom:2px}
+.fact-copy span{font-size:12px;font-weight:300;color:var(--mid);line-height:1.5}
+
+/* MEMBERSHIPS */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:56px}
+.mc{background:var(--linen);padding:36px 32px 40px;position:relative}
+.mc.feat{background:var(--esp)}
+.mc.feat .mc-tag{background:rgba(255,255,255,.08);color:rgba(244,237,225,.6)}
+.mc.feat .mc-name,.mc.feat .mc-amount{color:var(--linen)}
+.mc.feat .mc-per{color:rgba(244,237,225,.5)}
+.mc.feat .mc-rule{background:rgba(255,255,255,.1)}
+.mc.feat .mc-feat{color:rgba(244,237,225,.65)}
+.mc.feat .mc-btn{color:var(--linen);border-color:rgba(255,255,255,.25)}
+.mc.feat .mc-btn:hover{border-color:var(--linen)}
+.mc-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:var(--l2);padding:4px 10px;display:inline-block;margin-bottom:28px}
+.mc-badge{position:absolute;top:0;right:32px;background:var(--blt);color:var(--canvas);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;font-weight:500}
+.mc-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--esp);line-height:1.1;margin-bottom:8px}
+.mc-price{display:flex;align-items:baseline;gap:6px;margin-bottom:24px}
+.mc-amount{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--esp);line-height:1}
+.mc-per{font-size:11px;font-weight:300;color:var(--muted)}
+.mc-rule{height:1px;background:var(--rule);margin-bottom:24px}
+.mc-feats{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:36px}
+.mc-feat{font-size:12.5px;font-weight:300;color:var(--mid);display:flex;align-items:flex-start;gap:10px;line-height:1.5}
+.mc-feat::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--blt);flex-shrink:0;margin-top:6px}
+.mc-btn{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;display:inline-block;padding:13px 24px;border:1px solid var(--esp);color:var(--esp);background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;text-decoration:none}
+.mc:not(.feat) .mc-btn:hover{background:var(--esp);color:var(--canvas)}
+
+/* CONTACT */
+.contact-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+.contact-body{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.8;margin:22px 0 40px}
+.cdetail{display:flex;flex-direction:column}
+.cd{padding:18px 0;border-top:1px solid var(--rule);display:flex;gap:20px}
+.cd:last-child{border-bottom:1px solid var(--rule)}
+.cd-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);min-width:88px;padding-top:2px;flex-shrink:0}
+.cd-val{font-size:13px;font-weight:300;color:var(--text);line-height:1.6}
+.cf{display:flex;flex-direction:column;padding-top:60px}
+.cf-row{margin-bottom:28px}
+.cf-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.cf-input,.cf-ta{width:100%;background:transparent;border:none;border-bottom:1px solid var(--rule);padding:8px 0;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;color:var(--text);outline:none;transition:border-color .2s}
+.cf-input::placeholder,.cf-ta::placeholder{color:var(--muted)}
+.cf-input:focus,.cf-ta:focus{border-bottom-color:var(--brown)}
+.cf-ta{height:80px;resize:none}
+.cf-submit{font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--canvas);background:var(--esp);border:none;padding:14px 32px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;margin-top:8px}
+.cf-submit:hover{background:var(--brown)}
+
+/* FOOTER */
+footer{background:var(--esp2);padding:64px 0 0}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 48px}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.07)}
+.footer-brand-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:.06em;color:var(--linen);margin-bottom:14px}
+.footer-brand-name em{font-style:italic;color:#c4a882}
+.footer-tagline{font-size:12.5px;font-weight:300;color:rgba(244,237,225,.45);line-height:1.7;max-width:240px}
+.footer-social{display:flex;gap:20px;margin-top:28px}
+.footer-social a{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,237,225,.35);text-decoration:none;transition:color .2s}
+.footer-social a:hover{color:rgba(244,237,225,.8)}
+.fc-head{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.3);margin-bottom:20px}
+.fc-links{display:flex;flex-direction:column;gap:12px}
+.fc-links a{font-size:12.5px;font-weight:300;color:rgba(244,237,226,.5);text-decoration:none;transition:color .2s}
+.fc-links a:hover{color:rgba(244,237,226,.9)}
+.footer-bottom{padding:20px 0;display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:11px;color:rgba(244,237,225,.25);letter-spacing:.04em}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:11px;color:rgba(244,237,225,.25);text-decoration:none;transition:color .2s}
+.footer-legal a:hover{color:rgba(244,237,225,.6)}
+
+/* ANIMATIONS */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<div class="announce">
+  New members — <a href="#">first week free</a> when you join before 31 May 2026
+</div>
+
+<header>
+  <div class="hdr">
+    <nav class="nav-l">
+      <a href="Bodyforme Classes.html" class="nav-link">Classes</a>
+      <a href="Bodyforme Memberships.html" class="nav-link">Memberships</a>
+    </nav>
+    <a href="#" class="brand">Body<em>forme</em></a>
+    <nav class="nav-r">
+      <a href="Bodyforme About.html" class="nav-link">About Us</a>
+      <a href="Bodyforme Contact.html" class="nav-link">Contact</a>
+      <a href="#memberships" class="btn-book">Book a Class</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<div class="section">
+  <div class="hero">
+    <div class="hero-text">
+      <div class="eyebrow">Bikram &amp; Pilates — Est. 2014</div>
+      <h1>Where heat <em>meets</em> stillness</h1>
+      <p class="hero-p">Bodyforme is a premium hot yoga and pilates studio built around the belief that transformation begins from within. Join our warm, welcoming community and discover what your body is capable of.</p>
+      <div class="ctas">
+        <a href="#classes" class="btn-dark">Explore Classes</a>
+        <a href="#about" class="btn-ghost">Our Story</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-img"></div>
+      <div class="hero-float tr">
+        <span class="f-num">12+</span>
+        <span class="f-lbl">Years open</span>
+      </div>
+      <div class="hero-float tl">
+        <span class="f-quote">Heat. Breath. Movement. Repeat.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TICKER ── -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ticker-item"><span class="ticker-dot"></span>Bikram 90 min</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Hot Pilates</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Sculpt Yoga</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Bikram Express</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Special Forces</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>7 Days a Week</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Classes from 6 am</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Bikram 90 min</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Hot Pilates</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Sculpt Yoga</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Bikram Express</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Special Forces</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>7 Days a Week</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Classes from 6 am</span>
+  </div>
+</div>
+
+<!-- ── CLASSES ── -->
+<div class="section" id="classes">
+  <div class="si">
+    <div class="s-hdr reveal">
+      <div>
+        <div class="slbl">Our Disciplines</div>
+        <h2>The <em>practice</em></h2>
+      </div>
+      <p class="s-intro">Every class is designed to challenge the body, calm the mind and build lasting strength — in a beautifully heated studio.</p>
+    </div>
+    <div class="grid4 reveal">
+      <div class="cc">
+        <span class="cc-n">01</span>
+        <div class="cc-name">Bikram <em>90 min</em></div>
+        <span class="cc-dur">90 min · 40°C</span>
+        <p class="cc-desc">The original hot yoga sequence. 26 postures and 2 breathing exercises practiced in a 40°C heated room to detoxify, strengthen and restore.</p>
+        <div class="cc-arrow">→</div>
+      </div>
+      <div class="cc">
+        <span class="cc-n">02</span>
+        <div class="cc-name">Bikram <em>Express</em></div>
+        <span class="cc-dur">60 min · 40°C</span>
+        <p class="cc-desc">The full heat experience in a condensed format — perfect for those with busy schedules who refuse to compromise on their practice.</p>
+        <div class="cc-arrow">→</div>
+      </div>
+      <div class="cc">
+        <span class="cc-n">03</span>
+        <div class="cc-name">Hot <em>Pilates</em></div>
+        <span class="cc-dur">55 min · 36°C</span>
+        <p class="cc-desc">Reformer-inspired mat pilates in a warm room. Deepen your range of motion, tone muscles and build a strong, centred core.</p>
+        <div class="cc-arrow">→</div>
+      </div>
+      <div class="cc">
+        <span class="cc-n">04</span>
+        <div class="cc-name">Sculpt <em>Yoga</em></div>
+        <span class="cc-dur">60 min · 34°C</span>
+        <p class="cc-desc">Vinyasa flow meets strength training. Light weights and fluid movement combine to sculpt and tone the entire body.</p>
+        <div class="cc-arrow">→</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BENEFITS ── -->
+<div class="dark-section" id="benefits">
+  <div class="si">
+    <div class="ben-layout reveal">
+      <div class="ben-txt">
+        <div class="slbl">Why the heat</div>
+        <h2>Practice that <em>transforms</em></h2>
+        <p class="ben-sub">Heat is not just a setting — it is a teacher. It asks more of you, and gives more back.</p>
+        <div class="ben-list">
+          <div class="bi">
+            <span class="bi-n">01</span>
+            <div>
+              <div class="bi-head">Deep detoxification</div>
+              <p class="bi-text">Practising in 38–40°C opens the pores and encourages a deep, cleansing sweat that flushes toxins and leaves skin glowing.</p>
+            </div>
+          </div>
+          <div class="bi">
+            <span class="bi-n">02</span>
+            <div>
+              <div class="bi-head">Injury prevention</div>
+              <p class="bi-text">Warm muscles stretch further and recover faster, dramatically reducing the risk of injury and building long-term joint resilience.</p>
+            </div>
+          </div>
+          <div class="bi">
+            <span class="bi-n">03</span>
+            <div>
+              <div class="bi-head">Mental clarity</div>
+              <p class="bi-text">The intensity of heat demands full presence. Students leave with a profound sense of calm, focus and mental reset.</p>
+            </div>
+          </div>
+          <div class="bi">
+            <span class="bi-n">04</span>
+            <div>
+              <div class="bi-head">Cardiovascular strength</div>
+              <p class="bi-text">Heat elevates heart rate and metabolism, delivering cardiovascular benefits comparable to moderate aerobic exercise.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ben-img">
+        <div class="ben-caption">"The heat holds you accountable."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ABOUT / PHILOSOPHY ── -->
+<div class="section" id="about">
+  <div class="si">
+    <div class="phil reveal">
+      <div class="phil-l">
+        <div class="slbl">Our philosophy</div>
+        <blockquote class="phil-quote">"The body achieves what the mind believes."</blockquote>
+        <p class="phil-body">Bodyforme was founded in 2014 by two practitioners who believed that the best studio in the city should also be its most welcoming. We built a space where beginners and seasoned yogis practice side by side — without judgement, without ego, with total commitment.</p>
+        <p class="phil-body">Every element of the studio — from the timber floors to the filtered humidity — has been carefully considered to maximise your practice and your comfort.</p>
+        <a href="#contact" class="link-underline">Come visit us →</a>
+      </div>
+      <div class="phil-r">
+        <div class="facts">
+          <div class="fact">
+            <span class="fact-n">12</span>
+            <div class="fact-copy">
+              <strong>Years in the community</strong>
+              <span>Serving practitioners across the city since 2014</span>
+            </div>
+          </div>
+          <div class="fact">
+            <span class="fact-n">4,200+</span>
+            <div class="fact-copy">
+              <strong>Active members</strong>
+              <span>Across all membership tiers</span>
+            </div>
+          </div>
+          <div class="fact">
+            <span class="fact-n">18</span>
+            <div class="fact-copy">
+              <strong>Classes per week</strong>
+              <span>7 days a week, mornings through evenings</span>
+            </div>
+          </div>
+          <div class="fact">
+            <span class="fact-n">98%</span>
+            <div class="fact-copy">
+              <strong>Member satisfaction</strong>
+              <span>Based on 2025 member survey</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MEMBERSHIPS ── -->
+<div class="section" id="memberships">
+  <div class="si">
+    <div class="s-hdr reveal">
+      <div>
+        <div class="slbl">Memberships</div>
+        <h2>Your <em>practice</em>, your plan</h2>
+      </div>
+      <p class="s-intro">No lock-in contracts. Pause anytime. Start with a free trial week and find the membership that fits your life.</p>
+    </div>
+    <div class="grid3 reveal">
+      <div class="mc">
+        <span class="mc-tag">Starter</span>
+        <div class="mc-name">Foundation</div>
+        <div class="mc-price">
+          <span class="mc-amount">$59</span>
+          <span class="mc-per">/ week</span>
+        </div>
+        <div class="mc-rule"></div>
+        <ul class="mc-feats">
+          <li class="mc-feat">4 classes per week</li>
+          <li class="mc-feat">Access to all class types</li>
+          <li class="mc-feat">Online booking</li>
+          <li class="mc-feat">Pause anytime</li>
+        </ul>
+        <a href="#" class="mc-btn">Get started</a>
+      </div>
+      <div class="mc feat">
+        <span class="mc-badge">Most popular</span>
+        <span class="mc-tag">Unlimited</span>
+        <div class="mc-name">Immersion</div>
+        <div class="mc-price">
+          <span class="mc-amount">$89</span>
+          <span class="mc-per">/ week</span>
+        </div>
+        <div class="mc-rule"></div>
+        <ul class="mc-feats">
+          <li class="mc-feat">Unlimited classes</li>
+          <li class="mc-feat">Access to all class types</li>
+          <li class="mc-feat">Priority booking</li>
+          <li class="mc-feat">Guest pass each month</li>
+          <li class="mc-feat">Pause anytime</li>
+        </ul>
+        <a href="#" class="mc-btn">Get started</a>
+      </div>
+      <div class="mc">
+        <span class="mc-tag">Flexible</span>
+        <div class="mc-name">Casual</div>
+        <div class="mc-price">
+          <span class="mc-amount">$28</span>
+          <span class="mc-per">/ class</span>
+        </div>
+        <div class="mc-rule"></div>
+        <ul class="mc-feats">
+          <li class="mc-feat">Pay as you go</li>
+          <li class="mc-feat">10-class packs available</li>
+          <li class="mc-feat">Never expires</li>
+          <li class="mc-feat">All class types</li>
+        </ul>
+        <a href="#" class="mc-btn">Buy classes</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONTACT ── -->
+<div class="section" id="contact">
+  <div class="si">
+    <div class="contact-layout reveal">
+      <div class="contact-info">
+        <div class="slbl">Get in touch</div>
+        <h2>Visit <em>the studio</em></h2>
+        <p class="contact-body">We'd love to show you around. Drop in for a tour, ask us anything about classes, or simply come in and feel the warmth for yourself.</p>
+        <div class="cdetail">
+          <div class="cd">
+            <span class="cd-lbl">Address</span>
+            <span class="cd-val">Level 1, 142 Smith Street<br>Collingwood VIC 3066</span>
+          </div>
+          <div class="cd">
+            <span class="cd-lbl">Hours</span>
+            <span class="cd-val">Mon – Fri: 6:00 am – 8:30 pm<br>Sat – Sun: 7:00 am – 6:00 pm</span>
+          </div>
+          <div class="cd">
+            <span class="cd-lbl">Phone</span>
+            <span class="cd-val">(03) 9412 8800</span>
+          </div>
+          <div class="cd">
+            <span class="cd-lbl">Email</span>
+            <span class="cd-val">hello@bodyforme.com.au</span>
+          </div>
+        </div>
+      </div>
+      <div class="cf">
+        <div class="cf-row">
+          <label class="cf-lbl">Your name</label>
+          <input class="cf-input" type="text" placeholder="Jane Smith">
+        </div>
+        <div class="cf-row">
+          <label class="cf-lbl">Email address</label>
+          <input class="cf-input" type="email" placeholder="jane@example.com">
+        </div>
+        <div class="cf-row">
+          <label class="cf-lbl">Message</label>
+          <textarea class="cf-ta" placeholder="Tell us how we can help…"></textarea>
+        </div>
+        <button class="cf-submit">Send message</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">Body<em>forme</em></div>
+        <p class="footer-tagline">A premium hot yoga and pilates studio committed to transformation through heat, breath and movement.</p>
+        <div class="footer-social">
+          <a href="#">Instagram</a>
+          <a href="#">Facebook</a>
+          <a href="#">Mindbody</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Studio</div>
+        <div class="fc-links">
+          <a href="#classes">Classes</a>
+          <a href="#">Schedule</a>
+          <a href="#memberships">Memberships</a>
+          <a href="#">Workshops</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Company</div>
+        <div class="fc-links">
+          <a href="#about">About Us</a>
+          <a href="#">Our Teachers</a>
+          <a href="#">Blog</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Account</div>
+        <div class="fc-links">
+          <a href="#">Sign In</a>
+          <a href="#">Create Account</a>
+          <a href="#">Gift Cards</a>
+          <a href="#">FAQ</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Bodyforme Pty Ltd. All rights reserved.</span>
+      <div class="footer-legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Refund Policy</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.1 });
+reveals.forEach(r => io.observe(r));
+</script>
+</body>
+</html>

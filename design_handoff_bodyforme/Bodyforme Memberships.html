@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bodyforme — Memberships</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --linen:#f4ede1;--l2:#ede4d4;--l3:#e4d8c6;
+  --esp:#2a1506;--esp2:#3d2210;
+  --brown:#7a4a2a;--blt:#a0724e;
+  --text:#2a1506;--mid:#6b4e36;--muted:#a08568;
+  --rule:#d8ccba;--canvas:#fdfaf6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--linen);color:var(--text);font-weight:300;font-size:14px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.announce{background:var(--esp);color:oklch(.82 .02 60);text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:9px 20px}
+.announce a{color:#c4a882;border-bottom:1px solid currentColor;text-decoration:none}
+header{position:sticky;top:0;z-index:100;background:var(--linen);border-bottom:1px solid var(--rule)}
+.hdr{max-width:1280px;margin:0 auto;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nav-l,.nav-r{display:flex;align-items:center;gap:32px;flex:1}
+.nav-r{justify-content:flex-end}
+nav a{font-size:10.5px;font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color .2s;position:relative;padding-bottom:2px}
+nav a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--brown);transition:width .25s}
+nav a:hover{color:var(--text)}
+nav a:hover::after{width:100%}
+nav a.active{color:var(--text)}
+nav a.active::after{width:100%}
+.brand{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;letter-spacing:.06em;color:var(--esp);text-decoration:none;flex-shrink:0}
+.brand em{font-style:italic;font-weight:300;color:var(--brown)}
+.btn-book{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:9px 20px;text-decoration:none;transition:background .2s;white-space:nowrap}
+.btn-book:hover{background:var(--brown)}
+
+/* ── PAGE HERO ── */
+.page-hero{background:var(--esp);border-bottom:1px solid rgba(255,255,255,.07)}
+.page-hero-inner{max-width:1280px;margin:0 auto;padding:72px 48px 64px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}
+.ph-eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.35);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.ph-eyebrow::before{content:'';width:28px;height:1px;background:rgba(196,168,130,.4);display:block}
+.ph-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,5.5vw,76px);font-weight:400;line-height:1.05;color:var(--linen);letter-spacing:-.01em}
+.ph-h1 em{font-style:italic;font-weight:300;color:#c4a882}
+.ph-right{align-self:end}
+.ph-desc{font-size:14px;font-weight:300;color:rgba(244,237,225,.55);line-height:1.8;margin-bottom:32px}
+.ph-trust{display:flex;gap:32px;flex-wrap:wrap}
+.trust-item{display:flex;align-items:center;gap:10px;font-size:11.5px;font-weight:300;color:rgba(244,237,225,.5)}
+.trust-check{width:18px;height:18px;border:1px solid rgba(196,168,130,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:#c4a882}
+
+/* ── SHARED ── */
+.section{border-bottom:1px solid var(--rule)}
+.si{max-width:1280px;margin:0 auto;padding:88px 48px}
+.slbl{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:40px}
+.slbl::after{content:'';height:1px;background:var(--rule);width:56px}
+h2{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,54px);font-weight:400;line-height:1.1;color:var(--esp)}
+h2 em{font-style:italic;font-weight:300;color:var(--brown)}
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .55s ease,transform .55s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── TRIAL BANNER ── */
+.trial-banner{background:var(--l2);border-bottom:1px solid var(--rule)}
+.trial-inner{max-width:1280px;margin:0 auto;padding:24px 48px;display:flex;align-items:center;justify-content:space-between;gap:40px}
+.trial-text strong{display:block;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--esp);margin-bottom:2px}
+.trial-text span{font-size:13px;font-weight:300;color:var(--mid)}
+.btn-trial{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--brown);padding:11px 24px;text-decoration:none;display:inline-block;transition:background .2s;white-space:nowrap;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-trial:hover{background:var(--esp)}
+
+/* ── PLAN CARDS ── */
+.plans-hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:52px}
+.plans-intro{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.75;max-width:300px;text-align:right}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.plan-card{background:var(--linen);padding:40px 36px 44px;position:relative;display:flex;flex-direction:column;transition:background .2s}
+.plan-card.featured{background:var(--esp)}
+.plan-card:not(.featured):hover{background:var(--l2)}
+.plan-badge{position:absolute;top:0;right:36px;background:var(--blt);color:var(--canvas);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;font-weight:500}
+.plan-tag{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:4px 10px;display:inline-block;margin-bottom:28px;border:1px solid var(--rule)}
+.plan-card.featured .plan-tag{border-color:rgba(255,255,255,.12);color:rgba(244,237,225,.5);background:transparent}
+.plan-name{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;color:var(--esp);line-height:1.05;margin-bottom:6px}
+.plan-card.featured .plan-name{color:var(--linen)}
+.plan-tagline{font-size:12.5px;font-weight:300;color:var(--mid);margin-bottom:28px;line-height:1.5}
+.plan-card.featured .plan-tagline{color:rgba(244,237,225,.55)}
+.plan-price{display:flex;align-items:baseline;gap:6px;margin-bottom:8px}
+.plan-amount{font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:300;line-height:1;color:var(--esp)}
+.plan-card.featured .plan-amount{color:var(--linen)}
+.plan-period{font-size:12px;font-weight:300;color:var(--muted)}
+.plan-card.featured .plan-period{color:rgba(244,237,225,.45)}
+.plan-equiv{font-size:11.5px;font-weight:300;color:var(--muted);margin-bottom:32px}
+.plan-card.featured .plan-equiv{color:rgba(244,237,225,.4)}
+.plan-rule{height:1px;background:var(--rule);margin-bottom:28px}
+.plan-card.featured .plan-rule{background:rgba(255,255,255,.1)}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:13px;flex:1;margin-bottom:36px}
+.plan-feat{font-size:12.5px;font-weight:300;color:var(--mid);display:flex;align-items:flex-start;gap:10px;line-height:1.5}
+.plan-card.featured .plan-feat{color:rgba(244,237,225,.65)}
+.plan-feat::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--blt);flex-shrink:0;margin-top:7px}
+.plan-card.featured .plan-feat::before{background:rgba(196,168,130,.6)}
+.plan-feat.strikethrough{opacity:.4;text-decoration:line-through}
+.btn-plan{display:block;text-align:center;font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:14px;border:1px solid var(--esp);color:var(--esp);text-decoration:none;transition:all .2s;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent}
+.plan-card:not(.featured) .btn-plan:hover{background:var(--esp);color:var(--canvas)}
+.plan-card.featured .btn-plan{color:var(--linen);border-color:rgba(255,255,255,.25)}
+.plan-card.featured .btn-plan:hover{border-color:var(--linen)}
+
+/* ── COMPARISON TABLE ── */
+.compare-section{background:var(--canvas)}
+.compare-intro{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:52px}
+.compare-sub{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.75;max-width:360px;text-align:right}
+.compare-table{width:100%;border-collapse:collapse;border:1px solid var(--rule)}
+.compare-table th{padding:16px 24px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--muted);border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);text-align:left;background:var(--l2)}
+.compare-table th:first-child{width:35%;text-align:left}
+.compare-table th.feat-col{text-align:center}
+.compare-table th.highlight{background:var(--esp);color:rgba(244,237,225,.7)}
+.compare-table td{padding:14px 24px;font-size:12.5px;font-weight:300;color:var(--mid);border-bottom:1px solid var(--rule);border-right:1px solid var(--rule);text-align:center;vertical-align:middle}
+.compare-table td:first-child{text-align:left;color:var(--text);font-weight:400}
+.compare-table td:last-child,.compare-table th:last-child{border-right:none}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:oklch(0.97 0.005 65)}
+.compare-table td.highlight{background:oklch(0.18 0.03 30 / .04)}
+.check{color:var(--brown);font-size:14px}
+.cross{color:var(--rule);font-size:16px}
+.compare-table tfoot td{padding:20px 24px;border-top:2px solid var(--rule)}
+.compare-table tfoot .btn-sm{font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:10px 20px;border:1px solid var(--esp);color:var(--esp);text-decoration:none;display:inline-block;transition:all .2s;font-family:'DM Sans',sans-serif}
+.compare-table tfoot .btn-sm:hover{background:var(--esp);color:var(--canvas)}
+.compare-table tfoot .btn-sm.dark{background:var(--esp);color:var(--canvas);border-color:var(--esp)}
+.compare-table tfoot .btn-sm.dark:hover{background:var(--brown)}
+
+/* ── HOW IT WORKS ── */
+.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:56px}
+.how-step{background:var(--linen);padding:40px 32px}
+.how-num{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;color:var(--l3);line-height:1;margin-bottom:24px}
+.how-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--esp);line-height:1.2;margin-bottom:12px}
+.how-title em{font-style:italic;font-weight:300}
+.how-desc{font-size:12.5px;font-weight:300;color:var(--mid);line-height:1.7}
+
+/* ── TESTIMONIALS ── */
+.testi-section{background:var(--l2)}
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:52px}
+.testi-card{background:var(--canvas);padding:36px 32px}
+.testi-stars{color:var(--blt);font-size:13px;letter-spacing:2px;margin-bottom:20px}
+.testi-quote{font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;font-weight:300;color:var(--esp);line-height:1.45;margin-bottom:20px}
+.testi-rule{height:1px;background:var(--rule);margin-bottom:16px}
+.testi-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:2px}
+.testi-detail{font-size:11px;font-weight:300;color:var(--muted);letter-spacing:.04em}
+
+/* ── FAQ ── */
+.faq-layout{display:grid;grid-template-columns:1fr 2fr;gap:80px}
+.faq-left h2{margin-bottom:20px}
+.faq-left p{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.8;margin-bottom:36px}
+.faq-contact-link{font-size:10.5px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--brown);border-bottom:1px solid var(--brown);padding-bottom:2px;display:inline-block;text-decoration:none;transition:opacity .2s}
+.faq-contact-link:hover{opacity:.6}
+.faq-list{display:flex;flex-direction:column}
+.faq-item{border-top:1px solid var(--rule)}
+.faq-item:last-child{border-bottom:1px solid var(--rule)}
+.faq-question{padding:20px 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:24px;user-select:none}
+.faq-q-text{font-size:14px;font-weight:400;color:var(--esp);line-height:1.4}
+.faq-toggle{width:24px;height:24px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:16px;flex-shrink:0;transition:all .2s;font-weight:300}
+.faq-item.open .faq-toggle{background:var(--esp);color:var(--canvas);border-color:var(--esp);transform:rotate(45deg)}
+.faq-answer{max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s ease}
+.faq-item.open .faq-answer{max-height:200px;padding-bottom:20px}
+.faq-answer p{font-size:13px;font-weight:300;color:var(--mid);line-height:1.75;max-width:560px}
+
+/* ── CTA FINAL ── */
+.cta-final{background:var(--esp);padding:80px 48px}
+.cta-final-inner{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.cta-final h2{color:var(--linen);margin-bottom:16px}
+.cta-final h2 em{color:#c4a882}
+.cta-final p{font-size:13.5px;font-weight:300;color:rgba(244,237,225,.55);line-height:1.75}
+.cta-final-form{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);padding:36px}
+.cff-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--linen);margin-bottom:24px}
+.cf-row{margin-bottom:22px}
+.cf-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,237,225,.35);display:block;margin-bottom:8px}
+.cf-input,.cf-select{width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.12);padding:8px 0;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;color:var(--linen);outline:none;transition:border-color .2s}
+.cf-input::placeholder{color:rgba(244,237,225,.3)}
+.cf-input:focus,.cf-select:focus{border-bottom-color:rgba(196,168,130,.6)}
+.cf-select option{color:var(--text);background:var(--canvas)}
+.cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.btn-signup{width:100%;font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--esp);background:var(--linen);padding:15px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;margin-top:8px}
+.btn-signup:hover{background:var(--l2)}
+.cff-note{font-size:11px;font-weight:300;color:rgba(244,237,225,.25);text-align:center;margin-top:14px;line-height:1.5}
+
+/* ── FOOTER ── */
+footer{background:var(--esp2);padding:64px 0 0}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 48px}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.07)}
+.footer-brand-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:.06em;color:var(--linen);margin-bottom:14px}
+.footer-brand-name em{font-style:italic;color:#c4a882}
+.footer-tagline{font-size:12.5px;font-weight:300;color:rgba(244,237,225,.45);line-height:1.7;max-width:240px}
+.fc-head{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.3);margin-bottom:20px}
+.fc-links{display:flex;flex-direction:column;gap:12px}
+.fc-links a{font-size:12.5px;font-weight:300;color:rgba(244,237,226,.5);text-decoration:none;transition:color .2s}
+.fc-links a:hover{color:rgba(244,237,226,.9)}
+.footer-bottom{padding:20px 0;display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:11px;color:rgba(244,237,225,.25);letter-spacing:.04em}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:11px;color:rgba(244,237,225,.25);text-decoration:none;transition:color .2s}
+.footer-legal a:hover{color:rgba(244,237,225,.6)}
+</style>
+</head>
+<body>
+
+<div class="announce">New members — <a href="#">first week free</a> when you join before 31 May 2026</div>
+
+<header>
+  <div class="hdr">
+    <nav class="nav-l">
+      <a href="Bodyforme Classes.html" class="nav-link">Classes</a>
+      <a href="Bodyforme Memberships.html" class="nav-link active">Memberships</a>
+    </nav>
+    <a href="Bodyforme Home.html" class="brand">Body<em>forme</em></a>
+    <nav class="nav-r">
+      <a href="Bodyforme About.html" class="nav-link">About Us</a>
+      <a href="Bodyforme Home.html#contact" class="nav-link">Contact</a>
+      <a href="Bodyforme Classes.html" class="btn-book">Book a Class</a>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div>
+      <div class="ph-eyebrow">No lock-in contracts · Pause anytime</div>
+      <h1 class="ph-h1">Your practice,<br><em>your plan</em></h1>
+    </div>
+    <div class="ph-right">
+      <p class="ph-desc">Every Bodyforme membership comes with no lock-in, no joining fees and a full free trial week so you can feel the difference before you commit.</p>
+      <div class="ph-trust">
+        <div class="trust-item"><span class="trust-check">✓</span>No joining fee</div>
+        <div class="trust-item"><span class="trust-check">✓</span>First week free</div>
+        <div class="trust-item"><span class="trust-check">✓</span>Pause anytime</div>
+        <div class="trust-item"><span class="trust-check">✓</span>Cancel anytime</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRIAL BANNER -->
+<div class="trial-banner">
+  <div class="trial-inner">
+    <div class="trial-text">
+      <strong>Try your first week — completely free</strong>
+      <span>New members only. No credit card required to start. Offer ends 31 May 2026.</span>
+    </div>
+    <button class="btn-trial" onclick="document.getElementById('signup').scrollIntoView({behavior:'smooth'})">Claim free week</button>
+  </div>
+</div>
+
+<!-- PLAN CARDS -->
+<div class="section">
+  <div class="si">
+    <div class="plans-hdr reveal">
+      <div>
+        <div class="slbl">Membership plans</div>
+        <h2>Find your <em>fit</em></h2>
+      </div>
+      <p class="plans-intro">All memberships include access to every class type. Upgrade, downgrade or pause at any time — no questions asked.</p>
+    </div>
+    <div class="plans-grid reveal">
+
+      <!-- Foundation -->
+      <div class="plan-card">
+        <span class="plan-tag">Starter</span>
+        <div class="plan-name">Foundation</div>
+        <p class="plan-tagline">Perfect for building a consistent practice without committing to daily classes.</p>
+        <div class="plan-price">
+          <span class="plan-amount">$59</span>
+          <span class="plan-period">/ week</span>
+        </div>
+        <p class="plan-equiv">~$14.75 per class</p>
+        <div class="plan-rule"></div>
+        <ul class="plan-features">
+          <li class="plan-feat">4 classes per week</li>
+          <li class="plan-feat">Access to all class types</li>
+          <li class="plan-feat">Online booking (48hr advance)</li>
+          <li class="plan-feat">Pause up to 4 weeks/year</li>
+          <li class="plan-feat">Member app access</li>
+          <li class="plan-feat strikethrough">Priority booking</li>
+          <li class="plan-feat strikethrough">Monthly guest pass</li>
+        </ul>
+        <a href="#signup" class="btn-plan">Get started</a>
+      </div>
+
+      <!-- Immersion (featured) -->
+      <div class="plan-card featured">
+        <span class="plan-badge">Most popular</span>
+        <span class="plan-tag">Unlimited</span>
+        <div class="plan-name">Immersion</div>
+        <p class="plan-tagline">For those who want to fully commit. Unlimited classes, priority access, and the best value per class.</p>
+        <div class="plan-price">
+          <span class="plan-amount">$89</span>
+          <span class="plan-period">/ week</span>
+        </div>
+        <p class="plan-equiv">Unlimited — best value</p>
+        <div class="plan-rule"></div>
+        <ul class="plan-features">
+          <li class="plan-feat">Unlimited classes</li>
+          <li class="plan-feat">Access to all class types</li>
+          <li class="plan-feat">Priority booking (72hr advance)</li>
+          <li class="plan-feat">Pause up to 8 weeks/year</li>
+          <li class="plan-feat">Member app access</li>
+          <li class="plan-feat">Priority booking guaranteed</li>
+          <li class="plan-feat">1 guest pass per month</li>
+        </ul>
+        <a href="#signup" class="btn-plan">Get started</a>
+      </div>
+
+      <!-- Casual -->
+      <div class="plan-card">
+        <span class="plan-tag">Flexible</span>
+        <div class="plan-name">Casual</div>
+        <p class="plan-tagline">No commitment. Pay per class or buy a pack — your credits never expire.</p>
+        <div class="plan-price">
+          <span class="plan-amount">$28</span>
+          <span class="plan-period">/ class</span>
+        </div>
+        <p class="plan-equiv">10-class pack: $240 ($24/class)</p>
+        <div class="plan-rule"></div>
+        <ul class="plan-features">
+          <li class="plan-feat">Pay per class or buy a pack</li>
+          <li class="plan-feat">Access to all class types</li>
+          <li class="plan-feat">Online booking (24hr advance)</li>
+          <li class="plan-feat">Credits never expire</li>
+          <li class="plan-feat">Member app access</li>
+          <li class="plan-feat strikethrough">Priority booking</li>
+          <li class="plan-feat strikethrough">Monthly guest pass</li>
+        </ul>
+        <a href="#signup" class="btn-plan">Buy classes</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON TABLE -->
+<div class="compare-section section">
+  <div class="si">
+    <div class="compare-intro reveal">
+      <div>
+        <div class="slbl">Compare plans</div>
+        <h2>Everything, <em>side by side</em></h2>
+      </div>
+      <p class="compare-sub">A full feature breakdown so you can make the most informed choice for your practice.</p>
+    </div>
+    <div class="reveal" style="overflow-x:auto">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="feat-col">Foundation</th>
+            <th class="feat-col highlight">Immersion</th>
+            <th class="feat-col">Casual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Weekly price</td><td>$59 / week</td><td class="highlight">$89 / week</td><td>$28 / class</td></tr>
+          <tr><td>Classes included</td><td>4 per week</td><td class="highlight">Unlimited</td><td>Pay per class</td></tr>
+          <tr><td>All class types</td><td><span class="check">✓</span></td><td class="highlight"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Advance booking window</td><td>48 hours</td><td class="highlight">72 hours</td><td>24 hours</td></tr>
+          <tr><td>Priority booking</td><td><span class="cross">—</span></td><td class="highlight"><span class="check">✓</span></td><td><span class="cross">—</span></td></tr>
+          <tr><td>Monthly guest pass</td><td><span class="cross">—</span></td><td class="highlight"><span class="check">✓</span></td><td><span class="cross">—</span></td></tr>
+          <tr><td>Pause membership</td><td>4 weeks/year</td><td class="highlight">8 weeks/year</td><td>N/A</td></tr>
+          <tr><td>Cancel anytime</td><td><span class="check">✓</span></td><td class="highlight"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Credits expire</td><td>N/A</td><td class="highlight">N/A</td><td>Never</td></tr>
+          <tr><td>Member app</td><td><span class="check">✓</span></td><td class="highlight"><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+          <tr><td>Joining fee</td><td>None</td><td class="highlight">None</td><td>None</td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td></td>
+            <td><a href="#signup" class="btn-sm">Get started</a></td>
+            <td class="highlight"><a href="#signup" class="btn-sm dark">Get started</a></td>
+            <td><a href="#signup" class="btn-sm">Buy classes</a></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section">
+  <div class="si">
+    <div class="reveal">
+      <div class="slbl">Getting started</div>
+      <h2>How it <em>works</em></h2>
+    </div>
+    <div class="how-grid reveal">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <div class="how-title">Choose your <em>plan</em></div>
+        <p class="how-desc">Pick the membership that fits your schedule. Not sure? Start with the free trial week — no credit card required.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <div class="how-title">Create your <em>account</em></div>
+        <p class="how-desc">Sign up takes two minutes. Download the Bodyforme app and your schedule, booking history and credits are all in one place.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <div class="how-title">Book your <em>class</em></div>
+        <p class="how-desc">Browse the weekly timetable, book your spot and receive a confirmation. Arrive 10 minutes early for your first class — we'll show you around.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">04</div>
+        <div class="how-title">Feel the <em>difference</em></div>
+        <p class="how-desc">Most students notice a significant change in how they feel within two weeks. The heat does its work — you just have to show up.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<div class="testi-section section">
+  <div class="si">
+    <div class="reveal">
+      <div class="slbl">What members say</div>
+      <h2>Heard in the <em>heat room</em></h2>
+    </div>
+    <div class="testi-grid reveal">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <blockquote class="testi-quote">"I tried the free week expecting nothing. I've been a member for four years. The Immersion plan has genuinely changed my life."</blockquote>
+        <div class="testi-rule"></div>
+        <div class="testi-name">Claire M.</div>
+        <div class="testi-detail">Immersion member · 4 years</div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <blockquote class="testi-quote">"The Foundation plan is perfect for my schedule. Four classes a week, no stress, and the team always remembers my name."</blockquote>
+        <div class="testi-rule"></div>
+        <div class="testi-name">Tom R.</div>
+        <div class="testi-detail">Foundation member · 2 years</div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <blockquote class="testi-quote">"I travel a lot so the casual pack works perfectly for me. Credits never expire and the booking experience is seamless."</blockquote>
+        <div class="testi-rule"></div>
+        <div class="testi-name">Priya S.</div>
+        <div class="testi-detail">Casual member · 3 years</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="section">
+  <div class="si">
+    <div class="faq-layout reveal">
+      <div class="faq-left">
+        <div class="slbl">Questions</div>
+        <h2>Common <em>questions</em></h2>
+        <p>Can't find what you're looking for? We're always happy to help.</p>
+        <a href="Bodyforme Home.html#contact" class="faq-contact-link">Get in touch →</a>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="faq-q-text">Is the first week really free?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer"><p>Yes — completely free, with no credit card required to claim it. New members only. You can attend unlimited classes during your trial week across any class type. The offer is available to first-time members only and runs until 31 May 2026.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="faq-q-text">Can I pause or cancel my membership?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer"><p>Absolutely. Foundation members can pause for up to 4 weeks per year. Immersion members can pause for up to 8 weeks. All memberships can be cancelled at any time with 7 days notice — no fees, no questions.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="faq-q-text">What happens if I miss a class?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer"><p>For Foundation and Immersion memberships, unused classes in a week do not roll over. For Casual packs, your credits never expire so there's no pressure. We ask that cancellations are made at least 2 hours before class time to avoid forfeiting the credit.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="faq-q-text">Do I need experience to join?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer"><p>No experience is needed. All of our classes are suitable for complete beginners unless specifically marked otherwise. We recommend arriving 10 minutes early for your first class so our team can show you around and answer any questions.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="faq-q-text">Can I change my membership plan?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer"><p>Yes. You can upgrade or downgrade your membership at any time. Changes take effect at the start of your next billing week. Just contact us or make the change directly through the Bodyforme app.</p></div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span class="faq-q-text">What should I bring to my first class?</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer"><p>Bring a large water bottle, a yoga mat (we have mats to hire for $3), a towel and comfortable activewear. For Bikram classes, lightweight, minimal clothing is recommended — it gets warm. Lockers are available in the change rooms.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGN UP FORM -->
+<div class="cta-final" id="signup">
+  <div class="cta-final-inner">
+    <div>
+      <div class="slbl" style="color:rgba(244,237,225,.3)">Join today</div>
+      <h2>Start your <em>practice</em></h2>
+      <p style="margin-top:16px">No lock-in. No joining fee. Your first week is completely free — experience the heat and the community before committing to anything.</p>
+    </div>
+    <div class="cta-final-form">
+      <div class="cff-title">Create your account</div>
+      <div class="cf-grid">
+        <div class="cf-row">
+          <label class="cf-lbl">First name</label>
+          <input class="cf-input" type="text" placeholder="Jane">
+        </div>
+        <div class="cf-row">
+          <label class="cf-lbl">Last name</label>
+          <input class="cf-input" type="text" placeholder="Smith">
+        </div>
+      </div>
+      <div class="cf-row">
+        <label class="cf-lbl">Email address</label>
+        <input class="cf-input" type="email" placeholder="jane@example.com">
+      </div>
+      <div class="cf-row">
+        <label class="cf-lbl">Phone number</label>
+        <input class="cf-input" type="tel" placeholder="0400 000 000">
+      </div>
+      <div class="cf-row">
+        <label class="cf-lbl">Choose your plan</label>
+        <select class="cf-select">
+          <option>Free trial week (then Foundation $59/wk)</option>
+          <option>Free trial week (then Immersion $89/wk)</option>
+          <option>Casual — 10 classes for $240</option>
+          <option>Casual — pay per class ($28)</option>
+        </select>
+      </div>
+      <button class="btn-signup">Start free trial week</button>
+      <p class="cff-note">No credit card required for trial. You'll be asked for payment details after your free week.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">Body<em>forme</em></div>
+        <p class="footer-tagline">A premium hot yoga and pilates studio committed to transformation through heat, breath and movement.</p>
+      </div>
+      <div>
+        <div class="fc-head">Studio</div>
+        <div class="fc-links">
+          <a href="Bodyforme Classes.html">Classes</a>
+          <a href="Bodyforme Memberships.html">Memberships</a>
+          <a href="Bodyforme About.html">About</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Visit</div>
+        <div class="fc-links">
+          <a href="#">142 Smith St, Collingwood</a>
+          <a href="#">(03) 9412 8800</a>
+          <a href="#">hello@bodyforme.com.au</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Account</div>
+        <div class="fc-links">
+          <a href="#">Sign In</a>
+          <a href="#">Create Account</a>
+          <a href="#">Gift Cards</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Bodyforme Pty Ltd.</span>
+      <div class="footer-legal">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+const io = new IntersectionObserver(
+  entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
+  { threshold: 0.08 }
+);
+document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+</script>
+</body>
+</html>

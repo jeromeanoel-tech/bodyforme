@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bodyforme — About Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --linen:#f4ede1;--l2:#ede4d4;--l3:#e4d8c6;
+  --esp:#2a1506;--esp2:#3d2210;
+  --brown:#7a4a2a;--blt:#a0724e;
+  --text:#2a1506;--mid:#6b4e36;--muted:#a08568;
+  --rule:#d8ccba;--canvas:#fdfaf6;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--linen);color:var(--text);font-weight:300;font-size:14px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.announce{background:var(--esp);color:oklch(.82 .02 60);text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:9px 20px}
+.announce a{color:#c4a882;border-bottom:1px solid currentColor;text-decoration:none}
+header{position:sticky;top:0;z-index:100;background:var(--linen);border-bottom:1px solid var(--rule)}
+.hdr{max-width:1280px;margin:0 auto;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nav-l,.nav-r{display:flex;align-items:center;gap:32px;flex:1}
+.nav-r{justify-content:flex-end}
+nav a{font-size:10.5px;font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color .2s;position:relative;padding-bottom:2px}
+nav a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--brown);transition:width .25s}
+nav a:hover{color:var(--text)}
+nav a:hover::after{width:100%}
+nav a.active{color:var(--text)}
+nav a.active::after{width:100%}
+.brand{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;letter-spacing:.06em;color:var(--esp);text-decoration:none;flex-shrink:0}
+.brand em{font-style:italic;font-weight:300;color:var(--brown)}
+.btn-book{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:9px 20px;text-decoration:none;transition:background .2s;white-space:nowrap}
+.btn-book:hover{background:var(--brown)}
+
+/* ── PAGE HERO ── */
+.page-hero{min-height:72vh;display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--rule)}
+.ph-left{background:var(--esp);display:flex;flex-direction:column;justify-content:flex-end;padding:64px 56px;position:relative;overflow:hidden}
+.ph-left::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,oklch(0.38 0.06 40 / .45) 0%,transparent 65%)}
+.ph-left-content{position:relative;z-index:2}
+.ph-eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.4);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.ph-eyebrow::before{content:'';width:28px;height:1px;background:rgba(196,168,130,.5);display:block}
+.ph-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(52px,5.5vw,80px);font-weight:400;line-height:1.04;color:var(--linen);letter-spacing:-.01em;margin-bottom:28px}
+.ph-h1 em{font-style:italic;font-weight:300;color:#c4a882}
+.ph-body{font-size:14px;font-weight:300;color:rgba(244,237,225,.6);line-height:1.8;max-width:380px}
+
+.ph-right{background:var(--l2);display:flex;flex-direction:column;justify-content:flex-end;padding:64px 56px;gap:36px}
+.ph-right-quote{font-family:'Cormorant Garamond',serif;font-size:clamp(24px,2.8vw,36px);font-style:italic;font-weight:300;color:var(--esp);line-height:1.3;border-top:2px solid var(--esp);padding-top:24px}
+.ph-right-attr{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:12px}
+.ph-right-attr::before{content:'';width:20px;height:1px;background:var(--blt)}
+.ph-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--rule)}
+.ph-stat{padding:20px 24px;border-right:1px solid var(--rule);text-align:center}
+.ph-stat:last-child{border-right:none}
+.ph-stat-n{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;color:var(--esp);line-height:1;display:block}
+.ph-stat-l{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px;display:block}
+
+/* ── SHARED ── */
+.section{border-bottom:1px solid var(--rule)}
+.si{max-width:1280px;margin:0 auto;padding:88px 48px}
+.slbl{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:40px}
+.slbl::after{content:'';height:1px;background:var(--rule);width:56px}
+h2{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,54px);font-weight:400;line-height:1.1;color:var(--esp)}
+h2 em{font-style:italic;font-weight:300;color:var(--brown)}
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .55s ease,transform .55s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── FOUNDER STORY ── */
+.founder-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:600px}
+.founder-img{background:linear-gradient(150deg,#c8b090 0%,#6a3c18 100%);position:relative;overflow:hidden;min-height:560px}
+.founder-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(42,21,6,.4) 0%,transparent 55%)}
+.founder-img-caption{position:absolute;bottom:36px;left:40px;z-index:2}
+.founder-img-caption .name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--linen);line-height:1}
+.founder-img-caption .role{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,237,225,.55);margin-top:4px}
+
+.founder-content{padding:80px 72px;display:flex;flex-direction:column;justify-content:center;border-left:1px solid var(--rule)}
+.founder-content .slbl{margin-bottom:24px}
+.founder-h2{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:400;color:var(--esp);line-height:1.1;margin-bottom:28px}
+.founder-h2 em{font-style:italic;font-weight:300}
+.founder-p{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.8;margin-bottom:16px}
+.founder-sig{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;font-weight:300;color:var(--esp);margin-top:32px;padding-top:28px;border-top:1px solid var(--rule)}
+
+/* ── VALUES ── */
+.values-section{background:var(--esp)}
+.values-section .si{padding:80px 48px}
+.values-section .slbl{color:rgba(244,237,225,.3)}
+.values-section .slbl::after{background:rgba(255,255,255,.1)}
+.values-section h2{color:var(--linen)}
+.values-section h2 em{color:#c4a882}
+.values-intro{font-size:14px;font-weight:300;color:rgba(244,237,225,.55);line-height:1.75;max-width:480px;margin:20px 0 64px}
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid rgba(255,255,255,.08)}
+.value-item{padding:44px 48px 44px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.value-item:nth-child(3n){padding-right:0}
+.value-n{font-family:'Cormorant Garamond',serif;font-size:11px;color:rgba(244,237,225,.2);letter-spacing:.1em;margin-bottom:20px}
+.value-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--linen);line-height:1.2;margin-bottom:12px}
+.value-title em{font-style:italic;color:#c4a882}
+.value-desc{font-size:12.5px;font-weight:300;color:rgba(244,237,225,.5);line-height:1.75}
+
+/* ── INSTRUCTORS ── */
+.instructors-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:52px}
+.instructor-card{background:var(--linen);cursor:pointer;transition:background .2s}
+.instructor-card:hover{background:var(--l2)}
+.instructor-card:hover .ic-hover{opacity:1}
+.ic-img{height:280px;position:relative;overflow:hidden}
+.ic-img-ph{width:100%;height:100%;transition:transform .5s ease}
+.instructor-card:hover .ic-img-ph{transform:scale(1.03)}
+.ic-ph1{background:linear-gradient(150deg,#c8b89a 0%,#7a5a3e 100%)}
+.ic-ph2{background:linear-gradient(150deg,#b8c8b8 0%,#4a6850 100%)}
+.ic-ph3{background:linear-gradient(150deg,#c0b8d0 0%,#685878 100%)}
+.ic-ph4{background:linear-gradient(150deg,#d0c0a8 0%,#8a6848 100%)}
+.ic-ph5{background:linear-gradient(150deg,#b8c0c8 0%,#486070 100%)}
+.ic-ph6{background:linear-gradient(150deg,#c8c0b0 0%,#786858 100%)}
+.ic-ph7{background:linear-gradient(150deg,#b0c8b8 0%,#487060 100%)}
+.ic-ph8{background:linear-gradient(150deg,#c8b8c0 0%,#785870 100%)}
+.ic-hover{position:absolute;inset:0;background:rgba(42,21,6,.55);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.ic-hover span{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--linen);border:1px solid rgba(244,237,225,.4);padding:8px 16px}
+.ic-body{padding:22px 24px 28px}
+.ic-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--esp);line-height:1.1;margin-bottom:4px}
+.ic-role{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.ic-bio{font-size:12px;font-weight:300;color:var(--mid);line-height:1.65}
+.ic-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.ic-tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--rule);padding:3px 8px}
+
+/* ── GALLERY ── */
+.gallery-section{border-bottom:1px solid var(--rule)}
+.gallery-hdr{max-width:1280px;margin:0 auto;padding:88px 48px 52px;display:flex;justify-content:space-between;align-items:flex-end}
+.gallery-intro{font-size:14px;font-weight:300;color:var(--mid);line-height:1.75;max-width:340px;text-align:right}
+.gallery-grid{max-width:1280px;margin:0 auto;padding:0 48px 88px;display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:280px 280px;gap:1px;background:var(--rule);border-left:1px solid var(--rule);border-right:1px solid var(--rule)}
+.g-cell{overflow:hidden;position:relative;cursor:pointer}
+.g-cell:hover .g-ph{transform:scale(1.04)}
+.g-cell:hover .g-label{opacity:1}
+.g-ph{width:100%;height:100%;transition:transform .5s ease}
+.g-label{position:absolute;inset:0;background:rgba(42,21,6,.3);display:flex;align-items:flex-end;padding:20px;opacity:0;transition:opacity .2s}
+.g-label span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,237,225,.8)}
+.g-cell.span2{grid-row:span 2}
+.gph-1{background:linear-gradient(135deg,#d4c4ae 0%,#7a5838 100%)}
+.gph-2{background:linear-gradient(135deg,#b0b8a8 0%,#4a6050 100%)}
+.gph-3{background:linear-gradient(135deg,#c8b0a0 0%,#8a5040 100%)}
+.gph-4{background:linear-gradient(135deg,#b8c0d0 0%,#486080 100%)}
+.gph-5{background:linear-gradient(135deg,#c4b8a8 0%,#7a6858 100%)}
+
+/* ── TIMELINE ── */
+.timeline-section{background:var(--l2)}
+.timeline-inner{max-width:1280px;margin:0 auto;padding:88px 48px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+.timeline-left h2{margin-bottom:24px}
+.timeline-sub{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.75;max-width:360px}
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:grid;grid-template-columns:80px 1fr;gap:24px;padding:24px 0;border-top:1px solid var(--rule)}
+.tl-item:last-child{border-bottom:1px solid var(--rule)}
+.tl-year{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--esp);line-height:1;padding-top:2px}
+.tl-content strong{display:block;font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.tl-content span{font-size:12.5px;font-weight:300;color:var(--mid);line-height:1.6}
+
+/* ── CTA ── */
+.cta-strip{background:var(--esp);padding:64px 48px}
+.cta-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:48px}
+.cta-text h3{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,3vw,42px);font-weight:300;color:var(--linen);margin-bottom:8px}
+.cta-text h3 em{font-style:italic;color:#c4a882}
+.cta-text p{font-size:13px;font-weight:300;color:rgba(244,237,225,.5);line-height:1.6}
+.cta-btns{display:flex;gap:16px;flex-shrink:0}
+.btn-lt{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--linen);border:1px solid rgba(255,255,255,.25);padding:13px 28px;text-decoration:none;display:inline-block;transition:border-color .2s}
+.btn-lt:hover{border-color:var(--linen)}
+.btn-lt-fill{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--esp);background:var(--linen);padding:13px 28px;text-decoration:none;display:inline-block;transition:background .2s}
+.btn-lt-fill:hover{background:var(--l2)}
+
+/* ── FOOTER ── */
+footer{background:var(--esp2);padding:64px 0 0}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 48px}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.07)}
+.footer-brand-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:.06em;color:var(--linen);margin-bottom:14px}
+.footer-brand-name em{font-style:italic;color:#c4a882}
+.footer-tagline{font-size:12.5px;font-weight:300;color:rgba(244,237,225,.45);line-height:1.7;max-width:240px}
+.fc-head{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.3);margin-bottom:20px}
+.fc-links{display:flex;flex-direction:column;gap:12px}
+.fc-links a{font-size:12.5px;font-weight:300;color:rgba(244,237,226,.5);text-decoration:none;transition:color .2s}
+.fc-links a:hover{color:rgba(244,237,226,.9)}
+.footer-bottom{padding:20px 0;display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:11px;color:rgba(244,237,225,.25);letter-spacing:.04em}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:11px;color:rgba(244,237,225,.25);text-decoration:none;transition:color .2s}
+.footer-legal a:hover{color:rgba(244,237,225,.6)}
+</style>
+</head>
+<body>
+
+<div class="announce">New members — <a href="Bodyforme Home.html#memberships">first week free</a> when you join before 31 May 2026</div>
+
+<header>
+  <div class="hdr">
+    <nav class="nav-l">
+      <a href="Bodyforme Classes.html" class="nav-link">Classes</a>
+      <a href="Bodyforme Home.html#memberships" class="nav-link">Memberships</a>
+    </nav>
+    <a href="Bodyforme Home.html" class="brand">Body<em>forme</em></a>
+    <nav class="nav-r">
+      <a href="Bodyforme About.html" class="nav-link active">About Us</a>
+      <a href="Bodyforme Home.html#contact" class="nav-link">Contact</a>
+      <a href="Bodyforme Classes.html" class="btn-book">Book a Class</a>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="ph-left">
+    <div class="ph-left-content">
+      <div class="ph-eyebrow">Est. 2014 — Collingwood, Melbourne</div>
+      <h1 class="ph-h1">More than a <em>studio</em></h1>
+      <p class="ph-body">Bodyforme was built on the belief that real transformation — physical, mental and emotional — happens in community. We are twelve years old, and prouder of our people than anything else.</p>
+    </div>
+  </div>
+  <div class="ph-right">
+    <blockquote class="ph-right-quote">"We didn't build a gym. We built a place where people become who they are meant to be."</blockquote>
+    <p class="ph-right-attr">Sarah Hollis — Co-founder</p>
+    <div class="ph-stats">
+      <div class="ph-stat">
+        <span class="ph-stat-n">12</span>
+        <span class="ph-stat-l">Years open</span>
+      </div>
+      <div class="ph-stat">
+        <span class="ph-stat-n">4,200+</span>
+        <span class="ph-stat-l">Members</span>
+      </div>
+      <div class="ph-stat">
+        <span class="ph-stat-n">8</span>
+        <span class="ph-stat-l">Instructors</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOUNDER STORY -->
+<div class="section">
+  <div class="founder-layout reveal">
+    <div class="founder-img">
+      <div class="founder-img-caption">
+        <div class="name">Sarah &amp; James Hollis</div>
+        <div class="role">Co-founders, Bodyforme</div>
+      </div>
+    </div>
+    <div class="founder-content">
+      <div class="slbl">Our story</div>
+      <h2 class="founder-h2">Born from a <em>practice</em></h2>
+      <p class="founder-p">Sarah and James Hollis discovered Bikram yoga in 2009, each independently, and each for very different reasons. Sarah was recovering from a back injury. James was looking for something — he still isn't entirely sure what. Within six months, they had both found it, and found each other.</p>
+      <p class="founder-p">In 2014, after years of training and a relentless search for the right space, they opened Bodyforme on Smith Street. The studio was small. The community was immediate. Within two years they had expanded, added Hot Pilates, and built a team of instructors they describe as "the best humans we know".</p>
+      <p class="founder-p">Today Bodyforme is one of Melbourne's most-loved wellness studios — not because of the programmes, but because of the people. Students who started as beginners now teach here. Friendships forged in the heat room have become marriages, businesses, and lifelong bonds.</p>
+      <div class="founder-sig">Sarah &amp; James Hollis</div>
+    </div>
+  </div>
+</div>
+
+<!-- VALUES -->
+<div class="values-section section">
+  <div class="si">
+    <div class="slbl reveal">What we believe</div>
+    <h2 class="reveal">The <em>values</em> we practise</h2>
+    <p class="values-intro reveal">These aren't words on a wall. They shape how we teach, how we welcome, and how we build this community every single day.</p>
+    <div class="values-grid reveal">
+      <div class="value-item">
+        <div class="value-n">01</div>
+        <div class="value-title">Heat as <em>teacher</em></div>
+        <p class="value-desc">The room doesn't lie. Heat removes distraction and forces presence. We believe there is no better environment for genuine self-discovery.</p>
+      </div>
+      <div class="value-item">
+        <div class="value-n">02</div>
+        <div class="value-title">No <em>ego</em></div>
+        <p class="value-desc">Everyone was a beginner once. We celebrate the person attempting their first half-moon as loudly as the person attempting their hundredth.</p>
+      </div>
+      <div class="value-item">
+        <div class="value-n">03</div>
+        <div class="value-title">Community <em>first</em></div>
+        <p class="value-desc">We are not a transactional gym. We are a community. We remember names, celebrate milestones and show up for each other outside the studio too.</p>
+      </div>
+      <div class="value-item">
+        <div class="value-n">04</div>
+        <div class="value-title">Honest <em>teaching</em></div>
+        <p class="value-desc">Our instructors correct and challenge. They don't offer empty encouragement — they offer the kind of feedback that actually creates change.</p>
+      </div>
+      <div class="value-item">
+        <div class="value-n">05</div>
+        <div class="value-title">The long <em>game</em></div>
+        <p class="value-desc">We are not interested in quick transformations. We build practices that last decades — because the benefits of consistent, mindful movement compound over a lifetime.</p>
+      </div>
+      <div class="value-item">
+        <div class="value-n">06</div>
+        <div class="value-title">Space to <em>fail</em></div>
+        <p class="value-desc">Falling out of a posture is not failure. It's information. We create an environment where trying is always celebrated, regardless of outcome.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTRUCTORS -->
+<div class="section">
+  <div class="si">
+    <div class="reveal">
+      <div class="slbl">The team</div>
+      <h2>Meet the <em>instructors</em></h2>
+    </div>
+    <div class="instructors-grid reveal">
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph1"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">Sarah Hollis</div>
+          <div class="ic-role">Co-founder · Lead Bikram</div>
+          <p class="ic-bio">Bikram-certified since 2011. Sarah's classes are known for their warmth, precision and the occasional unexpected laugh.</p>
+          <div class="ic-tags"><span class="ic-tag">Bikram 90</span><span class="ic-tag">Express</span></div>
+        </div>
+      </div>
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph2"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">Suzanne Park</div>
+          <div class="ic-role">Senior Instructor</div>
+          <p class="ic-bio">Former dancer turned Bikram devotee. Suzanne brings an extraordinary precision to alignment and a dancer's eye for body mechanics.</p>
+          <div class="ic-tags"><span class="ic-tag">Bikram 90</span><span class="ic-tag">Sculpt</span></div>
+        </div>
+      </div>
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph3"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">Mish Nguyen</div>
+          <div class="ic-role">Bikram Specialist</div>
+          <p class="ic-bio">Mish has been practising for 14 years and teaching for eight. Her dialogue is considered some of the clearest in the country.</p>
+          <div class="ic-tags"><span class="ic-tag">Bikram 90</span><span class="ic-tag">Express</span></div>
+        </div>
+      </div>
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph4"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">Angie Torres</div>
+          <div class="ic-role">Pilates Lead</div>
+          <p class="ic-bio">STOTT Pilates certified with a background in physiotherapy. Angie's classes are challenging, intelligent and deeply restorative.</p>
+          <div class="ic-tags"><span class="ic-tag">Hot Pilates</span><span class="ic-tag">Sculpt</span></div>
+        </div>
+      </div>
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph5"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">Gabriel Kim</div>
+          <div class="ic-role">Instructor</div>
+          <p class="ic-bio">Gabriel discovered yoga after a decade in competitive swimming. He brings an athlete's discipline and a beginner's curiosity to every class.</p>
+          <div class="ic-tags"><span class="ic-tag">Express</span><span class="ic-tag">Hot Pilates</span></div>
+        </div>
+      </div>
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph6"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">Stephanie Bell</div>
+          <div class="ic-role">Sculpt &amp; Pilates</div>
+          <p class="ic-bio">A creative force in the studio. Stephanie's Sculpt classes build strength through beautiful sequencing and always leave students surprised by what they're capable of.</p>
+          <div class="ic-tags"><span class="ic-tag">Sculpt</span><span class="ic-tag">Hot Pilates</span></div>
+        </div>
+      </div>
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph7"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">Lena Russo</div>
+          <div class="ic-role">Instructor</div>
+          <p class="ic-bio">Newest member of the team, already a student favourite. Lena's energy is infectious and her patience with beginners is exceptional.</p>
+          <div class="ic-tags"><span class="ic-tag">Bikram 90</span><span class="ic-tag">Sculpt</span></div>
+        </div>
+      </div>
+
+      <div class="instructor-card">
+        <div class="ic-img">
+          <div class="ic-img-ph ic-ph8"></div>
+          <div class="ic-hover"><span>View profile</span></div>
+        </div>
+        <div class="ic-body">
+          <div class="ic-name">James Hollis</div>
+          <div class="ic-role">Co-founder · Special Forces</div>
+          <p class="ic-bio">James teaches one class a week — Special Forces — and it is, by consensus, the hardest class in the studio. Bring water.</p>
+          <div class="ic-tags"><span class="ic-tag">Special Forces</span><span class="ic-tag">Express</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- GALLERY -->
+<div class="gallery-section">
+  <div class="gallery-hdr reveal">
+    <div>
+      <div class="slbl">The space</div>
+      <h2>Inside the <em>studio</em></h2>
+    </div>
+    <p class="gallery-intro">Designed for practice. Timber floors, filtered humidity, natural light and an atmosphere that makes you want to come back tomorrow.</p>
+  </div>
+  <div class="gallery-grid reveal">
+    <div class="g-cell span2">
+      <div class="g-ph gph-1"></div>
+      <div class="g-label"><span>The main heat room</span></div>
+    </div>
+    <div class="g-cell">
+      <div class="g-ph gph-2"></div>
+      <div class="g-label"><span>Reception</span></div>
+    </div>
+    <div class="g-cell">
+      <div class="g-ph gph-3"></div>
+      <div class="g-label"><span>Change rooms</span></div>
+    </div>
+    <div class="g-cell">
+      <div class="g-ph gph-4"></div>
+      <div class="g-label"><span>Pilates studio</span></div>
+    </div>
+    <div class="g-cell">
+      <div class="g-ph gph-5"></div>
+      <div class="g-label"><span>The lounge</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="timeline-section section">
+  <div class="timeline-inner reveal">
+    <div class="timeline-left">
+      <div class="slbl">Our journey</div>
+      <h2>Twelve years of <em>heat</em></h2>
+      <p class="timeline-sub" style="margin-top:20px">From a single room to a full studio, from two founders to eight instructors, from a handful of students to a community of thousands.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-year">2014</div>
+        <div class="tl-content">
+          <strong>Bodyforme opens its doors</strong>
+          <span>Sarah and James launch the studio on Smith Street with two instructors, one heat room, and a vision for what community wellness could look like.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2016</div>
+        <div class="tl-content">
+          <strong>Hot Pilates launches</strong>
+          <span>Angie Torres joins the team and introduces the Hot Pilates programme — within three months it is the most booked class in the studio.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2018</div>
+        <div class="tl-content">
+          <strong>Studio expansion</strong>
+          <span>Growing demand leads to a full expansion — a second heat room, dedicated Pilates studio and an entirely redesigned reception and lounge.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2020</div>
+        <div class="tl-content">
+          <strong>Through the difficult years</strong>
+          <span>The pandemic closed the doors for months. The community responded with unwavering loyalty — and reopening day was the most emotional morning in the studio's history.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2022</div>
+        <div class="tl-content">
+          <strong>Sculpt Yoga &amp; Special Forces</strong>
+          <span>Two new programmes launch, responding to member feedback for more variety. Both sell out within the first week.</span>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-year">2026</div>
+        <div class="tl-content">
+          <strong>Today — 4,200+ members</strong>
+          <span>Bodyforme turns twelve. The community is bigger, warmer and more committed than ever. We're just getting started.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-strip">
+  <div class="cta-inner">
+    <div class="cta-text">
+      <h3>Come and feel the <em>heat</em></h3>
+      <p>First week is free for all new members. No experience necessary.</p>
+    </div>
+    <div class="cta-btns">
+      <a href="Bodyforme Home.html#contact" class="btn-lt">Get in touch</a>
+      <a href="Bodyforme Classes.html" class="btn-lt-fill">View classes</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">Body<em>forme</em></div>
+        <p class="footer-tagline">A premium hot yoga and pilates studio committed to transformation through heat, breath and movement.</p>
+      </div>
+      <div>
+        <div class="fc-head">Studio</div>
+        <div class="fc-links">
+          <a href="Bodyforme Classes.html">Classes</a>
+          <a href="Bodyforme Home.html#memberships">Memberships</a>
+          <a href="Bodyforme About.html">About</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Visit</div>
+        <div class="fc-links">
+          <a href="#">142 Smith St, Collingwood</a>
+          <a href="#">(03) 9412 8800</a>
+          <a href="#">hello@bodyforme.com.au</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Account</div>
+        <div class="fc-links">
+          <a href="#">Sign In</a>
+          <a href="#">Create Account</a>
+          <a href="#">Gift Cards</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Bodyforme Pty Ltd.</span>
+      <div class="footer-legal">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const io = new IntersectionObserver(
+  entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
+  { threshold: 0.08 }
+);
+document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+</script>
+</body>
+</html>

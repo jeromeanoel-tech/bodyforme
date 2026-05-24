@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bodyforme — Install Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --linen:  #f4ede1;
+    --l2:     #ede4d4;
+    --l3:     #e4d8c6;
+    --esp:    #2a1506;
+    --esp2:   #3d2210;
+    --brown:  #7a4a2a;
+    --blt:    #a0724e;
+    --sand:   #c4a882;
+    --text:   #2a1506;
+    --mid:    #6b4e36;
+    --muted:  #a08568;
+    --rule:   #d8ccba;
+    --canvas: #fdfaf6;
+    --rust:   #9a5a3a;
+    --sage:   #7a9478;
+    --display: 'Cormorant Garamond', 'Times New Roman', serif;
+    --body:    'DM Sans', -apple-system, system-ui, sans-serif;
+    --mono:    'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--linen); color: var(--text); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 64px 56px 80px;
+  }
+
+  /* HEAD */
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+  }
+  .brand img {
+    height: 22px;
+    width: auto;
+    display: block;
+  }
+  .brand-meta {
+    font-family: var(--body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .title-row {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 56px;
+    padding: 56px 0 48px;
+    border-bottom: 1px solid var(--rule);
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: 76px;
+    font-weight: 400;
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  h1 em { color: var(--brown); font-weight: 400; }
+  .title-meta { padding-top: 14px; }
+  .title-meta p {
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--mid);
+    margin: 0 0 22px;
+  }
+
+  /* Link card — the URL the customer copies */
+  .url-card {
+    background: var(--esp);
+    color: var(--linen);
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .url-card .lbl {
+    font-family: var(--body);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(244,237,225,0.5);
+    margin-bottom: 6px;
+  }
+  .url-card .url {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--linen);
+    letter-spacing: 0.01em;
+  }
+  .url-card .url em { color: var(--sand); font-style: normal; }
+  .url-card .copy {
+    margin-left: auto;
+    border: 1px solid rgba(244,237,225,0.35);
+    padding: 10px 16px;
+    font-family: var(--body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--linen);
+    cursor: pointer;
+    background: transparent;
+    transition: background 0.2s ease;
+  }
+  .url-card .copy:hover { background: rgba(244,237,225,0.1); }
+  .url-card .copy.done { background: var(--sand); color: var(--esp); border-color: var(--sand); }
+
+  /* COLUMNS */
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 0;
+    padding-top: 48px;
+  }
+  .vrule { background: var(--rule); }
+
+  .col { padding: 0 36px; }
+  .col:first-child { padding-left: 0; }
+  .col:last-child { padding-right: 0; }
+
+  .col-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .col-head h2 {
+    font-family: var(--display);
+    font-size: 38px;
+    font-weight: 400;
+    margin: 0;
+    line-height: 1;
+  }
+  .col-head h2 em { color: var(--brown); }
+  .col-head .browser {
+    font-family: var(--body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* STEP */
+  .step {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 0;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .step:last-of-type { border-bottom: none; }
+
+  .step-num {
+    font-family: var(--display);
+    font-size: 44px;
+    font-weight: 300;
+    color: var(--brown);
+    line-height: 1;
+    font-style: italic;
+  }
+
+  .step-body {
+    display: grid;
+    grid-template-columns: 1fr 168px;
+    gap: 24px;
+    align-items: start;
+  }
+  .step-text h3 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  .step-text p {
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 300;
+    line-height: 1.65;
+    margin: 0;
+    color: var(--mid);
+  }
+  .step-text .keytap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 5px 10px;
+    background: var(--l2);
+    border: 1px solid var(--rule);
+    font-family: var(--body);
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .step-text .keytap svg { width: 11px; height: 11px; }
+
+  /* MOCK PHONE */
+  .mock {
+    width: 168px;
+    height: 296px;
+    background: #000;
+    border-radius: 22px;
+    padding: 4px;
+    box-shadow: 0 14px 30px rgba(42,21,6,0.18), 0 0 0 1px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+    margin-left: auto;
+  }
+  .mock-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--linen);
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+  }
+  /* iOS notch / android punch */
+  .mock.ios .mock-screen::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 56px;
+    height: 16px;
+    background: #000;
+    border-radius: 12px;
+    z-index: 30;
+  }
+  .mock.android .mock-screen::before {
+    content: '';
+    position: absolute;
+    top: 7px;
+    right: 18px;
+    width: 8px;
+    height: 8px;
+    background: #000;
+    border-radius: 50%;
+    z-index: 30;
+  }
+
+  /* status bar */
+  .sb {
+    height: 26px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 12px 5px;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--text);
+    position: relative;
+    z-index: 5;
+  }
+  .sb.dark { color: #fff; }
+  .sb-icons { display: flex; gap: 3px; align-items: center; }
+  .sb-icons svg { display: block; }
+
+  /* generic browser chrome */
+  .chrome {
+    background: var(--canvas);
+    border-bottom: 1px solid var(--rule);
+    padding: 4px 8px 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chrome.dark { background: #1c1c1e; border-bottom-color: rgba(255,255,255,0.1); }
+  .url-pill {
+    flex: 1;
+    background: var(--l2);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .chrome.dark .url-pill { background: #2c2c2e; color: #fff; }
+  .chrome-btn {
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--mid);
+    flex-shrink: 0;
+  }
+  .chrome.dark .chrome-btn { color: rgba(255,255,255,0.7); }
+
+  /* webpage preview block */
+  .webpage {
+    padding: 12px 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .wp-h {
+    font-family: var(--display);
+    font-size: 14px;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1;
+    margin-top: 6px;
+  }
+  .wp-h em { color: var(--brown); font-style: italic; }
+  .wp-line {
+    height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+  }
+  .wp-line.short { width: 60%; }
+  .wp-line.med   { width: 80%; }
+  .wp-cta {
+    margin-top: 6px;
+    padding: 5px 0;
+    text-align: center;
+    background: var(--esp);
+    color: var(--linen);
+    font-family: var(--body);
+    font-size: 6.5px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* iOS bottom toolbar */
+  .ios-toolbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 38px;
+    background: rgba(244,237,225,0.96);
+    border-top: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px 8px;
+    backdrop-filter: blur(8px);
+  }
+  .ios-toolbar .ti {
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--brown);
+  }
+
+  /* Share sheet */
+  .sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(244,237,225,0.98);
+    border-radius: 14px 14px 0 0;
+    padding: 8px 10px 14px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    backdrop-filter: blur(8px);
+  }
+  .sheet-handle {
+    width: 30px; height: 3px;
+    background: var(--rule);
+    margin: 0 auto 8px;
+    border-radius: 2px;
+  }
+  .sheet-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: var(--canvas);
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+  .sheet-row:last-child { margin-bottom: 0; }
+  .sheet-row .ico {
+    width: 22px; height: 22px;
+    background: var(--l2);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sheet-row .lbl {
+    font-family: var(--body);
+    font-size: 8.5px;
+    color: var(--text);
+    flex: 1;
+  }
+  .sheet-row.hl {
+    background: var(--esp);
+    border: 1px solid var(--brown);
+  }
+  .sheet-row.hl .lbl { color: var(--linen); font-weight: 500; }
+  .sheet-row.hl .ico { background: rgba(255,255,255,0.1); }
+
+  /* Android menu */
+  .android-menu {
+    position: absolute;
+    top: 26px;
+    right: 6px;
+    width: 110px;
+    background: var(--canvas);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 4px 0;
+    box-shadow: 0 8px 22px rgba(42,21,6,0.18);
+  }
+  .am-row {
+    padding: 5px 10px;
+    font-family: var(--body);
+    font-size: 8px;
+    color: var(--text);
+  }
+  .am-row.hl {
+    background: var(--l2);
+    border-left: 2px solid var(--brown);
+    color: var(--brown);
+    font-weight: 500;
+  }
+
+  /* Install dialog */
+  .dialog {
+    position: absolute;
+    inset: 0;
+    background: rgba(42,21,6,0.45);
+    display: flex;
+    align-items: flex-end;
+    padding: 0;
+  }
+  .dialog-card {
+    width: 100%;
+    background: var(--linen);
+    border-radius: 14px 14px 0 0;
+    padding: 14px 14px 12px;
+  }
+  .dialog-card .icon-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dialog-card .app-icon {
+    width: 28px; height: 28px;
+    background: #a8a8a8;
+    border-radius: 6px;
+    overflow: hidden;
+    background-image: url('assets/bodyforme-app-icon.png');
+    background-size: cover;
+    background-position: center;
+  }
+  .dialog-card .app-name {
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .dialog-card .app-url {
+    font-family: var(--body);
+    font-size: 7px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .dialog-card .actions {
+    display: flex; gap: 6px;
+    margin-top: 8px;
+    justify-content: flex-end;
+  }
+  .dialog-card .btn {
+    padding: 4px 10px;
+    font-family: var(--body);
+    font-size: 7.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 4px;
+  }
+  .dialog-card .btn.cancel {
+    color: var(--mid);
+  }
+  .dialog-card .btn.add {
+    background: var(--esp);
+    color: var(--linen);
+  }
+  .dialog-card .btn.add.glow {
+    box-shadow: 0 0 0 3px rgba(122,74,42,0.25);
+  }
+
+  /* Home screen mock */
+  .homegrid {
+    height: 100%;
+    background: linear-gradient(180deg, var(--l2) 0%, var(--linen) 100%);
+    padding: 36px 14px 14px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px 8px;
+    align-content: start;
+  }
+  .home-app {
+    aspect-ratio: 1;
+    background: var(--l3);
+    border-radius: 9px;
+    position: relative;
+  }
+  .home-app .lbl {
+    position: absolute;
+    bottom: -10px;
+    left: 0; right: 0;
+    text-align: center;
+    font-family: var(--body);
+    font-size: 5.5px;
+    color: var(--mid);
+  }
+  .home-app.bf {
+    background: #a8a8a8;
+    box-shadow: 0 0 0 2px var(--brown), 0 6px 14px rgba(42,21,6,0.25);
+    overflow: hidden;
+    background-image: url('assets/bodyforme-app-icon.png');
+    background-size: cover;
+    background-position: center;
+  }
+  .home-app.bf .lbl { color: var(--text); font-weight: 500; }
+
+  /* Tap indicator — pulsing ring */
+  .tap {
+    position: absolute;
+    width: 24px; height: 24px;
+    border: 2px solid var(--brown);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 40;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .tap::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border: 1.5px solid var(--brown);
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: pulse2 1.6s ease-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(0.92); }
+  }
+  @keyframes pulse2 {
+    0% { transform: scale(0.6); opacity: 0.6; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 56px;
+    padding: 32px 0 0;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+  }
+  .footer .help {
+    font-family: var(--display);
+    font-size: 22px;
+    line-height: 1.3;
+    color: var(--text);
+    max-width: 600px;
+  }
+  .footer .help em { color: var(--brown); font-style: italic; }
+  .footer .signoff {
+    text-align: right;
+    font-family: var(--body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { padding: 32px; }
+    .url-card .copy { display: none; }
+  }
+
+  @media (max-width: 900px) {
+    .page { padding: 32px 20px; }
+    .title-row { grid-template-columns: 1fr; gap: 24px; padding: 32px 0; }
+    h1 { font-size: 48px; }
+    .url-card { flex-wrap: wrap; gap: 14px; }
+    .url-card .copy { margin-left: 0; }
+    .cols { grid-template-columns: 1fr; }
+    .vrule { display: none; }
+    .col { padding: 32px 0 0; border-top: 1px solid var(--rule); }
+    .col:first-child { border-top: none; padding-top: 0; }
+    .step-body { grid-template-columns: 1fr; }
+    .mock { margin: 12px 0 0; }
+    .footer { grid-template-columns: 1fr; }
+    .footer .signoff { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Brand bar -->
+  <div class="brand-row">
+    <div class="brand"><img src="assets/bodyforme-wordmark.png" alt="Bodyforme" /></div>
+    <div class="brand-meta">Member app · Install guide</div>
+  </div>
+
+  <!-- Title + URL -->
+  <div class="title-row">
+    <h1>Add Bodyforme<br/>to your <em>home screen</em>.</h1>
+    <div class="title-meta">
+      <p>Our member app lives on the web — there's nothing to download from a store. Just open the link below in your phone's browser, then add it to your home screen for one-tap access to bookings, schedule and your membership.</p>
+      <div class="url-card">
+        <div>
+          <div class="lbl">Open in your browser</div>
+          <div class="url">bodyforme.com.au/<em>app</em></div>
+        </div>
+        <button class="copy" id="copyBtn">Copy link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two columns -->
+  <div class="cols">
+
+    <!-- ─────────── iPhone column ─────────── -->
+    <div class="col">
+      <div class="col-head">
+        <h2><em>iPhone</em> &amp; iPad</h2>
+        <div class="browser">Use Safari</div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Open the link in Safari.</h3>
+            <p>Type or paste <strong>bodyforme.com.au/app</strong> into Safari's address bar. The browser must be Safari — not Chrome, not the in-app browser inside Instagram or Facebook.</p>
+          </div>
+          <div class="mock ios">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span><div class="sb-icons">
+                <svg width="11" height="7" viewBox="0 0 11 7"><rect x="0" y="4" width="2" height="3" fill="currentColor"/><rect x="3" y="3" width="2" height="4" fill="currentColor"/><rect x="6" y="1.5" width="2" height="5.5" fill="currentColor"/><rect x="9" y="0" width="2" height="7" fill="currentColor"/></svg>
+                <svg width="14" height="7" viewBox="0 0 14 7"><rect x="0.5" y="0.5" width="11" height="6" rx="1.5" stroke="currentColor" fill="none"/><rect x="2" y="2" width="8" height="3" fill="currentColor"/></svg>
+              </div></div>
+              <div class="chrome">
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="url-pill">🔒 bodyforme.com.au/app</div>
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+              </div>
+              <div class="webpage">
+                <div class="wp-h">Body<em>forme</em></div>
+                <div class="wp-line med"></div>
+                <div class="wp-line short"></div>
+                <div class="wp-line"></div>
+                <div class="wp-line med"></div>
+                <div class="wp-cta">Sign in to book</div>
+              </div>
+              <div class="ios-toolbar">
+                <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1L3 5l4 4M7 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 9V2M4 5l3-3 3 3M2 11h10" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Tap the Share button.</h3>
+            <p>It's the square-with-an-arrow icon in the centre of Safari's bottom toolbar. On older iOS, it's at the top.</p>
+            <div class="keytap"><svg viewBox="0 0 14 14"><path d="M7 9V2M4 5l3-3 3 3M2 11h10" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Share</div>
+          </div>
+          <div class="mock ios">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span><div class="sb-icons">
+                <svg width="11" height="7" viewBox="0 0 11 7"><rect x="0" y="4" width="2" height="3" fill="currentColor"/><rect x="3" y="3" width="2" height="4" fill="currentColor"/><rect x="6" y="1.5" width="2" height="5.5" fill="currentColor"/><rect x="9" y="0" width="2" height="7" fill="currentColor"/></svg>
+                <svg width="14" height="7" viewBox="0 0 14 7"><rect x="0.5" y="0.5" width="11" height="6" rx="1.5" stroke="currentColor" fill="none"/><rect x="2" y="2" width="8" height="3" fill="currentColor"/></svg>
+              </div></div>
+              <div class="chrome">
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="url-pill">🔒 bodyforme.com.au/app</div>
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+              </div>
+              <div class="webpage">
+                <div class="wp-h">Body<em>forme</em></div>
+                <div class="wp-line med"></div>
+                <div class="wp-line short"></div>
+                <div class="wp-line"></div>
+              </div>
+              <div class="ios-toolbar">
+                <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1L3 5l4 4M7 1l4 4-4 4" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="ti" style="position: relative;"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 9V2M4 5l3-3 3 3M2 11h10" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <div class="tap" style="left: -3px; top: -3px;"></div>
+                </div>
+                <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                <div class="ti"><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Choose "Add to Home Screen".</h3>
+            <p>Scroll down through the share sheet until you see it. The icon looks like a square with a + inside.</p>
+          </div>
+          <div class="mock ios">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span></div>
+              <div style="height: 60%; background: rgba(42,21,6,0.35);"></div>
+              <div class="sheet">
+                <div class="sheet-handle"></div>
+                <div class="sheet-row">
+                  <div class="ico"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M5.5 1v9M1 5.5h9" stroke="var(--brown)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+                  <div class="lbl">Add Bookmark</div>
+                </div>
+                <div class="sheet-row">
+                  <div class="ico"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 2h7v7H2z" stroke="var(--brown)" stroke-width="1.2" fill="none"/></svg></div>
+                  <div class="lbl">Add to Reading List</div>
+                </div>
+                <div class="sheet-row hl" style="position: relative;">
+                  <div class="ico"><svg width="11" height="11" viewBox="0 0 11 11"><rect x="2" y="2" width="7" height="7" stroke="var(--sand)" stroke-width="1.2" fill="none"/><path d="M5.5 4v3M4 5.5h3" stroke="var(--sand)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+                  <div class="lbl">Add to Home Screen</div>
+                  <div class="tap" style="right: -8px; top: 50%; transform: translateY(-50%);"></div>
+                </div>
+                <div class="sheet-row">
+                  <div class="ico"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M3 4l2.5 3L8 4" stroke="var(--brown)" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                  <div class="lbl">Copy</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Tap "Add" in the top corner.</h3>
+            <p>You'll see the Bodyforme icon and name — feel free to keep it as is, then tap <strong>Add</strong> in the top-right.</p>
+          </div>
+          <div class="mock ios">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span></div>
+              <div class="chrome" style="justify-content: space-between;">
+                <div style="font-family: var(--body); font-size: 8px; color: var(--mid);">Cancel</div>
+                <div style="font-family: var(--body); font-size: 9px; font-weight: 600; color: var(--text);">Add to Home Screen</div>
+                <div style="font-family: var(--body); font-size: 8px; font-weight: 600; color: var(--brown); position: relative;">Add
+                  <div class="tap" style="right: -8px; top: -6px;"></div>
+                </div>
+              </div>
+              <div style="padding: 14px 12px;">
+                <div style="display: flex; gap: 10px; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--rule);">
+                  <div style="width: 36px; height: 36px; background: #a8a8a8; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;"><img src="assets/bodyforme-app-icon.png" alt="Bodyforme" style="width: 100%; height: 100%; object-fit: cover;" /></div>
+                  <div style="flex: 1;">
+                    <div style="font-family: var(--body); font-size: 9px; font-weight: 500; color: var(--text);">Bodyforme</div>
+                    <div style="font-family: var(--body); font-size: 7px; color: var(--muted); margin-top: 2px;">bodyforme.com.au</div>
+                  </div>
+                </div>
+                <div style="font-family: var(--body); font-size: 7.5px; color: var(--muted); margin-top: 10px; line-height: 1.5;">An icon will be added to your Home Screen so you can quickly access this website.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Open Bodyforme any time.</h3>
+            <p>The app icon now sits on your home screen. Tap it to launch — the browser chrome is hidden, just like a regular app.</p>
+          </div>
+          <div class="mock ios">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span><div class="sb-icons">
+                <svg width="11" height="7" viewBox="0 0 11 7"><rect x="0" y="4" width="2" height="3" fill="currentColor"/><rect x="3" y="3" width="2" height="4" fill="currentColor"/><rect x="6" y="1.5" width="2" height="5.5" fill="currentColor"/><rect x="9" y="0" width="2" height="7" fill="currentColor"/></svg>
+                <svg width="14" height="7" viewBox="0 0 14 7"><rect x="0.5" y="0.5" width="11" height="6" rx="1.5" stroke="currentColor" fill="none"/><rect x="2" y="2" width="8" height="3" fill="currentColor"/></svg>
+              </div></div>
+              <div class="homegrid">
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app bf" style="position: relative;">
+                  <div class="tap" style="right: -6px; top: -6px;"></div>
+                </div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vrule"></div>
+
+    <!-- ─────────── Android column ─────────── -->
+    <div class="col">
+      <div class="col-head">
+        <h2><em>Android</em></h2>
+        <div class="browser">Use Chrome</div>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Open the link in Chrome.</h3>
+            <p>Type or paste <strong>bodyforme.com.au/app</strong> into Chrome's address bar. Chrome works best — Samsung Internet and Edge also support installing.</p>
+          </div>
+          <div class="mock android">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span><div class="sb-icons">
+                <svg width="11" height="7" viewBox="0 0 11 7"><rect x="0" y="4" width="2" height="3" fill="currentColor"/><rect x="3" y="3" width="2" height="4" fill="currentColor"/><rect x="6" y="1.5" width="2" height="5.5" fill="currentColor"/><rect x="9" y="0" width="2" height="7" fill="currentColor"/></svg>
+                <svg width="14" height="7" viewBox="0 0 14 7"><rect x="0.5" y="0.5" width="11" height="6" rx="1.5" stroke="currentColor" fill="none"/><rect x="2" y="2" width="8" height="3" fill="currentColor"/></svg>
+              </div></div>
+              <div class="chrome">
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5h6M5 2L8 5 5 8" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="url-pill">🔒 bodyforme.com.au/app</div>
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="2" r="0.9" fill="currentColor"/><circle cx="5" cy="5" r="0.9" fill="currentColor"/><circle cx="5" cy="8" r="0.9" fill="currentColor"/></svg></div>
+              </div>
+              <div class="webpage">
+                <div class="wp-h">Body<em>forme</em></div>
+                <div class="wp-line med"></div>
+                <div class="wp-line short"></div>
+                <div class="wp-line"></div>
+                <div class="wp-line med"></div>
+                <div class="wp-cta">Sign in to book</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Open the browser menu.</h3>
+            <p>Tap the three-dot menu icon in the top-right of Chrome.</p>
+            <div class="keytap"><svg viewBox="0 0 14 14"><circle cx="7" cy="3" r="1.2" fill="currentColor"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/><circle cx="7" cy="11" r="1.2" fill="currentColor"/></svg> More options</div>
+          </div>
+          <div class="mock android">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span></div>
+              <div class="chrome">
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5h6M5 2L8 5 5 8" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg></div>
+                <div class="url-pill">🔒 bodyforme.com.au/app</div>
+                <div class="chrome-btn" style="position: relative;">
+                  <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="2" r="0.9" fill="currentColor"/><circle cx="5" cy="5" r="0.9" fill="currentColor"/><circle cx="5" cy="8" r="0.9" fill="currentColor"/></svg>
+                  <div class="tap" style="right: -6px; top: -6px;"></div>
+                </div>
+              </div>
+              <div class="webpage">
+                <div class="wp-h">Body<em>forme</em></div>
+                <div class="wp-line med"></div>
+                <div class="wp-line"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Choose "Install app" or "Add to Home screen".</h3>
+            <p>The exact wording depends on your phone. Both options do the same thing.</p>
+          </div>
+          <div class="mock android">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span></div>
+              <div class="chrome">
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+                <div class="url-pill">🔒 bodyforme.com.au/app</div>
+                <div class="chrome-btn"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="2" r="0.9" fill="currentColor"/><circle cx="5" cy="5" r="0.9" fill="currentColor"/><circle cx="5" cy="8" r="0.9" fill="currentColor"/></svg></div>
+              </div>
+              <div class="webpage" style="opacity: 0.4;">
+                <div class="wp-h">Body<em>forme</em></div>
+                <div class="wp-line med"></div>
+                <div class="wp-line"></div>
+              </div>
+              <div class="android-menu">
+                <div class="am-row">New tab</div>
+                <div class="am-row">Bookmarks</div>
+                <div class="am-row">History</div>
+                <div class="am-row hl" style="position: relative;">Install app
+                  <div class="tap" style="right: 0px; top: 50%; transform: translateY(-50%);"></div>
+                </div>
+                <div class="am-row">Share…</div>
+                <div class="am-row">Settings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Confirm with "Install".</h3>
+            <p>A small dialog will pop up showing the Bodyforme icon. Tap <strong>Install</strong> (or <strong>Add</strong>) to confirm.</p>
+          </div>
+          <div class="mock android">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span></div>
+              <div class="chrome">
+                <div class="url-pill">🔒 bodyforme.com.au/app</div>
+              </div>
+              <div class="webpage" style="opacity: 0.5;">
+                <div class="wp-h">Body<em>forme</em></div>
+                <div class="wp-line med"></div>
+              </div>
+              <div class="dialog">
+                <div class="dialog-card">
+                  <div class="icon-row">
+                    <div class="app-icon"></div>
+                    <div>
+                      <div class="app-name">Install Bodyforme</div>
+                      <div class="app-url">bodyforme.com.au</div>
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <div class="btn cancel">Cancel</div>
+                    <div class="btn add glow" style="position: relative;">Install
+                      <div class="tap" style="right: -6px; top: -6px;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-text">
+            <h3>Open Bodyforme any time.</h3>
+            <p>The Bodyforme icon now sits with your other apps. Tap it to launch — full-screen, no browser bars.</p>
+          </div>
+          <div class="mock android">
+            <div class="mock-screen">
+              <div class="sb"><span>9:41</span><div class="sb-icons">
+                <svg width="11" height="7" viewBox="0 0 11 7"><rect x="0" y="4" width="2" height="3" fill="currentColor"/><rect x="3" y="3" width="2" height="4" fill="currentColor"/><rect x="6" y="1.5" width="2" height="5.5" fill="currentColor"/><rect x="9" y="0" width="2" height="7" fill="currentColor"/></svg>
+                <svg width="14" height="7" viewBox="0 0 14 7"><rect x="0.5" y="0.5" width="11" height="6" rx="1.5" stroke="currentColor" fill="none"/><rect x="2" y="2" width="8" height="3" fill="currentColor"/></svg>
+              </div></div>
+              <div class="homegrid">
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app bf" style="position: relative;">
+                  <div class="tap" style="right: -6px; top: -6px;"></div>
+                </div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+                <div class="home-app"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer / help -->
+  <div class="footer">
+    <div class="help">
+      Stuck? Email <em>hello@bodyforme.com.au</em><br/>
+      or ask at the front desk — we'll get you sorted in a minute.
+    </div>
+    <div class="signoff">
+      Bodyforme · Collingwood<br/>
+      Member App v1.0
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const btn = document.getElementById('copyBtn');
+  btn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText('https://bodyforme.com.au/app');
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('done');
+      setTimeout(() => { btn.textContent = 'Copy link'; btn.classList.remove('done'); }, 1800);
+    } catch (e) {
+      btn.textContent = 'Copy failed';
+    }
+  });
+</script>
+</body>
+</html>

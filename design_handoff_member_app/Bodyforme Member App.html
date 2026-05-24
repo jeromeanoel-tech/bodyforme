@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bodyforme — Member App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #efe9dc; font-family: 'DM Sans', system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="app/ios-frame.jsx"></script>
+<script type="text/babel" src="app/design-canvas.jsx"></script>
+<script type="text/babel" src="app/screens.jsx"></script>
+<script type="text/babel" src="app/screen-schedule.jsx"></script>
+<script type="text/babel" src="app/screen-schedule-b.jsx"></script>
+<script type="text/babel" src="app/screen-book.jsx"></script>
+<script type="text/babel" src="app/screen-cancel.jsx"></script>
+<script type="text/babel" src="app/screen-bookings.jsx"></script>
+<script type="text/babel" src="app/screen-membership.jsx"></script>
+<script type="text/babel" src="app/screen-change-plan.jsx"></script>
+<script type="text/babel" src="app/screen-payment.jsx"></script>
+<script type="text/babel" src="app/screen-profile.jsx"></script>
+
+<script type="text/babel">
+  const { DesignCanvas, DCSection, DCArtboard } = window;
+
+  // Wrap a screen component inside the iOS frame at 402×874
+  function Phone({ children }) {
+    return (
+      <div style={{
+        width: 402, height: 874, borderRadius: 48, overflow: 'hidden',
+        background: '#000', position: 'relative',
+        boxShadow: '0 30px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',
+      }}>
+        <div style={{ position: 'absolute', inset: 0, background: '#f4ede1' }}>
+          {children}
+        </div>
+        {/* Dynamic island */}
+        <div style={{ position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)', width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50 }} />
+        {/* Home indicator */}
+        <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', width: 139, height: 5, borderRadius: 100, background: 'rgba(0,0,0,0.25)', zIndex: 60 }} />
+      </div>
+    );
+  }
+
+  function App() {
+    const W = 402, H = 874;
+    return (
+      <div data-screen-label="Bodyforme Member App">
+        <DesignCanvas>
+
+          <DCSection id="schedule" title="Schedule" subtitle="Two directions: day-pill list (default) and full agenda card stack">
+            <DCArtboard id="schedule-a" label="A · Day-pill list" width={W} height={H}>
+              <Phone><window.ScheduleScreen /></Phone>
+            </DCArtboard>
+            <DCArtboard id="schedule-b" label="B · Agenda cards" width={W} height={H}>
+              <Phone><window.ScheduleVariantBScreen /></Phone>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="book" title="Booking flow" subtitle="Tap a class → detail sheet → confirm. Cancel uses a bottom-sheet confirm with cutoff status.">
+            <DCArtboard id="book-detail" label="Class detail + add-on" width={W} height={H}>
+              <Phone><window.BookScreen /></Phone>
+            </DCArtboard>
+            <DCArtboard id="book-cancel" label="Cancel sheet" width={W} height={H}>
+              <Phone><window.CancelBookingScreen /></Phone>
+            </DCArtboard>
+            <DCArtboard id="bookings-list" label="My bookings" width={W} height={H}>
+              <Phone><window.BookingsScreen /></Phone>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="membership" title="Membership" subtitle="Current plan, change plan, payment methods (Stripe). Card-entry styled to match brand — wire to Stripe Elements.">
+            <DCArtboard id="membership-home" label="Membership home" width={W} height={H}>
+              <Phone><window.MembershipScreen /></Phone>
+            </DCArtboard>
+            <DCArtboard id="change-plan" label="Change plan" width={W} height={H}>
+              <Phone><window.ChangePlanScreen /></Phone>
+            </DCArtboard>
+            <DCArtboard id="payment" label="Payment methods" width={W} height={H}>
+              <Phone><window.PaymentMethodsScreen /></Phone>
+            </DCArtboard>
+          </DCSection>
+
+          <DCSection id="profile" title="Profile" subtitle="Account home, attendance streak, settings">
+            <DCArtboard id="profile-home" label="Profile" width={W} height={H}>
+              <Phone><window.ProfileScreen /></Phone>
+            </DCArtboard>
+          </DCSection>
+
+        </DesignCanvas>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

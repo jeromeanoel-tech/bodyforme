@@ -537,6 +537,14 @@ export async function runMigrations(): Promise<void> {
       end_date   TEXT NOT NULL DEFAULT '',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`,
+    `CREATE TABLE IF NOT EXISTS waitlist (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      member_id  UUID REFERENCES members(id) ON DELETE CASCADE,
+      session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(member_id, session_id)
+    )`,
+    `CREATE INDEX IF NOT EXISTS waitlist_session_created ON waitlist (session_id, created_at)`,
   ]
 
   for (const sql of statements) {

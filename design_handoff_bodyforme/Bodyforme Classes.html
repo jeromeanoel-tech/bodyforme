@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bodyforme — Classes &amp; Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --linen:#f4ede1;--l2:#ede4d4;--l3:#e4d8c6;
+  --esp:#2a1506;--esp2:#3d2210;
+  --brown:#7a4a2a;--blt:#a0724e;
+  --text:#2a1506;--mid:#6b4e36;--muted:#a08568;
+  --rule:#d8ccba;--canvas:#fdfaf6;
+  --sage:#7a9478;--rust:#9a5a3a;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--linen);color:var(--text);font-weight:300;font-size:14px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER (shared) ── */
+.announce{background:var(--esp);color:oklch(.82 .02 60);text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;padding:9px 20px}
+.announce a{color:#c4a882;border-bottom:1px solid currentColor;text-decoration:none}
+header{position:sticky;top:0;z-index:100;background:var(--linen);border-bottom:1px solid var(--rule)}
+.hdr{max-width:1280px;margin:0 auto;padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nav-l,.nav-r{display:flex;align-items:center;gap:32px;flex:1}
+.nav-r{justify-content:flex-end}
+nav a{font-size:10.5px;font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color .2s;position:relative;padding-bottom:2px}
+nav a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--brown);transition:width .25s}
+nav a:hover{color:var(--text)}
+nav a:hover::after{width:100%}
+nav a.active{color:var(--text)}
+nav a.active::after{width:100%}
+.brand{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:500;letter-spacing:.06em;color:var(--esp);text-decoration:none;flex-shrink:0}
+.brand em{font-style:italic;font-weight:300;color:var(--brown)}
+.btn-book{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:9px 20px;text-decoration:none;transition:background .2s;white-space:nowrap}
+.btn-book:hover{background:var(--brown)}
+
+/* ── PAGE HERO ── */
+.page-hero{border-bottom:1px solid var(--rule);background:var(--esp)}
+.page-hero-inner{max-width:1280px;margin:0 auto;padding:64px 48px 56px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}
+.ph-eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.4);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.ph-eyebrow::before{content:'';width:28px;height:1px;background:rgba(196,168,130,.5);display:block}
+.ph-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,5vw,72px);font-weight:400;line-height:1.05;color:var(--linen);letter-spacing:-.01em}
+.ph-h1 em{font-style:italic;font-weight:300;color:#c4a882}
+.ph-right{display:flex;flex-direction:column;justify-content:flex-end;gap:28px}
+.ph-desc{font-size:14px;font-weight:300;color:rgba(244,237,225,.6);line-height:1.75;max-width:380px}
+.ph-stats{display:flex;gap:40px}
+.ph-stat-num{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:var(--linen);line-height:1;display:block}
+.ph-stat-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,237,225,.35);margin-top:4px;display:block}
+
+/* ── CLASS TYPE TABS ── */
+.filter-bar{border-bottom:1px solid var(--rule);background:var(--canvas);position:sticky;top:64px;z-index:90}
+.filter-inner{max-width:1280px;margin:0 auto;padding:0 48px;display:flex;align-items:center;gap:0}
+.filter-tab{font-size:10.5px;font-weight:400;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);padding:0 18px;height:52px;display:flex;align-items:center;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;user-select:none;white-space:nowrap;margin-bottom:-1px}
+.filter-tab:hover{color:var(--text)}
+.filter-tab.active{color:var(--text);border-bottom-color:var(--brown);font-weight:500}
+.filter-spacer{flex:1}
+.filter-week{display:flex;align-items:center;gap:8px}
+.week-arrow{width:28px;height:28px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mid);transition:all .15s;font-size:12px}
+.week-arrow:hover{border-color:var(--mid);color:var(--text)}
+.week-label{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;color:var(--text);white-space:nowrap}
+
+/* ── WEEK GRID ── */
+.schedule-section{max-width:1280px;margin:0 auto;padding:40px 48px 80px}
+
+.day-cols{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-bottom:60px}
+
+.day-col{background:var(--linen);display:flex;flex-direction:column}
+.day-col.today{background:var(--canvas)}
+
+.day-col-header{padding:14px 16px 12px;border-bottom:1px solid var(--rule);text-align:left}
+.dcol-name{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px}
+.dcol-date{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--text);line-height:1}
+.day-col.today .dcol-date{color:var(--brown)}
+.today-badge{display:inline-block;background:var(--brown);color:var(--canvas);font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;font-weight:500;margin-left:6px;vertical-align:middle}
+
+.day-classes{display:flex;flex-direction:column;gap:1px;background:var(--rule);flex:1}
+
+.class-slot{background:var(--canvas);padding:14px 16px;cursor:pointer;transition:background .15s;border-left:3px solid transparent;position:relative}
+.class-slot:hover{background:var(--l2)}
+.class-slot.bikram{border-left-color:var(--rust)}
+.class-slot.pilates{border-left-color:var(--sage)}
+.class-slot.sculpt{border-left-color:#8a9ab0}
+.class-slot.special{border-left-color:#b0906a}
+.cs-time{font-size:10px;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;font-weight:400}
+.cs-name{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:400;color:var(--text);line-height:1.25;margin-bottom:5px}
+.cs-teacher{font-size:11px;color:var(--muted);font-weight:300}
+.cs-spots{font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:.04em}
+.cs-spots.low{color:var(--rust)}
+.cs-spots.full{color:var(--muted);text-decoration:line-through}
+.cs-btn{margin-top:10px;display:block;width:100%;font-size:9.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;text-align:center;color:var(--esp);border:1px solid var(--rule);padding:7px 0;transition:all .2s;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif}
+.cs-btn:hover{background:var(--esp);color:var(--canvas);border-color:var(--esp)}
+.cs-btn.full-btn{color:var(--muted);cursor:default}
+.cs-btn.full-btn:hover{background:transparent;color:var(--muted);border-color:var(--rule)}
+.empty-slot{padding:20px 16px;text-align:center}
+.empty-dash{width:16px;height:1px;background:var(--rule);margin:0 auto}
+
+/* ── CLASS CARDS SECTION ── */
+.cards-section{border-top:1px solid var(--rule);padding-top:72px}
+.cards-hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:52px}
+.slbl{font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.slbl::after{content:'';height:1px;background:var(--rule);width:56px}
+h2{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,54px);font-weight:400;line-height:1.1;color:var(--esp)}
+h2 em{font-style:italic;font-weight:300;color:var(--brown)}
+.cards-intro{font-size:13.5px;font-weight:300;color:var(--mid);line-height:1.75;max-width:300px;text-align:right}
+
+.class-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.cdc{background:var(--linen);display:grid;grid-template-columns:280px 1fr;min-height:240px}
+.cdc-img{position:relative;overflow:hidden;min-height:240px}
+.cdc-img-ph{width:100%;height:100%;min-height:240px}
+.ph-bikram90{background:linear-gradient(150deg,#c8b090 0%,#8a5e3a 100%)}
+.ph-express{background:linear-gradient(150deg,#b8a898 0%,#6a4838 100%)}
+.ph-pilates{background:linear-gradient(150deg,#b0b8a8 0%,#5a6850 100%)}
+.ph-sculpt{background:linear-gradient(150deg,#b0b8c8 0%,#5a6880 100%)}
+.cdc-type-bar{position:absolute;bottom:0;left:0;right:0;padding:12px 16px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:rgba(244,237,225,.8)}
+.tb-bikram{background:rgba(154,90,58,.8)}
+.tb-pilates{background:rgba(122,148,120,.8)}
+.tb-sculpt{background:rgba(138,154,176,.8)}
+.cdc-body{padding:32px 36px;display:flex;flex-direction:column;justify-content:space-between}
+.cdc-top{}
+.cdc-num{font-size:11px;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;display:block}
+.cdc-name{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;line-height:1.1;color:var(--esp);margin-bottom:8px}
+.cdc-name em{font-style:italic;font-weight:300}
+.cdc-meta{display:flex;gap:20px;margin-bottom:18px}
+.cdc-meta-item{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:6px}
+.meta-dot{width:4px;height:4px;border-radius:50%;background:var(--rule);display:inline-block}
+.cdc-desc{font-size:13px;font-weight:300;color:var(--mid);line-height:1.75;margin-bottom:24px}
+.cdc-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:20px;border-top:1px solid var(--rule)}
+.cdc-price{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--esp)}
+.cdc-price span{font-size:11px;font-weight:300;color:var(--muted);font-family:'DM Sans',sans-serif;margin-left:4px}
+.btn-enrol{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:11px 24px;text-decoration:none;display:inline-block;transition:background .2s;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-enrol:hover{background:var(--brown)}
+.btn-learn{font-size:10px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px;margin-right:16px;transition:all .2s}
+.btn-learn:hover{color:var(--text);border-color:var(--text)}
+
+/* ── BOOKING MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(42,21,6,.6);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--canvas);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;animation:slideUp .25s ease both}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:20px;border:none;background:transparent;transition:color .2s}
+.modal-close:hover{color:var(--text)}
+.modal-img{height:180px;background:linear-gradient(150deg,#c8b090 0%,#8a5e3a 100%)}
+.modal-body{padding:32px 36px}
+.modal-tag{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;color:var(--esp);margin-bottom:20px;line-height:1.1}
+.modal-title em{font-style:italic;font-weight:300;color:var(--brown)}
+.modal-details{display:flex;gap:0;margin-bottom:28px;border:1px solid var(--rule)}
+.md-item{flex:1;padding:14px 16px;border-right:1px solid var(--rule);text-align:center}
+.md-item:last-child{border-right:none}
+.md-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.md-val{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--esp)}
+.modal-form{}
+.mf-row{margin-bottom:24px}
+.mf-label{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.mf-input,.mf-select{width:100%;background:transparent;border:none;border-bottom:1px solid var(--rule);padding:8px 0;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;color:var(--text);outline:none;transition:border-color .2s;appearance:none}
+.mf-input:focus,.mf-select:focus{border-bottom-color:var(--brown)}
+.mf-input::placeholder{color:var(--muted)}
+.mf-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.modal-note{font-size:12px;font-weight:300;color:var(--muted);line-height:1.6;padding:16px;border:1px solid var(--rule);margin-bottom:28px}
+.modal-actions{display:flex;align-items:center;justify-content:space-between;padding-top:20px;border-top:1px solid var(--rule)}
+.modal-price{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--esp)}
+.modal-price span{font-size:11px;font-family:'DM Sans',sans-serif;color:var(--muted);margin-left:4px}
+.btn-confirm{font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--canvas);background:var(--esp);padding:14px 32px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s}
+.btn-confirm:hover{background:var(--brown)}
+
+/* ── CTA STRIP ── */
+.cta-strip{background:var(--esp);margin-top:80px;padding:60px 48px}
+.cta-strip-inner{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:48px}
+.cta-strip-text h3{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,3vw,40px);font-weight:300;color:var(--linen);margin-bottom:8px}
+.cta-strip-text h3 em{font-style:italic;color:#c4a882}
+.cta-strip-text p{font-size:13px;font-weight:300;color:rgba(244,237,225,.55);line-height:1.6}
+.cta-strip-actions{display:flex;gap:16px;flex-shrink:0}
+.btn-lt{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--linen);border:1px solid rgba(255,255,255,.25);padding:13px 28px;text-decoration:none;display:inline-block;transition:border-color .2s}
+.btn-lt:hover{border-color:var(--linen)}
+.btn-lt-fill{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--esp);background:var(--linen);padding:13px 28px;text-decoration:none;display:inline-block;transition:background .2s}
+.btn-lt-fill:hover{background:var(--l2)}
+
+/* ── FOOTER ── */
+footer{background:var(--esp2);padding:64px 0 0}
+.footer-inner{max-width:1280px;margin:0 auto;padding:0 48px}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.07)}
+.footer-brand-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;letter-spacing:.06em;color:var(--linen);margin-bottom:14px}
+.footer-brand-name em{font-style:italic;color:#c4a882}
+.footer-tagline{font-size:12.5px;font-weight:300;color:rgba(244,237,225,.45);line-height:1.7;max-width:240px}
+.fc-head{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,237,225,.3);margin-bottom:20px}
+.fc-links{display:flex;flex-direction:column;gap:12px}
+.fc-links a{font-size:12.5px;font-weight:300;color:rgba(244,237,226,.5);text-decoration:none;transition:color .2s}
+.fc-links a:hover{color:rgba(244,237,226,.9)}
+.footer-bottom{padding:20px 0;display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:11px;color:rgba(244,237,225,.25);letter-spacing:.04em}
+.footer-legal{display:flex;gap:24px}
+.footer-legal a{font-size:11px;color:rgba(244,237,225,.25);text-decoration:none;transition:color .2s}
+.footer-legal a:hover{color:rgba(244,237,225,.6)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(12px);transition:opacity .55s ease,transform .55s ease}
+.reveal.visible{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<div class="announce">New members — <a href="Bodyforme Home.html#memberships">first week free</a> when you join before 31 May 2026</div>
+
+<header>
+  <div class="hdr">
+    <nav class="nav-l">
+      <a href="Bodyforme Classes.html" class="nav-link active">Classes</a>
+      <a href="Bodyforme Home.html#memberships" class="nav-link">Memberships</a>
+    </nav>
+    <a href="Bodyforme Home.html" class="brand">Body<em>forme</em></a>
+    <nav class="nav-r">
+      <a href="Bodyforme Home.html#about" class="nav-link">About Us</a>
+      <a href="Bodyforme Home.html#contact" class="nav-link">Contact</a>
+      <a href="#booking" class="btn-book">Book a Class</a>
+    </nav>
+  </div>
+</header>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <div>
+      <div class="ph-eyebrow">Schedule &amp; Booking</div>
+      <h1 class="ph-h1">Find your <em>practice</em></h1>
+    </div>
+    <div class="ph-right">
+      <p class="ph-desc">18 classes a week across Bikram, Hot Pilates and Sculpt Yoga. All levels welcome — from your very first class to your five-hundredth.</p>
+      <div class="ph-stats">
+        <div>
+          <span class="ph-stat-num">18</span>
+          <span class="ph-stat-lbl">Classes / week</span>
+        </div>
+        <div>
+          <span class="ph-stat-num">4</span>
+          <span class="ph-stat-lbl">Disciplines</span>
+        </div>
+        <div>
+          <span class="ph-stat-num">40°</span>
+          <span class="ph-stat-lbl">Max heat</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="filter-tab active" onclick="setFilter('all',this)">All Classes</div>
+    <div class="filter-tab" onclick="setFilter('bikram',this)">Bikram</div>
+    <div class="filter-tab" onclick="setFilter('pilates',this)">Hot Pilates</div>
+    <div class="filter-tab" onclick="setFilter('sculpt',this)">Sculpt Yoga</div>
+    <div class="filter-tab" onclick="setFilter('special',this)">Special Forces</div>
+    <div class="filter-spacer"></div>
+    <div class="filter-week">
+      <div class="week-arrow" onclick="shiftWeek(-1)">‹</div>
+      <div class="week-label" id="week-label">26 Apr – 2 May 2026</div>
+      <div class="week-arrow" onclick="shiftWeek(1)">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE -->
+<div class="schedule-section">
+  <div class="day-cols" id="schedule-grid">
+    <!-- Rendered by JS -->
+  </div>
+
+  <!-- CLASS DETAIL CARDS -->
+  <div class="cards-section reveal" id="booking">
+    <div class="cards-hdr">
+      <div>
+        <div class="slbl">Disciplines</div>
+        <h2>Every <em>class</em>, explained</h2>
+      </div>
+      <p class="cards-intro">All classes are suitable for beginners unless marked Advanced. First-timers always welcome.</p>
+    </div>
+
+    <div class="class-detail-grid">
+
+      <!-- Bikram 90 -->
+      <div class="cdc reveal">
+        <div class="cdc-img">
+          <div class="cdc-img-ph ph-bikram90"></div>
+          <div class="cdc-type-bar tb-bikram">Bikram Hot Yoga</div>
+        </div>
+        <div class="cdc-body">
+          <div class="cdc-top">
+            <span class="cdc-num">01</span>
+            <div class="cdc-name">Bikram <em>90 min</em></div>
+            <div class="cdc-meta">
+              <span class="cdc-meta-item">90 min</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>40°C</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>All levels</span>
+            </div>
+            <p class="cdc-desc">The original hot yoga sequence — 26 postures and 2 breathing exercises performed in a 40°C heated room. Systematically works every muscle, tendon, ligament and organ. Deeply restorative and surprisingly challenging.</p>
+          </div>
+          <div class="cdc-bottom">
+            <div class="cdc-price">$28 <span>/ class</span></div>
+            <div>
+              <a href="#" class="btn-learn">Learn more</a>
+              <button class="btn-enrol" onclick="openModal('Bikram 90 min','All levels · 90 min · 40°C','$28')">Book now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hot Pilates -->
+      <div class="cdc reveal">
+        <div class="cdc-img">
+          <div class="cdc-img-ph ph-pilates"></div>
+          <div class="cdc-type-bar tb-pilates">Hot Pilates</div>
+        </div>
+        <div class="cdc-body">
+          <div class="cdc-top">
+            <span class="cdc-num">02</span>
+            <div class="cdc-name">Hot <em>Pilates</em></div>
+            <div class="cdc-meta">
+              <span class="cdc-meta-item">55 min</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>36°C</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>All levels</span>
+            </div>
+            <p class="cdc-desc">Reformer-inspired mat pilates in a warm room. The heat amplifies flexibility and deepens your range of motion while the Pilates method builds a strong, centred core. Equal parts challenging and meditative.</p>
+          </div>
+          <div class="cdc-bottom">
+            <div class="cdc-price">$28 <span>/ class</span></div>
+            <div>
+              <a href="#" class="btn-learn">Learn more</a>
+              <button class="btn-enrol" onclick="openModal('Hot Pilates','All levels · 55 min · 36°C','$28')">Book now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bikram Express -->
+      <div class="cdc reveal">
+        <div class="cdc-img">
+          <div class="cdc-img-ph ph-express"></div>
+          <div class="cdc-type-bar tb-bikram">Bikram Hot Yoga</div>
+        </div>
+        <div class="cdc-body">
+          <div class="cdc-top">
+            <span class="cdc-num">03</span>
+            <div class="cdc-name">Bikram <em>Express</em></div>
+            <div class="cdc-meta">
+              <span class="cdc-meta-item">60 min</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>40°C</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>All levels</span>
+            </div>
+            <p class="cdc-desc">The full heat experience condensed into 60 minutes. A carefully edited sequence that hits every major muscle group — perfect for those who refuse to let a busy schedule compromise their practice.</p>
+          </div>
+          <div class="cdc-bottom">
+            <div class="cdc-price">$28 <span>/ class</span></div>
+            <div>
+              <a href="#" class="btn-learn">Learn more</a>
+              <button class="btn-enrol" onclick="openModal('Bikram Express','All levels · 60 min · 40°C','$28')">Book now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sculpt Yoga -->
+      <div class="cdc reveal">
+        <div class="cdc-img">
+          <div class="cdc-img-ph ph-sculpt"></div>
+          <div class="cdc-type-bar tb-sculpt">Sculpt Yoga</div>
+        </div>
+        <div class="cdc-body">
+          <div class="cdc-top">
+            <span class="cdc-num">04</span>
+            <div class="cdc-name">Sculpt <em>Yoga</em></div>
+            <div class="cdc-meta">
+              <span class="cdc-meta-item">60 min</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>34°C</span>
+              <span class="cdc-meta-item"><span class="meta-dot"></span>All levels</span>
+            </div>
+            <p class="cdc-desc">Vinyasa flow meets strength training. Light weights and fluid movement are layered throughout a dynamic yoga sequence to sculpt and tone the entire body. Energising, sweaty and deeply satisfying.</p>
+          </div>
+          <div class="cdc-bottom">
+            <div class="cdc-price">$28 <span>/ class</span></div>
+            <div>
+              <a href="#" class="btn-learn">Learn more</a>
+              <button class="btn-enrol" onclick="openModal('Sculpt Yoga','All levels · 60 min · 34°C','$28')">Book now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CTA STRIP -->
+  <div class="cta-strip">
+    <div class="cta-strip-inner">
+      <div class="cta-strip-text">
+        <h3>Not sure where to <em>start?</em></h3>
+        <p>Our team can recommend the perfect class for your body and goals. First week is always free for new members.</p>
+      </div>
+      <div class="cta-strip-actions">
+        <a href="Bodyforme Home.html#contact" class="btn-lt">Ask us</a>
+        <a href="Bodyforme Home.html#memberships" class="btn-lt-fill">View memberships</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalDirect()">×</button>
+    <div class="modal-img" id="modal-img"></div>
+    <div class="modal-body">
+      <div class="modal-tag" id="modal-tag">Hot Yoga</div>
+      <div class="modal-title" id="modal-title">Bikram <em>90 min</em></div>
+      <div class="modal-details">
+        <div class="md-item">
+          <div class="md-label">Date</div>
+          <div class="md-val" id="modal-date">Sun 26 Apr</div>
+        </div>
+        <div class="md-item">
+          <div class="md-label">Time</div>
+          <div class="md-val" id="modal-time">9:15 am</div>
+        </div>
+        <div class="md-item">
+          <div class="md-label">Duration</div>
+          <div class="md-val" id="modal-dur">90 min</div>
+        </div>
+        <div class="md-item">
+          <div class="md-label">Spots left</div>
+          <div class="md-val" id="modal-spots">8</div>
+        </div>
+      </div>
+      <div class="modal-form">
+        <div class="mf-grid">
+          <div class="mf-row">
+            <label class="mf-label">First name</label>
+            <input class="mf-input" type="text" placeholder="Jane">
+          </div>
+          <div class="mf-row">
+            <label class="mf-label">Last name</label>
+            <input class="mf-input" type="text" placeholder="Smith">
+          </div>
+        </div>
+        <div class="mf-row">
+          <label class="mf-label">Email address</label>
+          <input class="mf-input" type="email" placeholder="jane@example.com">
+        </div>
+        <div class="mf-row">
+          <label class="mf-label">Membership / payment</label>
+          <select class="mf-select">
+            <option>Immersion (unlimited)</option>
+            <option>Foundation (4/week)</option>
+            <option>Casual — pay $28</option>
+            <option>10-class pack</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-note">
+        Cancellations must be made at least 2 hours before class. Late cancellations and no-shows will forfeit the class credit.
+      </div>
+      <div class="modal-actions">
+        <div class="modal-price" id="modal-price">$28 <span>/ class</span></div>
+        <button class="btn-confirm">Confirm booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">Body<em>forme</em></div>
+        <p class="footer-tagline">A premium hot yoga and pilates studio committed to transformation through heat, breath and movement.</p>
+      </div>
+      <div>
+        <div class="fc-head">Studio</div>
+        <div class="fc-links">
+          <a href="Bodyforme Classes.html">Classes</a>
+          <a href="Bodyforme Home.html#memberships">Memberships</a>
+          <a href="Bodyforme Home.html#about">About</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Visit</div>
+        <div class="fc-links">
+          <a href="#">142 Smith St, Collingwood</a>
+          <a href="#">(03) 9412 8800</a>
+          <a href="#">hello@bodyforme.com.au</a>
+        </div>
+      </div>
+      <div>
+        <div class="fc-head">Account</div>
+        <div class="fc-links">
+          <a href="#">Sign In</a>
+          <a href="#">Create Account</a>
+          <a href="#">Gift Cards</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2026 Bodyforme Pty Ltd.</span>
+      <div class="footer-legal">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── Schedule data ──
+const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const dates = ['26 Apr','27 Apr','28 Apr','29 Apr','30 Apr','1 May','2 May'];
+const todayIdx = 0;
+
+const schedule = [
+  // Sun
+  [
+    {time:'7:00 am',name:'Bikram 90 min',teacher:'Suzanne',spots:8,type:'bikram',dur:'90 min'},
+    {time:'9:15 am',name:'Bikram 90 min',teacher:'Mish',spots:0,type:'bikram',dur:'90 min'},
+    {time:'5:30 pm',name:'Hot Pilates',teacher:'Angie',spots:14,type:'pilates',dur:'55 min'},
+  ],
+  // Mon
+  [
+    {time:'6:00 am',name:'Bikram Express',teacher:'Gabriel',spots:6,type:'bikram',dur:'60 min'},
+    {time:'9:30 am',name:'Hot Pilates',teacher:'Suzanne',spots:18,type:'pilates',dur:'55 min'},
+    {time:'6:00 pm',name:'Bikram 90 min',teacher:'Mish',spots:4,type:'bikram',dur:'90 min'},
+  ],
+  // Tue
+  [
+    {time:'6:00 am',name:'Hot Pilates',teacher:'Stephanie',spots:12,type:'pilates',dur:'55 min'},
+    {time:'9:30 am',name:'Bikram 90 min',teacher:'Gabriel',spots:20,type:'bikram',dur:'90 min'},
+    {time:'5:45 pm',name:'Sculpt Yoga',teacher:'Angie',spots:10,type:'sculpt',dur:'60 min'},
+  ],
+  // Wed
+  [
+    {time:'6:00 am',name:'Bikram Express',teacher:'Suzanne',spots:2,type:'bikram',dur:'60 min'},
+    {time:'9:30 am',name:'Sculpt Yoga',teacher:'Stephanie',spots:22,type:'sculpt',dur:'60 min'},
+    {time:'6:00 pm',name:'Hot Pilates',teacher:'Gabriel',spots:0,type:'pilates',dur:'55 min'},
+  ],
+  // Thu
+  [
+    {time:'6:00 am',name:'Bikram 90 min',teacher:'Mish',spots:15,type:'bikram',dur:'90 min'},
+    {time:'9:30 am',name:'Hot Pilates',teacher:'Angie',spots:9,type:'pilates',dur:'55 min'},
+    {time:'7:00 pm',name:'Bikram Express',teacher:'Gabriel',spots:11,type:'bikram',dur:'60 min'},
+  ],
+  // Fri
+  [
+    {time:'6:00 am',name:'Sculpt Yoga',teacher:'Stephanie',spots:7,type:'sculpt',dur:'60 min'},
+    {time:'9:30 am',name:'Hot Pilates',teacher:'Suzanne',spots:18,type:'pilates',dur:'55 min'},
+    {time:'6:00 pm',name:'Bikram Express',teacher:'Gabriel',spots:5,type:'bikram',dur:'60 min'},
+  ],
+  // Sat
+  [
+    {time:'8:00 am',name:'Bikram 90 min',teacher:'Mish',spots:16,type:'bikram',dur:'90 min'},
+    {time:'9:30 am',name:'Sculpt Yoga',teacher:'Stephanie',spots:3,type:'sculpt',dur:'60 min'},
+    {time:'11:00 am',name:'Hot Pilates',teacher:'Angie',spots:20,type:'pilates',dur:'55 min'},
+  ],
+];
+
+let activeFilter = 'all';
+
+function spotsLabel(n) {
+  if (n === 0) return 'Class full';
+  if (n <= 3) return n + ' spot' + (n===1?'':'s') + ' left';
+  return n + ' spots available';
+}
+
+function renderSchedule() {
+  const grid = document.getElementById('schedule-grid');
+  grid.innerHTML = '';
+  days.forEach((day, i) => {
+    const col = document.createElement('div');
+    col.className = 'day-col' + (i === todayIdx ? ' today' : '');
+
+    const hdr = document.createElement('div');
+    hdr.className = 'day-col-header';
+    hdr.innerHTML = `<span class="dcol-name">${day}</span><span class="dcol-date">${dates[i]}${i===todayIdx?'<span class="today-badge">Today</span>':''}</span>`;
+    col.appendChild(hdr);
+
+    const classWrap = document.createElement('div');
+    classWrap.className = 'day-classes';
+
+    const filtered = schedule[i].filter(c => activeFilter === 'all' || c.type === activeFilter);
+    if (filtered.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-slot';
+      empty.innerHTML = '<div class="empty-dash"></div>';
+      classWrap.appendChild(empty);
+    } else {
+      filtered.forEach(cls => {
+        const slot = document.createElement('div');
+        slot.className = `class-slot ${cls.type}`;
+        const spotsClass = cls.spots === 0 ? 'full' : cls.spots <= 3 ? 'low' : '';
+        slot.innerHTML = `
+          <div class="cs-time">${cls.time}</div>
+          <div class="cs-name">${cls.name}</div>
+          <div class="cs-teacher">${cls.teacher}</div>
+          <div class="cs-spots ${spotsClass}">${spotsLabel(cls.spots)}</div>
+          <button class="cs-btn ${cls.spots===0?'full-btn':''}" onclick="${cls.spots>0?`openModal('${cls.name}','${cls.teacher} · ${cls.dur} · ${day} ${dates[i]}','$28')`:''}">${cls.spots===0?'Waitlist':'Book'}</button>`;
+        classWrap.appendChild(slot);
+      });
+    }
+
+    col.appendChild(classWrap);
+    grid.appendChild(col);
+  });
+}
+
+function setFilter(type, el) {
+  activeFilter = type;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderSchedule();
+}
+
+function shiftWeek(dir) {
+  // visual only — label shifts
+  const lbl = document.getElementById('week-label');
+  lbl.style.opacity = '0';
+  setTimeout(() => {
+    lbl.textContent = dir > 0 ? '3 – 9 May 2026' : '19 – 25 Apr 2026';
+    lbl.style.opacity = '1';
+  }, 150);
+}
+
+// ── Modal ──
+function openModal(name, meta, price) {
+  const m = document.getElementById('modal');
+  document.getElementById('modal-title').innerHTML = name.replace(/(90 min|Express|Pilates|Yoga)/,'<em>$1</em>');
+  document.getElementById('modal-tag').textContent = meta;
+  document.getElementById('modal-price').innerHTML = price + ' <span>/ class</span>';
+  // set img bg based on class
+  const img = document.getElementById('modal-img');
+  if (name.includes('Pilates')) img.style.background = 'linear-gradient(150deg,#b0b8a8 0%,#5a6850 100%)';
+  else if (name.includes('Sculpt')) img.style.background = 'linear-gradient(150deg,#b0b8c8 0%,#5a6880 100%)';
+  else img.style.background = 'linear-gradient(150deg,#c8b090 0%,#8a5e3a 100%)';
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalDirect(); });
+
+// ── Scroll reveal ──
+const io = new IntersectionObserver(
+  entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
+  { threshold: 0.08 }
+);
+document.querySelectorAll('.reveal').forEach(r => io.observe(r));
+
+renderSchedule();
+</script>
+</body>
+</html>
