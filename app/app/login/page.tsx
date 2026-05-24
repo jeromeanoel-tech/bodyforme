@@ -131,7 +131,7 @@ export default function LoginPage() {
           </div>
 
           {/* Password */}
-          <div style={{ marginBottom: 32, position: 'relative' }}>
+          <div style={{ marginBottom: 8, position: 'relative' }}>
             <label style={{
               fontFamily:    "'DM Sans', system-ui, sans-serif",
               fontSize:      9.5,
@@ -171,6 +171,20 @@ export default function LoginPage() {
                 }
               </button>
             </div>
+          </div>
+
+          {/* Forgot password */}
+          <div style={{ textAlign: 'right', marginBottom: 28, marginTop: 10 }}>
+            <a href="/app/forgot-password" style={{
+              fontFamily:  "'DM Sans', system-ui, sans-serif",
+              fontSize:    12,
+              fontWeight:  300,
+              color:       T.muted,
+              textDecoration: 'none',
+              borderBottom: `1px solid ${T.rule}`,
+            }}>
+              Forgot password?
+            </a>
           </div>
 
           {/* Error */}

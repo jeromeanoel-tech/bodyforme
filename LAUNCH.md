@@ -54,7 +54,7 @@
 - [ ] Google review link — confirm correct Google Business Profile URL in re-engagement email template
 - [ ] ClassPass — pending Wix App Market approval, not blocking
 - [ ] Admin session management UI — add/edit/cancel sessions without touching DB directly
-- [ ] Forgot password flow — needed for Mind Body members on first login
+- [x] Forgot password flow — needed for Mind Body members on first login
 - [ ] Instructor photos — deferred until post-reno
 
 ---

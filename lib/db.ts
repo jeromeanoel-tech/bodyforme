@@ -478,6 +478,41 @@ export async function getMemberBookingsForRange(
   }))
 }
 
+// ── Password reset tokens ─────────────────────────────────────────────────────
+
+export async function createPasswordResetToken(memberId: string): Promise<string> {
+  const token = crypto.randomUUID() + '-' + crypto.randomUUID()
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  const { error } = await supabase
+    .from('password_reset_tokens')
+    .insert({ member_id: memberId, token, expires_at: expiresAt })
+  if (error) throw error
+  return token
+}
+
+export async function getPasswordResetToken(token: string): Promise<{
+  memberId: string; expiresAt: string; usedAt: string | null
+} | null> {
+  const { data } = await supabase
+    .from('password_reset_tokens')
+    .select('member_id, expires_at, used_at')
+    .eq('token', token)
+    .single()
+  if (!data) return null
+  return { memberId: data.member_id, expiresAt: data.expires_at, usedAt: data.used_at }
+}
+
+export async function markTokenUsed(token: string): Promise<void> {
+  await supabase
+    .from('password_reset_tokens')
+    .update({ used_at: new Date().toISOString() })
+    .eq('token', token)
+}
+
+export async function updateMemberPassword(memberId: string, passwordHash: string): Promise<void> {
+  await supabase.from('members').update({ password_hash: passwordHash }).eq('id', memberId)
+}
+
 // ── Schema (run once via /api/migrate) ───────────────────────────────────────
 // If the API route doesn't work, paste this into Supabase SQL Editor instead.
 
