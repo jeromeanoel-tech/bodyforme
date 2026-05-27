@@ -10,13 +10,9 @@ export async function POST(req: NextRequest) {
   }
 
   const member = await getMemberByEmail(email.toLowerCase())
-  if (!member) {
-    return NextResponse.json({ error: 'No account found with that email' }, { status: 401 })
-  }
-
-  const valid = await bcrypt.compare(password, member.passwordHash)
-  if (!valid) {
-    return NextResponse.json({ error: 'Incorrect password' }, { status: 401 })
+  const valid = member ? await bcrypt.compare(password, member.passwordHash) : false
+  if (!member || !valid) {
+    return NextResponse.json({ error: 'Incorrect email or password' }, { status: 401 })
   }
 
   const token = await signSession({
