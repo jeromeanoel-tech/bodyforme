@@ -17,8 +17,8 @@ export const studio = {
   email:       'hello@bodyforme.com.au',
   instagram:   '@bodyforme',              // ← update with real handle
   facebook:    'BodyForme',
-  // Wix booking page — replace with your actual Wix booking URL
-  bookingUrl:  'https://www.bodyforme.com.au/book-online',
+  bookingUrl:  'https://bodyforme.com.au/app/schedule',
+  googleReviewUrl: 'https://g.page/r/REPLACE_WITH_YOUR_GOOGLE_PLACE_ID/review', // ← update with real Google review link
   founded:     '24 April 2026',
   founderName: 'Suzanne Harb',
 }

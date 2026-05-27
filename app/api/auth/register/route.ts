@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { createMemberCredential, getMemberByEmail } from '@/lib/db'
+import { emailWelcome } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const { email, password, firstName, lastName, phone, suburb } = await req.json()
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
     creditBalance:    0,
     adminNotes:       '',
   })
+
+  await emailWelcome({ to: email.toLowerCase(), firstName })
 
   return NextResponse.json({ ok: true })
 }
