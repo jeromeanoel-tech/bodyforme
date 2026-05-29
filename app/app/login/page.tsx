@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const T = {
   linen:  '#f4ede1',
@@ -14,13 +14,20 @@ const T = {
   rust:   '#9a5a3a',
 }
 
-export default function LoginPage() {
-  const router = useRouter()
+function LoginForm() {
+  const router       = useRouter()
+  const searchParams = useSearchParams()
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [showPw,   setShowPw]   = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
+
+  useEffect(() => {
+    const err = searchParams.get('error')
+    if (err === 'invalid') setError('Incorrect email or password')
+    if (err === 'missing') setError('Please enter your email and password')
+  }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,13 +36,15 @@ export default function LoginPage() {
     setError('')
     try {
       const res  = await fetch('/api/auth/login', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, password }),
+        method:      'POST',
+        headers:     { 'Content-Type': 'application/json' },
+        body:        JSON.stringify({ email, password }),
+        credentials: 'include',
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Login failed'); setLoading(false); return }
-      window.location.href = '/app/schedule'
+      // Hard navigation ensures middleware sees the cookie on the next request
+      window.location.replace('/app/schedule')
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)
@@ -250,4 +259,9 @@ export default function LoginPage() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
+}
+
+import { Suspense } from 'react'
+export default function LoginPage() {
+  return <Suspense><LoginForm /></Suspense>
 }
