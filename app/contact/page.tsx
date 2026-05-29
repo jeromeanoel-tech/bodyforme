@@ -74,12 +74,13 @@ export default function ContactPage() {
       {/* ── MAP PLACEHOLDER ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
         <div style={{ height: '380px', background: 'var(--l3)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg,#e0d4c0 0%,#c8b898 50%,#b0a080 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(42,21,6,.04) 40px,rgba(42,21,6,.04) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(42,21,6,.04) 40px,rgba(42,21,6,.04) 41px)' }} />
-            <div style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
-              <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--esp)', margin: '0 auto 8px', boxShadow: '0 0 0 6px rgba(42,21,6,.15)' }} />
-              <div style={{ background: 'var(--esp)', color: 'var(--linen)', fontSize: '11px', letterSpacing: '.1em', textTransform: 'uppercase', padding: '10px 18px', fontWeight: 400 }}>
-                BodyForme Pilates
+          {/* Pilates image — swap back to studio/map once available post-reno */}
+          <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+            <img src="/pilates.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(42,21,6,.3) 0%,transparent 60%)' }} />
+            <div style={{ position: 'absolute', bottom: '24px', left: '0', right: '0', textAlign: 'center', zIndex: 2 }}>
+              <div style={{ display: 'inline-block', background: 'var(--esp)', color: 'var(--linen)', fontSize: '11px', letterSpacing: '.1em', textTransform: 'uppercase', padding: '10px 18px', fontWeight: 400 }}>
+                132 Ayr Street, Doncaster
               </div>
             </div>
           </div>

@@ -66,9 +66,10 @@ export default function AboutPage() {
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
         <ScrollReveal>
           <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '600px' }}>
-            {/* Image */}
-            <div style={{ background: 'linear-gradient(150deg,#c8b090 0%,#6a3c18 100%)', position: 'relative', overflow: 'hidden', minHeight: '560px' }}>
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(42,21,6,.4) 0%,transparent 55%)' }} />
+            {/* Image — swap back to studio/founder photo post-reno */}
+            <div style={{ position: 'relative', overflow: 'hidden', minHeight: '560px' }}>
+              <img src="/stretch.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(42,21,6,.5) 0%,transparent 55%)' }} />
               <div style={{ position: 'absolute', bottom: '36px', left: '40px', zIndex: 2 }}>
                 <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--linen)', lineHeight: 1 }}>{about.founder.name}</div>
                 <div style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(244,237,225,.55)', marginTop: '4px' }}>{about.founder.role}</div>

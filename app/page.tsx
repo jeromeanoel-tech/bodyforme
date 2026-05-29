@@ -47,8 +47,9 @@ export default function HomePage() {
 
           {/* Right: image placeholder + stats */}
           <div className="hero-right" style={{ position: 'relative' }}>
-            {/* Main image placeholder */}
-            <div style={{ height: '520px', background: 'linear-gradient(150deg,#d4c4ae 0%,#7a5838 100%)', position: 'relative' }}>
+            {/* Hero image — swap back to studio photo post-reno */}
+            <div style={{ height: '520px', position: 'relative', overflow: 'hidden' }}>
+              <img src="/yoga.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
               {/* Floating stat card */}
               <div style={{ position: 'absolute', bottom: '-24px', left: '-32px', background: 'var(--canvas)', border: '1px solid var(--rule)', padding: '20px 28px', minWidth: '180px' }}>
                 <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '36px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1 }}>{home.hero.stat1.value}</div>
@@ -135,9 +136,11 @@ export default function HomePage() {
               ))}
             </ul>
           </ScrollReveal>
-          {/* Image placeholder */}
+          {/* Mat image — swap back to studio photo post-reno */}
           <ScrollReveal>
-            <div style={{ height: '560px', background: 'linear-gradient(150deg,rgba(196,168,130,.2) 0%,rgba(122,74,42,.3) 100%)', border: '1px solid rgba(255,255,255,.08)' }} />
+            <div style={{ height: '560px', overflow: 'hidden' }}>
+              <img src="/mat.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+            </div>
           </ScrollReveal>
         </div>
       </section>
