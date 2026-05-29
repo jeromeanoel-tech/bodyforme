@@ -17,7 +17,7 @@ export default function HomePage() {
 
           {/* Left: copy */}
           <div>
-            <img src="/bodyforme-wordmark.png" alt="BodyForme" style={{ height: 'clamp(28px,3vw,44px)', width: 'auto', display: 'block', marginBottom: '28px' }} />
+            <img src="/bodyformeheadericon.png" alt="BodyForme" style={{ height: 'clamp(36px,4vw,52px)', width: 'auto', display: 'block', marginBottom: '28px' }} />
             <div style={{ fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span style={{ width: '28px', height: '1px', background: 'var(--rule)', display: 'block' }} />
               {home.hero.eyebrow}
