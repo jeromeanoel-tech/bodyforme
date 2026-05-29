@@ -8,7 +8,7 @@
 
 ### Infrastructure
 - [x] Custom domain purchased and configured in Vercel
-- [ ] DNS propagated — bodyforme.com.au pointing to Vercel (was still on Wix as of last check)
+- [x] DNS propagated — bodyforme.com.au pointing to Vercel (was still on Wix as of last check)
 - [x] `NEXT_PUBLIC_SUPABASE_URL` set on Vercel
 - [x] `SUPABASE_SECRET_KEY` set on Vercel
 - [x] `JWT_SECRET` set on Vercel
@@ -27,7 +27,7 @@
 
 ### Payments
 - [x] Confirm Stripe keys are **live** ✓
-- [ ] Update Stripe webhook URL to `https://bodyforme.com.au/api/webhooks/stripe` once DNS is live
+- [x] Update Stripe webhook URL to `https://bodyforme.com.au/api/webhooks/stripe` once DNS is live
 - [ ] BECS Direct Debit — submit request in Stripe Dashboard → Settings → Payment methods → BECS Direct Debit → Request access. Launch with cards in the meantime.
 
 ---
