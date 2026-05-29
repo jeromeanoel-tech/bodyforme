@@ -59,7 +59,7 @@ export default function InstallPage() {
 
           {/* Brand bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid #d8ccba' }}>
-            <img src="/bodyforme-wordmark.png" alt="Bodyforme" style={{ height: 22, width: 'auto', display: 'block' }} />
+            <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 28, width: 'auto', display: 'block' }} />
             <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>
               Member app · Install guide
             </div>

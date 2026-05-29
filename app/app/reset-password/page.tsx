@@ -79,16 +79,7 @@ function ResetPasswordForm() {
       padding:        '40px 32px',
     }}>
 
-      <div style={{
-        fontFamily:    "'Cormorant Garamond', 'Times New Roman', serif",
-        fontSize:      36,
-        fontWeight:    500,
-        letterSpacing: '-0.01em',
-        color:         T.esp,
-        marginBottom:  48,
-      }}>
-        Body<em style={{ color: T.brown, fontWeight: 400 }}>forme</em>
-      </div>
+      <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 52, width: 'auto', marginBottom: 48 }} />
 
       <div style={{
         width:      '100%',
