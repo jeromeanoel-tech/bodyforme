@@ -319,14 +319,11 @@ export const memberships = {
   ],
 
   packs: [
-    { name: '7-Day Unlimited',   planKey: 'intro-offer', price: '$49',    detail: 'Intro offer · New members only · All classes for 7 days' },
-    { name: 'Casual Class',      planKey: 'casual',      price: '$32',    detail: 'Single drop-in, any class type' },
-    { name: '10 Class Pack',     planKey: '10pack',      price: '$280',   detail: '$28 per class' },
-    { name: '20 Class Pack',     planKey: '20pack',      price: '$500',   detail: '$25 per class' },
-    { name: '50 Class Pack',     planKey: '50pack',      price: '$999',   detail: '~$20 per class' },
-    { name: '3 Month Unlimited', planKey: '3month',      price: '$669',   detail: 'Unlimited for 3 months · $223/mo' },
-    { name: '6 Month Unlimited', planKey: '6month',      price: '$1,199', detail: 'Unlimited for 6 months · ~$200/mo' },
-    { name: '1 Year Unlimited',  planKey: '12month',     price: '$2,199', detail: 'Unlimited for 12 months · ~$183/mo' },
+    { name: '7-Day Unlimited', planKey: 'intro-offer', price: '$49',  detail: 'Intro offer · New members only · All classes for 7 days' },
+    { name: 'Casual Class',    planKey: 'casual',      price: '$32',  detail: 'Single drop-in · Any class type' },
+    { name: '10 Class Pack',   planKey: '10pack',      price: '$280', detail: '$28 per class · Any class type' },
+    { name: '20 Class Pack',   planKey: '20pack',      price: '$500', detail: '$25 per class · Any class type' },
+    { name: '50 Class Pack',   planKey: '50pack',      price: '$999', detail: '~$20 per class · Any class type' },
   ],
 
   howItWorks: [
