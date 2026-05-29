@@ -45,22 +45,22 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right: image placeholder + stats */}
-          <div className="hero-right" style={{ position: 'relative' }}>
+          {/* Right: image + floating cards */}
+          <div className="hero-right" style={{ position: 'relative', paddingBottom: '24px' }}>
             {/* Hero image — swap back to studio photo post-reno */}
             <div style={{ height: '520px', position: 'relative', overflow: 'hidden' }}>
               <img src="/yoga.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
-              {/* Floating stat card */}
-              <div style={{ position: 'absolute', bottom: '-24px', left: '-32px', background: 'var(--canvas)', border: '1px solid var(--rule)', padding: '20px 28px', minWidth: '180px' }}>
-                <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '36px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1 }}>{home.hero.stat1.value}</div>
-                <div style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: '6px' }}>{home.hero.stat1.label}</div>
-              </div>
-              {/* Floating quote card */}
-              <div style={{ position: 'absolute', top: '32px', right: '-24px', background: 'var(--esp)', padding: '20px 24px', maxWidth: '220px' }}>
-                <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: '16px', fontStyle: 'italic', fontWeight: 300, color: 'rgba(244,237,225,.8)', lineHeight: 1.5 }}>
-                  &ldquo;{home.hero.quote}&rdquo;
-                </p>
-              </div>
+            </div>
+            {/* Floating stat card — outside image so it isn't clipped */}
+            <div style={{ position: 'absolute', bottom: 0, left: '-32px', background: 'var(--canvas)', border: '1px solid var(--rule)', padding: '20px 28px', minWidth: '180px', zIndex: 2 }}>
+              <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '36px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1 }}>{home.hero.stat1.value}</div>
+              <div style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginTop: '6px' }}>{home.hero.stat1.label}</div>
+            </div>
+            {/* Floating quote card — outside image so it isn't clipped */}
+            <div style={{ position: 'absolute', top: '32px', right: '-24px', background: 'var(--esp)', padding: '20px 24px', maxWidth: '220px', zIndex: 2 }}>
+              <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: '16px', fontStyle: 'italic', fontWeight: 300, color: 'rgba(244,237,225,.8)', lineHeight: 1.5 }}>
+                &ldquo;{home.hero.quote}&rdquo;
+              </p>
             </div>
           </div>
         </div>

@@ -66,9 +66,9 @@ export default function AboutPage() {
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
         <ScrollReveal>
           <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '600px' }}>
-            {/* Image — swap back to studio/founder photo post-reno */}
-            <div style={{ position: 'relative', overflow: 'hidden', minHeight: '560px' }}>
-              <img src="/stretch.jpg" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+            {/* Suzanne photo */}
+            <div style={{ position: 'relative', overflow: 'hidden', minHeight: '560px', background: 'var(--l2)' }}>
+              <img src="/suzanne.jpeg" alt="Suzanne Harb" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(42,21,6,.5) 0%,transparent 55%)' }} />
               <div style={{ position: 'absolute', bottom: '36px', left: '40px', zIndex: 2 }}>
                 <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--linen)', lineHeight: 1 }}>{about.founder.name}</div>
@@ -149,34 +149,7 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* ── GALLERY ── */}
-      <div style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px 52px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <ScrollReveal>
-            <div>
-              <div className="slbl">The space</div>
-              <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)' }}>
-                Inside the <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>studio</em>
-              </h2>
-            </div>
-          </ScrollReveal>
-          <p style={{ fontSize: '14px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.75, maxWidth: '340px', textAlign: 'right' }}>
-            Designed for practice. Timber floors, natural light and an atmosphere that makes you want to come back tomorrow.
-          </p>
-        </div>
-        <ScrollReveal>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px 88px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gridTemplateRows: '280px 280px', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
-            {about.gallery.map((cell, i) => (
-              <div key={i} style={{ overflow: 'hidden', position: 'relative', cursor: 'pointer', gridRow: i === 0 ? 'span 2' : undefined }}>
-                <div style={{ width: '100%', height: '100%', background: GALLERY_GRADS[i], transition: 'transform .5s ease' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(42,21,6,.3)', display: 'flex', alignItems: 'flex-end', padding: '20px' }}>
-                  <span style={{ fontSize: '10px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(244,237,225,.8)' }}>{cell.label}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </ScrollReveal>
-      </div>
+      {/* ── GALLERY removed temporarily — restore with studio photos post-reno ── */}
 
       {/* ── TIMELINE ── */}
       <div style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)' }}>

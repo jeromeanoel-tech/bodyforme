@@ -212,15 +212,6 @@ export default async function ClassesPage() {
           <ScrollReveal>
             <div className="r2c" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {classTypes.map((cls, i) => {
-                const gradMap = [
-                  'linear-gradient(150deg,#c8a880 0%,#8a5030 100%)',
-                  'linear-gradient(150deg,#6a5a50 0%,#3a3028 100%)',
-                  'linear-gradient(150deg,#a8b898 0%,#486040 100%)',
-                  'linear-gradient(150deg,#98b0a8 0%,#406058 100%)',
-                  'linear-gradient(150deg,#b89878 0%,#785030 100%)',
-                  'linear-gradient(150deg,#706858 0%,#403830 100%)',
-                  'linear-gradient(150deg,#8898b0 0%,#485870 100%)',
-                ]
                 const isLastOdd = i === classTypes.length - 1 && classTypes.length % 2 !== 0
                 return (
                   <div
@@ -228,17 +219,9 @@ export default async function ClassesPage() {
                     className="cls-card"
                     style={{
                       background: 'var(--linen)',
-                      display: 'grid',
-                      gridTemplateColumns: isLastOdd ? '280px 1fr' : '280px 1fr',
-                      minHeight: '240px',
                       ...(isLastOdd ? { gridColumn: '1 / -1', maxWidth: '50%' } : {}),
                     }}
                   >
-                    <div style={{ background: gradMap[i % gradMap.length], position: 'relative', overflow: 'hidden', minHeight: '240px' }}>
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px 16px', fontSize: '9px', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 500, color: 'rgba(244,237,225,.8)', background: classColor(cls.name) + 'cc' }}>
-                        {cls.duration}
-                      </div>
-                    </div>
                     <div style={{ padding: '32px 36px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
                         <span style={{ fontSize: '11px', letterSpacing: '.1em', color: 'var(--muted)', marginBottom: '10px', display: 'block' }}>{String(i + 1).padStart(2, '0')}</span>
