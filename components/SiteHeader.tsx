@@ -57,7 +57,14 @@ export default function SiteHeader() {
             ))}
           </nav>
 
-          {/* Desktop: book button */}
+          {/* Desktop: log in + book button */}
+          <Link
+            href="/app/login"
+            className="desk-book-btn"
+            style={{ fontSize: '10px', fontWeight: 400, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--mid)', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, borderBottom: '1px solid var(--rule)', paddingBottom: '1px' }}
+          >
+            Log in
+          </Link>
           <Link
             href={studio.bookingUrl}
             target="_blank"
@@ -93,7 +100,14 @@ export default function SiteHeader() {
               {label}
             </Link>
           ))}
-          <div style={{ padding: '16px 24px 0' }}>
+          <div style={{ padding: '16px 24px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <Link
+              href="/app/login"
+              onClick={() => setOpen(false)}
+              style={{ display: 'block', padding: '14px 24px', fontSize: '10.5px', fontWeight: 400, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'transparent', border: '1px solid var(--rule)', textDecoration: 'none', textAlign: 'center' }}
+            >
+              Log in
+            </Link>
             <Link
               href={studio.bookingUrl}
               target="_blank"
