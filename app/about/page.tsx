@@ -43,7 +43,7 @@ export default function AboutPage() {
           </div>
         </div>
         {/* Right linen */}
-        <div className="pg-hero-right" style={{ background: 'var(--l2)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '64px 56px', gap: '36px' }}>
+        <div className="pg-hero-right" style={{ background: 'var(--l2)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '64px 56px', gap: '36px' }}>
           <blockquote style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(24px,2.8vw,36px)', fontStyle: 'italic', fontWeight: 300, color: 'var(--esp)', lineHeight: 1.3, borderTop: '2px solid var(--esp)', paddingTop: '24px' }}>
             {about.hero.quote}
           </blockquote>
@@ -68,7 +68,7 @@ export default function AboutPage() {
           <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '600px' }}>
             {/* Suzanne photo */}
             <div style={{ position: 'relative', overflow: 'hidden', minHeight: '560px', background: 'var(--l2)' }}>
-              <img src="/suzanne.jpeg" alt="Suzanne Harb" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+              <img src="/suzanne.jpeg" alt="Suzanne Harb" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 35%' }} />
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(42,21,6,.5) 0%,transparent 55%)' }} />
               <div style={{ position: 'absolute', bottom: '36px', left: '40px', zIndex: 2 }}>
                 <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, color: 'var(--linen)', lineHeight: 1 }}>{about.founder.name}</div>
