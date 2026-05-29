@@ -35,7 +35,7 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Login failed'); setLoading(false); return }
-      router.push('/app/schedule')
+      window.location.href = '/app/schedule'
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)
