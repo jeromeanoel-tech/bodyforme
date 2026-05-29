@@ -76,7 +76,7 @@ export default function MembershipsPage() {
             </div>
           </ScrollReveal>
           <ScrollReveal>
-            <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {memberships.plans.map(plan => (
                 <PlanCard key={plan.name} plan={plan} />
               ))}
