@@ -106,7 +106,7 @@ function LoginForm() {
           Sign in to book classes and manage your membership.
         </div>
 
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} action="/api/auth/login" method="post" noValidate>
           {/* Email */}
           <div style={{ marginBottom: 24 }}>
             <label style={{
@@ -121,6 +121,7 @@ function LoginForm() {
             }}>Email</label>
             <input
               type="email"
+              name="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               autoComplete="email"
@@ -144,6 +145,7 @@ function LoginForm() {
             <div style={{ position: 'relative' }}>
               <input
                 type={showPw ? 'text' : 'password'}
+                name="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 autoComplete="current-password"
