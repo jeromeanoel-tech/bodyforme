@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMemberByEmail } from '@/lib/db'
 import { signSession, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/session'
 
-export async function GET(req: NextRequest) {
-  const key   = req.nextUrl.searchParams.get('key')
-  const email = req.nextUrl.searchParams.get('email') ?? 'jerome.a.noel@gmail.com'
+const ALLOWED = ['jerome.a.noel@gmail.com', 'suzanne@bodyforme.com.au', 'suzanne.harb@gmail.com']
 
-  if (key !== process.env.MIGRATE_SECRET) {
+export async function GET(req: NextRequest) {
+  const email = (req.nextUrl.searchParams.get('email') ?? 'jerome.a.noel@gmail.com').toLowerCase()
+
+  if (!ALLOWED.includes(email)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
-  const member = await getMemberByEmail(email.toLowerCase())
+  const member = await getMemberByEmail(email)
   if (!member) return NextResponse.json({ error: 'member not found' }, { status: 404 })
 
   const token = await signSession({
