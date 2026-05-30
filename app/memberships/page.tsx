@@ -102,7 +102,7 @@ export default function MembershipsPage() {
             </div>
           </ScrollReveal>
           <ScrollReveal>
-            <div className="r4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r2c" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {memberships.packs.map((pack, i) => (
                 <div key={i} style={{ background: 'var(--linen)', padding: '36px 28px', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '42px', fontWeight: 300, color: 'var(--esp)', lineHeight: 1, marginBottom: '12px' }}>{pack.price}</div>
