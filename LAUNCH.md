@@ -3,7 +3,7 @@
 ## 🔴 Blocking
 
 ### Content
-- [ ] Real phone number — update `lib/content.ts` line 16 and `app/terms/page.tsx` line 155
+- [x] Real phone number — (03) 9850 2221
 - [ ] Opening hours — verify hours in `lib/content.ts` are correct
 
 ### Infrastructure
