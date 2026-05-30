@@ -22,8 +22,9 @@
   --rust:   #9a5a3a;
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; overflow-x: hidden; max-width: 100%; }
+img, video, svg { max-width: 100%; }
 
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 1; }
@@ -187,4 +188,23 @@ body { margin: 0; }
   /* Footer */
   .footer-grid   { grid-template-columns: 1fr 1fr !important; gap: 40px !important; }
   .footer-bottom { flex-direction: column !important; gap: 10px !important; align-items: flex-start !important; }
+
+  /* Body text */
+  .site-body { font-size: 16px !important; }
+
+  /* Ticker — prevent horizontal overflow */
+  .ticker-track { animation-duration: 20s; }
+
+  /* Hero CTAs — full width stacked */
+  .hero-ctas { flex-direction: column !important; align-items: stretch !important; width: 100%; }
+  .hero-ctas a, .hero-ctas button { width: 100% !important; text-align: center !important; }
+
+  /* Stats row → 2×2 */
+  .stats-row { grid-template-columns: 1fr 1fr !important; }
+
+  /* Announcement bar — wrap cleanly */
+  .announce-bar { font-size: 12px !important; line-height: 1.4 !important; padding: 10px 16px !important; }
+
+  /* Section vertical padding — reduce for mobile */
+  .mob-section-pad { padding-top: 56px !important; padding-bottom: 56px !important; }
 }
