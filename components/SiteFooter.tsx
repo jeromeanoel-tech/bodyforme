@@ -13,8 +13,8 @@ export default function SiteFooter() {
 
           {/* Brand col */}
           <div>
-            <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '22px', fontWeight: 400, letterSpacing: '.06em', color: 'var(--linen)', marginBottom: '14px' }}>
-              Body<em style={{ fontStyle: 'italic', color: '#c4a882' }}>forme</em>
+            <div style={{ marginBottom: '14px' }}>
+              <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.85 }} />
             </div>
             <p style={{ fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,225,.45)', lineHeight: 1.7, maxWidth: '240px' }}>
               {studio.tagline}<br />
