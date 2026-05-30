@@ -24,7 +24,7 @@ export default function SiteHeader() {
   return (
     <>
       {/* Announce bar */}
-      <div style={{ background: 'var(--esp)', color: 'oklch(.82 .02 60)', textAlign: 'center', fontSize: '11px', letterSpacing: '.14em', textTransform: 'uppercase', padding: '9px 20px' }}>
+      <div className="announce-bar" style={{ background: 'var(--esp)', color: 'oklch(.82 .02 60)', textAlign: 'center', fontSize: '11px', letterSpacing: '.14em', textTransform: 'uppercase', padding: '9px 20px', lineHeight: 1.4 }}>
         {announce.text}{' '}
         <Link
           href={announce.linkHref}
