@@ -105,7 +105,7 @@ export default async function ClassesPage() {
       </div>
 
       {/* ── WEEK SCHEDULE ── */}
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 48px 80px' }}>
+      <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 48px 80px' }}>
         <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: '28px', fontWeight: 400, color: 'var(--esp)', margin: 0 }}>
             {days[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'long' })}
@@ -269,7 +269,7 @@ export default async function ClassesPage() {
       </div>
 
       {/* ── CTA ── */}
-      <div style={{ background: 'var(--esp)', marginTop: 0, padding: '60px 48px' }}>
+      <div className="sp" style={{ background: 'var(--esp)', marginTop: 0, padding: '60px 48px' }}>
         <div className="rcta" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
           <div>
             <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(28px,3vw,40px)', fontWeight: 300, color: 'var(--linen)', marginBottom: '8px' }}>

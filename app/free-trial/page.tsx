@@ -104,7 +104,7 @@ export default function FreeTrialPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ background: 'var(--esp)', padding: '80px 48px' }}>
+      <section style={{ background: 'var(--esp)', padding: '80px 48px' }} className="sp">
         <div className="rcta sp" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
           <div>
             <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(28px,3vw,42px)', fontWeight: 300, color: 'var(--linen)', marginBottom: '8px' }}>

@@ -106,7 +106,7 @@ export default function AboutPage() {
             </p>
             <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderTop: '1px solid rgba(255,255,255,.08)' }}>
               {about.values.map((v, i) => (
-                <div key={i} style={{ padding: '44px 48px 44px 0', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
+                <div key={i} style={{ padding: '44px 24px 44px 0', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
                   <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '11px', color: 'rgba(244,237,225,.2)', letterSpacing: '.1em', marginBottom: '20px' }}>{v.n}</div>
                   <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '26px', fontWeight: 400, color: 'var(--linen)', lineHeight: 1.2, marginBottom: '12px' }}>
                     {v.title} <em style={{ fontStyle: 'italic', color: '#c4a882' }}>{v.titleItalic}</em>
@@ -225,7 +225,7 @@ export default function AboutPage() {
       </div>
 
       {/* ── CTA ── */}
-      <div style={{ background: 'var(--esp)', padding: '64px 48px' }}>
+      <div className="sp" style={{ background: 'var(--esp)', padding: '64px 48px' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
           <div>
             <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(28px,3vw,42px)', fontWeight: 300, color: 'var(--linen)', marginBottom: '8px' }}>
