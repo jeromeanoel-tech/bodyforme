@@ -2,6 +2,7 @@ import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ScrollReveal from '@/components/ScrollReveal'
 import ClassAccordion from '@/components/ClassAccordion'
+import ScheduleAccordion from '@/components/ScheduleAccordion'
 import Link from 'next/link'
 import { classTypes, classesPage, studio } from '@/lib/content'
 type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
@@ -122,8 +123,8 @@ export default async function ClassesPage() {
           </Link>
         </div>
 
-        {/* 7-col day grid */}
-        <div className="sched-wrap">
+        {/* Desktop: 7-col day grid */}
+        <div className="sched-wrap desk-only">
         <div className="sched-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
           {days.map((day, di) => {
             const dayStr = day.toISOString().slice(0, 10)
@@ -192,6 +193,17 @@ export default async function ClassesPage() {
             )
           })}
         </div>
+        </div>
+
+        {/* Mobile: accordion — class name + time, expandable */}
+        <div className="mob-only">
+          <ScheduleAccordion
+            sessions={sessions}
+            days={days}
+            scheduleToName={scheduleToName}
+            bookingUrl={studio.bookingUrl}
+            todayStr={todayStr}
+          />
         </div>
       </div>
 
