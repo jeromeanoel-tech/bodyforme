@@ -102,7 +102,7 @@ export default function ContactPage() {
 
       {/* ── CONTACT FORM + INFO ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px' }}>
 
             {/* Form */}
@@ -231,7 +231,7 @@ export default function ContactPage() {
 
       {/* ── HOURS TABLE ── */}
       <div style={{ borderBottom: '1px solid var(--rule)', background: 'var(--l2)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '80px 48px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '80px', alignItems: 'start' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '80px 48px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '80px', alignItems: 'start' }}>
           <ScrollReveal>
             <div>
               <div className="slbl">Opening times</div>
@@ -273,7 +273,7 @@ export default function ContactPage() {
 
       {/* ── TEAM STRIP ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
+        <div className="rcta sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
           <div>
             <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(26px,2.8vw,38px)', fontWeight: 400, color: 'var(--esp)', marginBottom: '8px' }}>
               Want to meet the <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>team?</em>
@@ -320,9 +320,9 @@ const inputStyle: React.CSSProperties = {
   background: 'transparent',
   border: 'none',
   borderBottom: '1px solid var(--rule)',
-  padding: '8px 0',
+  padding: '10px 0',
   fontFamily: 'var(--font-dm-sans)',
-  fontSize: '13.5px',
+  fontSize: '16px',
   fontWeight: 300,
   color: 'var(--text)',
   outline: 'none',
