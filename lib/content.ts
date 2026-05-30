@@ -13,7 +13,7 @@ export const studio = {
   tagline:     'Hot Yoga & Hot Pilates. Doncaster.',
   description: 'A complete approach to movement — combining hot yoga and hot mat Pilates to build strength, mobility and balance in one boutique space in Doncaster, Melbourne.',
   address:     '132 Ayr Street, Doncaster VIC 3108',
-  phone:       '(03) 9000 0000',          // ← update with real number
+  phone:       '(03) 9850 2221',
   email:       'hello@bodyforme.com.au',
   instagram:   '@bodyforme',              // ← update with real handle
   facebook:    'BodyForme',

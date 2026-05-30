@@ -152,7 +152,7 @@ export default function TermsPage() {
           <Ul items={[
             'Email: hello@bodyforme.com.au',
             'Address: 132 Ayr Street, Doncaster VIC 3108',
-            'Phone: (03) XXXX XXXX',
+            'Phone: (03) 9850 2221',
           ]} />
           <p style={{ marginTop: 24, fontSize: 13, color: 'var(--muted)', fontWeight: 300, lineHeight: 1.85 }}>
             These terms are governed by the laws of Victoria, Australia. By using our services you agree to the exclusive jurisdiction of the Victorian courts.
