@@ -80,7 +80,7 @@ export default function HomePage() {
 
       {/* ── CLASSES PREVIEW ── */}
       <section style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp mob-vpad" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
@@ -177,7 +177,7 @@ export default function HomePage() {
 
       {/* ── MEMBERSHIPS ── */}
       <section style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)' }}>
-        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp mob-vpad" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
@@ -211,7 +211,7 @@ export default function HomePage() {
 
       {/* ── TESTIMONIALS ── */}
       <section style={{ borderBottom: '1px solid var(--rule)', background: 'var(--canvas)' }}>
-        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp mob-vpad" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
