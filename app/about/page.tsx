@@ -95,7 +95,7 @@ export default function AboutPage() {
 
       {/* ── VALUES (dark) ── */}
       <div style={{ background: 'var(--esp)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '80px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '80px 48px' }}>
           <ScrollReveal>
             <div className="slbl" style={{ color: 'rgba(244,237,225,.3)' }}><span>What we believe</span></div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--linen)', marginBottom: '8px' }}>
@@ -121,7 +121,7 @@ export default function AboutPage() {
 
       {/* ── INSTRUCTORS ── */}
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div className="slbl">The team</div>
             <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)' }}>
@@ -153,7 +153,7 @@ export default function AboutPage() {
 
       {/* ── TIMELINE ── */}
       <div style={{ background: 'var(--l2)', borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
+        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
           <ScrollReveal>
             <div>
               <div className="slbl">Our journey</div>
@@ -183,7 +183,7 @@ export default function AboutPage() {
 
       {/* ── MEMBER STORIES ── */}
       <div id="stories" style={{ borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '88px 48px' }}>
           <ScrollReveal>
             <div style={{ marginBottom: '56px' }}>
               <div className="slbl">Member stories</div>
@@ -198,7 +198,7 @@ export default function AboutPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {memberships.testimonials.map((t, i) => (
               <ScrollReveal key={i}>
-                <div style={{ background: i % 2 === 0 ? 'var(--linen)' : 'white', padding: '48px 56px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '64px', alignItems: 'start' }}>
+                <div className="r2 sp" style={{ background: i % 2 === 0 ? 'var(--linen)' : 'white', padding: '40px 56px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '64px', alignItems: 'start' }}>
                   {/* Left — name + stars */}
                   <div style={{ paddingTop: '6px' }}>
                     <div style={{ display: 'flex', gap: '3px', marginBottom: '20px' }}>
