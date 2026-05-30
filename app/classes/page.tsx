@@ -1,8 +1,10 @@
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ScrollReveal from '@/components/ScrollReveal'
+import ClassAccordion from '@/components/ClassAccordion'
 import Link from 'next/link'
 import { classTypes, classesPage, studio } from '@/lib/content'
+type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
 import { getSessions, getServices, type WixSession, type WixService } from '@/lib/db'
 
 export const metadata = {
@@ -195,7 +197,7 @@ export default async function ClassesPage() {
 
       {/* ── CLASS TYPE CARDS ── */}
       <div style={{ borderTop: '1px solid var(--rule)', borderBottom: '1px solid var(--rule)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px' }}>
+        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px' }}>
           <ScrollReveal>
             <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
               <div>
@@ -209,8 +211,9 @@ export default async function ClassesPage() {
               </p>
             </div>
           </ScrollReveal>
+          {/* Desktop: 2-col grid */}
           <ScrollReveal>
-            <div className="r2c" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r2c desk-only" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {classTypes.map((cls, i) => {
                 const isLastOdd = i === classTypes.length - 1 && classTypes.length % 2 !== 0
                 return (
@@ -258,6 +261,10 @@ export default async function ClassesPage() {
               })}
             </div>
           </ScrollReveal>
+          {/* Mobile: accordion — rendered client-side */}
+          <div className="mob-only">
+            <ClassAccordion classes={classTypes as ClassType[]} bookingUrl={studio.bookingUrl} />
+          </div>
         </div>
       </div>
 

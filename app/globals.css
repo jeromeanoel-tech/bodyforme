@@ -122,6 +122,15 @@ body { margin: 0; }
   transform: rotate(45deg);
 }
 
+/* ── Show/hide by breakpoint ── */
+.mob-only  { display: none; }
+.desk-only { display: block; }
+
+@media (max-width: 767px) {
+  .mob-only  { display: block; }
+  .desk-only { display: none !important; }
+}
+
 /* ── Mobile nav ── */
 .mob-hamburger { display: none; }
 .mob-menu      { display: none; flex-direction: column; }
