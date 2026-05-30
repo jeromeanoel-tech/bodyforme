@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
+import ClassAccordion from '@/components/ClassAccordion'
+type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
 import { home, studio, classTypes, memberships } from '@/lib/content'
 import ScrollReveal from '@/components/ScrollReveal'
 
@@ -96,14 +98,18 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          {/* 4-col hover-fill cards */}
+          {/* Desktop: 4-col hover-fill cards */}
           <ScrollReveal>
-            <div className="r4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
+            <div className="r4 desk-only" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
               {classTypes.map((cls, i) => (
                 <ClassCard key={cls.slug} cls={cls} index={i} />
               ))}
             </div>
           </ScrollReveal>
+          {/* Mobile: accordion */}
+          <div className="mob-only">
+            <ClassAccordion classes={classTypes as ClassType[]} bookingUrl={studio.bookingUrl} />
+          </div>
 
           <div style={{ marginTop: '40px', textAlign: 'center' }}>
             <Link

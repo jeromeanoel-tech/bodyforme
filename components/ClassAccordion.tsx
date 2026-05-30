@@ -66,7 +66,7 @@ export default function ClassAccordion({ classes, bookingUrl }: { classes: Class
                   {cls.name}{cls.nameItalic && <> <em style={{ fontStyle: 'italic', fontWeight: 300 }}>{cls.nameItalic}</em></>}
                 </span>
               </div>
-              <span style={{ fontSize: 20, color: T.muted, flexShrink: 0, transition: 'transform .2s', display: 'block', transform: isOpen ? 'rotate(45deg)' : 'none' }}>+</span>
+              <span style={{ fontSize: 14, color: isOpen ? T.brown : T.muted, flexShrink: 0, transition: 'transform .2s', display: 'block', transform: isOpen ? 'rotate(180deg)' : 'none' }}>▾</span>
             </button>
 
             {/* Drawer content */}
