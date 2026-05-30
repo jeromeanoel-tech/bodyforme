@@ -230,7 +230,7 @@ export const memberships = {
     heading:    'Your practice,',
     headingItalic: 'your plan',
     desc:       'Every BodyForme membership comes with no joining fee, flexible pause options and a free trial class so you can feel the difference before you commit.',
-    trust:      ['No joining fee', 'First class free', 'Pause anytime', 'Cancel anytime'],
+    trust:      ['No joining fee', 'First class free', 'Flexible pause options', 'Cancel with 7 days\' notice'],
   },
 
   trial: {
@@ -306,8 +306,8 @@ export const memberships = {
     { name: '20 Class Pack',     planKey: '20pack',      price: '$500',   detail: '$25 per class · Any class type' },
     { name: '50 Class Pack',     planKey: '50pack',      price: '$999',   detail: '~$20 per class · Any class type' },
     { name: '3 Months Unlimited', planKey: '3month',     price: '$669',   detail: 'Upfront · All classes · ≈ $223/mo' },
-    { name: '6 Months Unlimited', planKey: '6month',     price: '$1,199', detail: 'Upfront · All classes · ≈ $200/mo' },
-    { name: '12 Months Unlimited', planKey: '12month',   price: '$2,199', detail: 'Upfront · All classes · ≈ $183/mo' },
+    { name: '6 Months Unlimited', planKey: '6month',     price: '$1,199', detail: 'Upfront · All classes · ≈ $200/mo · Up to 2 wks pause' },
+    { name: '12 Months Unlimited', planKey: '12month',   price: '$2,199', detail: 'Upfront · All classes · ≈ $183/mo · Up to 4 wks pause' },
   ],
 
   howItWorks: [
@@ -348,7 +348,7 @@ export const memberships = {
     },
     {
       q: 'Can I pause or cancel my membership?',
-      a: 'Yes. All weekly direct debit memberships can be cancelled with 7 days\' notice — no fees, no questions. Prepaid memberships (3, 6 or 12 months) are non-refundable once purchased but run for the full period you paid for.',
+      a: 'Yes. Weekly direct debit memberships can be cancelled with 7 days\' notice — no fees, no questions. Prepaid memberships (3, 6 or 12 months) are non-refundable once purchased but can be paused: 6-month plans allow up to 2 weeks pause, and 12-month plans allow up to 4 weeks pause. Speak to us at the studio to arrange a pause.',
     },
     {
       q: 'What happens if I miss a class?',
