@@ -186,7 +186,7 @@ img, video, svg { max-width: 100%; }
   .nosticky { position: static !important; top: auto !important; }
 
   /* Footer */
-  .footer-grid   { grid-template-columns: 1fr 1fr !important; gap: 40px !important; }
+  .footer-grid   { grid-template-columns: 1fr !important; gap: 40px !important; }
   .footer-bottom { flex-direction: column !important; gap: 10px !important; align-items: flex-start !important; }
 
   /* Body text */
