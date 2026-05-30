@@ -29,7 +29,7 @@ export default function HomePage() {
             <p style={{ fontSize: '14px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.8, maxWidth: '420px', marginBottom: '40px' }}>
               {home.hero.body}
             </p>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="hero-ctas" style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               <Link
                 href="/free-trial"
                 style={{ fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--canvas)', background: 'var(--esp)', padding: '14px 32px', textDecoration: 'none', transition: 'background .2s', display: 'inline-block' }}
