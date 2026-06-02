@@ -56,7 +56,7 @@ export default function AdminSidebar({ name, role }: { name: string; role: strin
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center px-3 py-2 rounded-lg text-[12.5px] transition-colors ${
+              className={`flex items-center px-3 py-2 rounded-lg text-[17.5px] transition-colors ${
                 (item.exact ? path === item.href : path.startsWith(item.href))
                   ? 'bg-white text-black font-medium'
                   : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
@@ -75,13 +75,13 @@ export default function AdminSidebar({ name, role }: { name: string; role: strin
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="text-white text-[12px] font-medium truncate">{name}</p>
-            <p className="text-neutral-500 text-[10.5px] capitalize">{role}</p>
+            <p className="text-white text-[17px] font-medium truncate">{name}</p>
+            <p className="text-neutral-500 text-[15.5px] capitalize">{role}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full text-left text-[11.5px] text-neutral-500 hover:text-red-400 transition-colors px-1"
+          className="w-full text-left text-[16.5px] text-neutral-500 hover:text-red-400 transition-colors px-1"
         >
           Sign out
         </button>
