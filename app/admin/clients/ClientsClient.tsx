@@ -978,8 +978,23 @@ function OverviewTab({ contact, loading, totalBookings, attended, cancelled, las
 
 // ── Memberships tab ───────────────────────────────────────────────────────────
 
-const PLAN_OPTIONS = ['Bronze – $120/mo', 'Silver – $200/mo', 'Unlimited – $260/mo', '5-Class Pack', '10-Class Pack', 'Casual Drop-in', 'Free Trial']
-const STATUS_OPTIONS = ['active', 'paused', 'cancelled', 'pending']
+const PLAN_OPTIONS = [
+  { label: 'Bronze – 4 classes/mo ($120)',    value: 'Bronze – $120/mo' },
+  { label: 'Silver – 8 classes/mo ($200)',    value: 'Silver – $200/mo' },
+  { label: 'Unlimited – ($260/mo)',            value: 'Unlimited – $260/mo' },
+  { label: '10-Class Pack',                    value: '10-Class Pack' },
+  { label: '5-Class Pack',                     value: '5-Class Pack' },
+  { label: 'Casual Drop-in',                   value: 'Casual Drop-in' },
+  { label: 'Free Trial',                       value: 'Free Trial' },
+]
+
+const QUICK_PRESETS = [
+  { label: 'Silver monthly',  plan: 'Silver – $200/mo',    credits: 0 },
+  { label: 'Unlimited',       plan: 'Unlimited – $260/mo', credits: 0 },
+  { label: 'Bronze monthly',  plan: 'Bronze – $120/mo',    credits: 0 },
+  { label: '10-class pack',   plan: '10-Class Pack',       credits: 10 },
+  { label: '5-class pack',    plan: '5-Class Pack',        credits: 5 },
+]
 
 function MembershipsTab({ contact, memberships, member, memberLoading, onMemberUpdate }: {
   contact:        WixContact
@@ -988,10 +1003,11 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   memberLoading:  boolean
   onMemberUpdate: (m: MemberCredential) => void
 }) {
-  const [form, setForm]     = useState<Partial<MemberCredential>>({})
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved]   = useState(false)
+  const [form, setForm]       = useState<Partial<MemberCredential>>({})
+  const [saving, setSaving]   = useState(false)
+  const [saved, setSaved]     = useState(false)
   const [editing, setEditing] = useState(false)
+  const [adjSaving, setAdjSaving] = useState(false)
 
   useEffect(() => {
     if (member) setForm({
@@ -1017,16 +1033,45 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     setTimeout(() => setSaved(false), 2000)
   }
 
+  async function adjustCredits(delta: number) {
+    if (!member) return
+    const next = Math.max(0, (member.creditBalance ?? 0) + delta)
+    setAdjSaving(true)
+    await fetch('/api/admin/update-member', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contactId: contact.id, creditBalance: next }),
+    })
+    onMemberUpdate({ ...member, creditBalance: next })
+    setAdjSaving(false)
+  }
+
+  async function applyPreset(plan: string, credits: number) {
+    if (!member) return
+    const patch = { planOverride: plan, status: 'active', creditBalance: credits > 0 ? credits : member.creditBalance }
+    setSaving(true)
+    await fetch('/api/admin/update-member', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contactId: contact.id, ...patch }),
+    })
+    onMemberUpdate({ ...member, ...patch })
+    setForm(f => ({ ...f, ...patch }))
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
   const stripeUrl = member?.stripeCustomerId
     ? `https://dashboard.stripe.com/customers/${member.stripeCustomerId}`
     : null
 
   return (
     <div>
-      {/* Wix memberships (read-only) */}
+      {/* Membership history */}
       {memberships.length > 0 && (
         <div className="border-b border-neutral-100">
-          <p className="px-6 pt-4 pb-2 text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Wix membership history</p>
+          <p className="px-6 pt-4 pb-2 text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Membership history</p>
           {memberships
             .sort((a, b) => b.startDate.localeCompare(a.startDate))
             .map((m, i) => (
@@ -1045,121 +1090,144 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
         </div>
       )}
 
-      {/* Admin override panel */}
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Admin adjustment</p>
-          <div className="flex items-center gap-2">
-            {stripeUrl && (
-              <a
-                href={stripeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[11px] font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-              >
-                Open in Stripe ↗
-              </a>
-            )}
-            {!editing && (
-              <button
-                onClick={() => setEditing(true)}
-                className="text-[11px] font-medium text-neutral-600 hover:text-neutral-900 border border-neutral-200 px-2.5 py-1 rounded-md"
-              >
-                Edit
-              </button>
-            )}
-          </div>
-        </div>
+      {/* App account / admin panel */}
+      <div className="px-6 py-4 space-y-4">
 
         {memberLoading && <p className="text-sm text-neutral-400">Loading…</p>}
 
         {!memberLoading && !member && (
-          <p className="text-[12px] text-neutral-400 italic">No app account found for this contact. They haven&apos;t signed up via the member portal yet.</p>
+          <p className="text-[12px] text-neutral-400 italic">No app account yet — they haven&apos;t signed up via the member portal. Create one using &quot;+ New Client&quot; on the Clients page if needed.</p>
         )}
 
-        {!memberLoading && member && !editing && (
-          <div className="space-y-2.5">
-            <InfoRow label="Status"         value={member.status || '—'} />
-            <InfoRow label="Plan override"  value={member.planOverride || '—'} />
-            <InfoRow label="Next billing"   value={member.nextBillingDate ? fmtDate(member.nextBillingDate) : '—'} />
-            <InfoRow label="Credit balance" value={member.creditBalance ? `${member.creditBalance} classes` : '—'} />
-            {member.adminNotes && (
-              <div className="mt-2 p-3 bg-amber-50 border border-amber-100 rounded-lg">
-                <p className="text-[11.5px] text-amber-800 whitespace-pre-wrap">{member.adminNotes}</p>
+        {!memberLoading && member && (
+          <>
+            {/* Summary strip */}
+            <div className="bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-neutral-400 uppercase tracking-wider mb-0.5">Current plan</p>
+                  <p className="text-[13.5px] font-semibold text-neutral-900">{member.planOverride || '—'}</p>
+                </div>
+                <span className={`text-[10.5px] font-semibold px-2.5 py-1 rounded-full ${
+                  member.status === 'active'    ? 'bg-black text-white' :
+                  member.status === 'paused'    ? 'bg-neutral-200 text-neutral-700' :
+                  member.status === 'cancelled' ? 'bg-neutral-100 text-neutral-400' :
+                  'bg-neutral-100 text-neutral-500'
+                }`}>
+                  {member.status?.charAt(0).toUpperCase()}{member.status?.slice(1)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="text-neutral-500">Classes remaining</span>
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => adjustCredits(-1)} disabled={adjSaving || (member.creditBalance ?? 0) <= 0}
+                    className="w-6 h-6 rounded border border-neutral-200 text-neutral-600 hover:border-neutral-400 flex items-center justify-center text-sm font-bold disabled:opacity-30">−</button>
+                  <span className="font-semibold text-neutral-900 w-8 text-center">{member.creditBalance ?? 0}</span>
+                  <button onClick={() => adjustCredits(1)} disabled={adjSaving}
+                    className="w-6 h-6 rounded border border-neutral-200 text-neutral-600 hover:border-neutral-400 flex items-center justify-center text-sm font-bold disabled:opacity-30">+</button>
+                  <button onClick={() => adjustCredits(5)} disabled={adjSaving}
+                    className="h-6 px-2 rounded border border-neutral-200 text-[11px] text-neutral-600 hover:border-neutral-400 disabled:opacity-30">+5</button>
+                  <button onClick={() => adjustCredits(10)} disabled={adjSaving}
+                    className="h-6 px-2 rounded border border-neutral-200 text-[11px] text-neutral-600 hover:border-neutral-400 disabled:opacity-30">+10</button>
+                </div>
+              </div>
+              {member.nextBillingDate && (
+                <div className="flex items-center justify-between text-[12px]">
+                  <span className="text-neutral-500">Next billing</span>
+                  <span className="text-neutral-700">{fmtDate(member.nextBillingDate)}</span>
+                </div>
+              )}
+              {stripeUrl && (
+                <a href={stripeUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[11.5px] text-indigo-600 hover:text-indigo-800 font-medium pt-1">
+                  Open in Stripe ↗
+                </a>
+              )}
+            </div>
+
+            {/* Quick presets */}
+            {!editing && (
+              <div>
+                <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">Quick set plan</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_PRESETS.map(p => (
+                    <button key={p.plan} onClick={() => applyPreset(p.plan, p.credits)} disabled={saving}
+                      className="h-7 px-3 text-[11.5px] border border-neutral-200 rounded-full text-neutral-700 hover:border-black hover:text-black transition-colors disabled:opacity-40">
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10.5px] text-neutral-400 mt-1.5">Tap to set plan immediately. Credits auto-filled for class packs.</p>
               </div>
             )}
-            {saved && <p className="text-[11px] text-green-600 font-medium">Saved ✓</p>}
-          </div>
-        )}
 
-        {!memberLoading && member && editing && (
-          <div className="space-y-3">
-            <div>
-              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Status</label>
-              <select
-                value={form.status || ''}
-                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
-              >
-                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Plan</label>
-              <select
-                value={form.planOverride || ''}
-                onChange={e => setForm(f => ({ ...f, planOverride: e.target.value }))}
-                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
-              >
-                <option value="">— Select plan —</option>
-                {PLAN_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Next billing date</label>
-              <input
-                type="date"
-                value={form.nextBillingDate || ''}
-                onChange={e => setForm(f => ({ ...f, nextBillingDate: e.target.value }))}
-                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Credit balance (classes remaining from Mind Body)</label>
-              <input
-                type="number"
-                min={0}
-                value={form.creditBalance ?? 0}
-                onChange={e => setForm(f => ({ ...f, creditBalance: Number(e.target.value) }))}
-                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] text-neutral-500 font-medium block mb-1">Admin notes</label>
-              <textarea
-                value={form.adminNotes || ''}
-                onChange={e => setForm(f => ({ ...f, adminNotes: e.target.value }))}
-                placeholder="Migration notes, special arrangements, etc."
-                rows={3}
-                className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black resize-none"
-              />
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button
-                onClick={save}
-                disabled={saving}
-                className="h-8 px-4 text-sm bg-black text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800 transition-colors"
-              >
-                {saving ? 'Saving…' : 'Save changes'}
-              </button>
-              <button
-                onClick={() => setEditing(false)}
-                className="h-8 px-4 text-sm border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+            {/* Edit form */}
+            {!editing ? (
+              <div className="space-y-2">
+                {member.adminNotes && (
+                  <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                    <p className="text-[11.5px] text-amber-800 whitespace-pre-wrap">{member.adminNotes}</p>
+                  </div>
+                )}
+                {saved && <p className="text-[11px] text-green-600 font-medium">Saved ✓</p>}
+                <button onClick={() => setEditing(true)}
+                  className="text-[11.5px] text-neutral-500 hover:text-neutral-800 underline underline-offset-2">
+                  Edit all fields
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 pt-1">
+                <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Edit membership</p>
+                <div>
+                  <label className="text-[11px] text-neutral-500 font-medium block mb-1">Status</label>
+                  <select value={form.status || ''} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+                    className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black">
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] text-neutral-500 font-medium block mb-1">Plan</label>
+                  <select value={form.planOverride || ''} onChange={e => setForm(f => ({ ...f, planOverride: e.target.value }))}
+                    className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black">
+                    <option value="">— Select plan —</option>
+                    {PLAN_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] text-neutral-500 font-medium block mb-1">Next billing / renewal date</label>
+                  <input type="date" value={form.nextBillingDate || ''} onChange={e => setForm(f => ({ ...f, nextBillingDate: e.target.value }))}
+                    className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black" />
+                  <p className="text-[10.5px] text-neutral-400 mt-1">Set this to their actual Stripe billing date so the app shows it correctly.</p>
+                </div>
+                <div>
+                  <label className="text-[11px] text-neutral-500 font-medium block mb-1">Classes remaining</label>
+                  <input type="number" min={0} value={form.creditBalance ?? 0} onChange={e => setForm(f => ({ ...f, creditBalance: Number(e.target.value) }))}
+                    className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black" />
+                  <p className="text-[10.5px] text-neutral-400 mt-1">For class packs only. Decrements by 1 each time attendance is marked.</p>
+                </div>
+                <div>
+                  <label className="text-[11px] text-neutral-500 font-medium block mb-1">Admin notes</label>
+                  <textarea value={form.adminNotes || ''} onChange={e => setForm(f => ({ ...f, adminNotes: e.target.value }))}
+                    placeholder="Migration notes, special arrangements, payment history…"
+                    rows={3}
+                    className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black resize-none" />
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={save} disabled={saving}
+                    className="h-8 px-4 text-sm bg-black text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800 transition-colors">
+                    {saving ? 'Saving…' : 'Save changes'}
+                  </button>
+                  <button onClick={() => setEditing(false)}
+                    className="h-8 px-4 text-sm border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
