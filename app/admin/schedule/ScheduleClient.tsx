@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import type { WixSession, WixService, WixStaff, WixBooking } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
@@ -26,15 +27,25 @@ function dayLabel(date: Date) {
   return date.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })
 }
 
-function isToday(date: Date) {
-  const now = new Date()
+function isToday(date: Date, now: Date) {
   return date.toDateString() === now.toDateString()
 }
 
 export default function ScheduleClient({ sessions, scheduleToService, resourceToStaff, weekStart }: Props) {
+  const router = useRouter()
   const [selectedSession, setSelectedSession] = useState<WixSession | null>(null)
+  const [autoConfirmCancel, setAutoConfirmCancel] = useState(false)
   const [search, setSearch] = useState('')
   const [cancelledIds, setCancelledIds] = useState<Set<string>>(new Set())
+  const [now, setNow] = useState(() => new Date())
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+
+  // Refresh server data every 60 s and tick "now" every 30 s
+  useEffect(() => {
+    const refreshId = setInterval(() => router.refresh(), 60_000)
+    const tickId    = setInterval(() => setNow(new Date()), 30_000)
+    return () => { clearInterval(refreshId); clearInterval(tickId) }
+  }, [router])
 
   function handleCancelled(id: string) {
     setCancelledIds(s => new Set([...s, id]))
@@ -106,7 +117,7 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
           <section key={date.toISOString()}>
             {/* Day header */}
             <div className={`sticky top-0 z-10 grid border-b border-neutral-200 px-6 py-2 ${
-              isToday(date) ? 'bg-neutral-100' : 'bg-neutral-50'
+              isToday(date, now) ? 'bg-neutral-100' : 'bg-neutral-50'
             }`}
               style={{ gridTemplateColumns: '160px 1fr 200px 160px 48px' }}
             >
@@ -114,7 +125,7 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
                 <span className="text-[13px] font-semibold text-neutral-800">
                   {dayLabel(date)}
                 </span>
-                {isToday(date) && (
+                {isToday(date, now) && (
                   <span className="text-[10px] font-semibold bg-black text-white px-2 py-0.5 rounded-full">
                     TODAY
                   </span>
@@ -192,12 +203,35 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
                     )}
 
                     {/* Actions */}
-                    <button
-                      className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
-                      onClick={e => { e.stopPropagation() }}
-                    >
-                      ⋯
-                    </button>
+                    <div className="relative" onClick={e => e.stopPropagation()}>
+                      <button
+                        className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
+                        onClick={() => setMenuOpenId(menuOpenId === session.id ? null : session.id)}
+                      >
+                        ⋯
+                      </button>
+                      {menuOpenId === session.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setMenuOpenId(null)} />
+                          <div className="absolute right-0 top-8 z-20 w-40 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
+                            <button
+                              className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-neutral-700"
+                              onClick={() => { setMenuOpenId(null); setSelectedSession(session) }}
+                            >
+                              View attendees
+                            </button>
+                            {!cancelled && (
+                              <button
+                                className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-red-600"
+                                onClick={() => { setMenuOpenId(null); setAutoConfirmCancel(true); setSelectedSession(session) }}
+                              >
+                                Cancel class
+                              </button>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )
               })
@@ -230,8 +264,9 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
           session={selectedSession}
           serviceName={scheduleToService[selectedSession.scheduleId]?.name ?? selectedSession.title}
           staffName={resourceToStaff[selectedSession.staffResourceId]?.name}
-          onClose={() => setSelectedSession(null)}
+          onClose={() => { setSelectedSession(null); setAutoConfirmCancel(false) }}
           onCancelled={handleCancelled}
+          initialConfirmCancel={autoConfirmCancel}
         />
       )}
     </div>
@@ -241,18 +276,19 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
 // ── Attendee drawer ───────────────────────────────────────────────────────────
 
 function AttendeeDrawer({
-  session, serviceName, staffName, onClose, onCancelled,
+  session, serviceName, staffName, onClose, onCancelled, initialConfirmCancel,
 }: {
   session: WixSession
   serviceName: string
   staffName?: string
   onClose: () => void
   onCancelled: (id: string) => void
+  initialConfirmCancel?: boolean
 }) {
   const [bookings,    setBookings]    = useState<WixBooking[] | null>(null)
   const [loading,     setLoading]     = useState(false)
   const [cancelling,  setCancelling]  = useState(false)
-  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(initialConfirmCancel ?? false)
 
   if (bookings === null && !loading) {
     setLoading(true)
