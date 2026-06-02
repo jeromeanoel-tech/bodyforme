@@ -96,18 +96,7 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
             onChange={e => setSearch(e.target.value)}
             className="h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black w-56"
           />
-          {(['Day', 'Week', 'Month'] as const).map(v => (
-            <button
-              key={v}
-              className={`h-8 px-3 text-sm rounded-lg border transition-colors ${
-                v === 'Week'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400'
-              }`}
-            >
-              {v}
-            </button>
-          ))}
+          <span className="h-8 px-3 text-sm rounded-lg border bg-black text-white border-black flex items-center">Week</span>
         </div>
       </div>
 

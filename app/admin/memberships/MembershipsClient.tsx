@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import type { WixMembership } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
@@ -49,7 +50,8 @@ function isExpiringSoon(m: MembershipRow, threshold: number) {
   return m.status === 'ACTIVE' && days !== null && days >= 0 && days <= threshold
 }
 
-export default function MembershipsClient({ rows }: Props) {
+export default function MembershipsClient({ rows: initialRows }: Props) {
+  const [rows, setRows]     = useState<MembershipRow[]>(initialRows)
   const [tab, setTab]       = useState<TabKey>('all')
   const [search, setSearch] = useState('')
   const [sort, setSort]     = useState<SortKey>('start-desc')
@@ -57,6 +59,11 @@ export default function MembershipsClient({ rows }: Props) {
   const [selected, setSelected]     = useState<MembershipRow | null>(null)
   const { settings } = useSettings()
   const expiringDays = settings.expiringDays
+
+  function handleStatusChange(id: string, status: string) {
+    setRows(prev => prev.map(r => r.id === id ? { ...r, status } : r))
+    setSelected(null)
+  }
 
   // Stats
   const activeCount   = rows.filter(r => r.status === 'ACTIVE').length
@@ -265,7 +272,7 @@ export default function MembershipsClient({ rows }: Props) {
                 {/* Actions */}
                 <button
                   className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
-                  onClick={e => e.stopPropagation()}
+                  onClick={e => { e.stopPropagation(); setSelected(row) }}
                 >⋯</button>
               </div>
             )
@@ -287,7 +294,7 @@ export default function MembershipsClient({ rows }: Props) {
 
       {/* ── Detail drawer ── */}
       {selected && (
-        <MembershipDrawer row={selected} expiringDays={expiringDays} onClose={() => setSelected(null)} />
+        <MembershipDrawer row={selected} expiringDays={expiringDays} onClose={() => setSelected(null)} onStatusChange={handleStatusChange} />
       )}
     </div>
   )
@@ -295,9 +302,33 @@ export default function MembershipsClient({ rows }: Props) {
 
 // ── Detail drawer ─────────────────────────────────────────────────────────────
 
-function MembershipDrawer({ row, expiringDays, onClose }: { row: MembershipRow; expiringDays: number; onClose: () => void }) {
+function MembershipDrawer({ row, expiringDays, onClose, onStatusChange }: {
+  row: MembershipRow
+  expiringDays: number
+  onClose: () => void
+  onStatusChange: (id: string, status: string) => void
+}) {
+  const router = useRouter()
   const days = daysUntil(row.endDate)
   const soon = isExpiringSoon(row, expiringDays)
+  const [loading, setLoading] = useState<string | null>(null)
+  const [confirmAction, setConfirmAction] = useState<'pause' | 'resume' | 'cancel' | null>(null)
+
+  async function updateStatus(newStatus: string, action: string) {
+    setLoading(action)
+    const res = await fetch('/api/admin/memberships', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: row.id, status: newStatus }),
+    })
+    if (res.ok) {
+      onStatusChange(row.id, newStatus)
+      onClose()
+      router.refresh()
+    }
+    setLoading(null)
+    setConfirmAction(null)
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -337,7 +368,7 @@ function MembershipDrawer({ row, expiringDays, onClose }: { row: MembershipRow; 
 
           {/* Dates */}
           <div className="space-y-3">
-            <InfoRow label="Started"         value={fmtDate(row.startDate)} />
+            <InfoRow label="Started" value={fmtDate(row.startDate)} />
             <InfoRow
               label={row.status === 'ACTIVE' ? 'Renews / expires' : 'Ended'}
               value={fmtDate(row.endDate)}
@@ -371,16 +402,53 @@ function MembershipDrawer({ row, expiringDays, onClose }: { row: MembershipRow; 
           {/* Quick actions */}
           <div className="space-y-2">
             <p className="text-[11px] text-neutral-400 uppercase tracking-wider mb-3">Actions</p>
+
             {row.status === 'ACTIVE' && (
-              <ActionBtn label="Pause membership" />
+              confirmAction === 'pause' ? (
+                <div className="flex items-center gap-2 p-2 border border-neutral-200 rounded-lg">
+                  <span className="text-[12px] text-neutral-600 flex-1">Pause this membership?</span>
+                  <button onClick={() => updateStatus('PAUSED', 'pause')} disabled={loading === 'pause'}
+                    className="h-7 px-3 text-[11.5px] font-semibold text-white bg-black rounded-md disabled:opacity-40">
+                    {loading === 'pause' ? '…' : 'Yes, pause'}
+                  </button>
+                  <button onClick={() => setConfirmAction(null)} className="h-7 px-2 text-[11.5px] text-neutral-500 hover:text-neutral-800">No</button>
+                </div>
+              ) : (
+                <ActionBtn label="Pause membership" onClick={() => setConfirmAction('pause')} />
+              )
             )}
+
             {row.status === 'PAUSED' && (
-              <ActionBtn label="Resume membership" />
+              confirmAction === 'resume' ? (
+                <div className="flex items-center gap-2 p-2 border border-neutral-200 rounded-lg">
+                  <span className="text-[12px] text-neutral-600 flex-1">Resume this membership?</span>
+                  <button onClick={() => updateStatus('ACTIVE', 'resume')} disabled={loading === 'resume'}
+                    className="h-7 px-3 text-[11.5px] font-semibold text-white bg-black rounded-md disabled:opacity-40">
+                    {loading === 'resume' ? '…' : 'Yes, resume'}
+                  </button>
+                  <button onClick={() => setConfirmAction(null)} className="h-7 px-2 text-[11.5px] text-neutral-500 hover:text-neutral-800">No</button>
+                </div>
+              ) : (
+                <ActionBtn label="Resume membership" onClick={() => setConfirmAction('resume')} />
+              )
             )}
+
             {(row.status === 'ACTIVE' || row.status === 'PAUSED') && (
-              <ActionBtn label="Cancel membership" />
+              confirmAction === 'cancel' ? (
+                <div className="flex items-center gap-2 p-2 border border-red-100 rounded-lg">
+                  <span className="text-[12px] text-neutral-600 flex-1">Cancel this membership?</span>
+                  <button onClick={() => updateStatus('CANCELED', 'cancel')} disabled={loading === 'cancel'}
+                    className="h-7 px-3 text-[11.5px] font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-40">
+                    {loading === 'cancel' ? '…' : 'Yes, cancel'}
+                  </button>
+                  <button onClick={() => setConfirmAction(null)} className="h-7 px-2 text-[11.5px] text-neutral-500 hover:text-neutral-800">No</button>
+                </div>
+              ) : (
+                <ActionBtn label="Cancel membership" onClick={() => setConfirmAction('cancel')} danger />
+              )
             )}
-            <ActionBtn label="View client profile" />
+
+            <ActionBtn label="View client profile" onClick={() => { onClose(); router.push(`/admin/clients?highlight=${row.contactId}`) }} />
           </div>
         </div>
       </div>
@@ -408,9 +476,16 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function ActionBtn({ label }: { label: string }) {
+function ActionBtn({ label, onClick, danger }: { label: string; onClick?: () => void; danger?: boolean }) {
   return (
-    <button className="w-full h-9 px-4 text-[13px] border border-neutral-200 rounded-lg text-neutral-700 hover:border-black hover:text-black transition-colors text-left">
+    <button
+      onClick={onClick}
+      className={`w-full h-9 px-4 text-[13px] border rounded-lg transition-colors text-left ${
+        danger
+          ? 'border-neutral-200 text-red-600 hover:border-red-300 hover:bg-red-50'
+          : 'border-neutral-200 text-neutral-700 hover:border-black hover:text-black'
+      }`}
+    >
       {label}
     </button>
   )

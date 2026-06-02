@@ -138,6 +138,35 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
   const { settings } = useSettings()
   const newMemberDays = settings.newMemberDays
 
+  // New client modal
+  const [showNewClient, setShowNewClient]   = useState(false)
+  const [ncFirstName, setNcFirstName]       = useState('')
+  const [ncLastName, setNcLastName]         = useState('')
+  const [ncEmail, setNcEmail]               = useState('')
+  const [ncPhone, setNcPhone]               = useState('')
+  const [ncSaving, setNcSaving]             = useState(false)
+  const [ncError, setNcError]               = useState('')
+  const [ncTempPass, setNcTempPass]         = useState('')
+
+  async function createClient() {
+    if (!ncFirstName.trim() || !ncEmail.trim()) { setNcError('First name and email are required'); return }
+    setNcSaving(true); setNcError('')
+    const tempPass = Math.random().toString(36).slice(2, 10) + 'A1!'
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName: ncFirstName.trim(), lastName: ncLastName.trim(), email: ncEmail.trim().toLowerCase(), phone: ncPhone.trim(), suburb: '', password: tempPass }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setNcError(data.error ?? 'Failed to create client'); setNcSaving(false); return }
+    setNcTempPass(tempPass)
+    setNcSaving(false)
+  }
+
+  function resetNewClient() {
+    setShowNewClient(false); setNcFirstName(''); setNcLastName(''); setNcEmail(''); setNcPhone(''); setNcError(''); setNcTempPass('')
+  }
+
   const colsRef   = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
@@ -345,7 +374,9 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
               onChange={e => setSearch(e.target.value)}
               className="h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black w-60"
             />
-            <button className="h-8 px-3 text-sm bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors font-medium whitespace-nowrap">
+            <button
+              onClick={() => setShowNewClient(true)}
+              className="h-8 px-3 text-sm bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors font-medium whitespace-nowrap">
               + New Client
             </button>
           </div>
@@ -510,6 +541,71 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
           onClose={() => setSelected(null)}
         />
       )}
+
+      {/* New client modal */}
+      {showNewClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/30" onClick={resetNewClient} />
+          <div className="relative bg-white rounded-xl shadow-2xl w-[420px] p-6">
+            {ncTempPass ? (
+              <>
+                <h2 className="text-[15px] font-semibold text-neutral-900 mb-2">Client created</h2>
+                <p className="text-[13px] text-neutral-600 mb-4">Share these login details with <strong>{ncFirstName}</strong>:</p>
+                <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 space-y-2 font-mono text-sm">
+                  <div><span className="text-neutral-400">Email: </span>{ncEmail}</div>
+                  <div><span className="text-neutral-400">Password: </span><strong>{ncTempPass}</strong></div>
+                </div>
+                <p className="text-[11.5px] text-neutral-400 mt-3">They can change their password after logging in at bodyforme.com.au/app/login</p>
+                <div className="flex justify-end mt-5">
+                  <button onClick={() => { resetNewClient(); window.location.reload() }}
+                    className="h-8 px-4 text-[12.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800">
+                    Done
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="text-[15px] font-semibold text-neutral-900 mb-4">New client</h2>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[12px] font-medium text-neutral-600 mb-1">First name *</label>
+                      <input type="text" value={ncFirstName} onChange={e => setNcFirstName(e.target.value)}
+                        className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" autoFocus />
+                    </div>
+                    <div>
+                      <label className="block text-[12px] font-medium text-neutral-600 mb-1">Last name</label>
+                      <input type="text" value={ncLastName} onChange={e => setNcLastName(e.target.value)}
+                        className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-neutral-600 mb-1">Email *</label>
+                    <input type="email" value={ncEmail} onChange={e => setNcEmail(e.target.value)}
+                      className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-neutral-600 mb-1">Phone</label>
+                    <input type="tel" value={ncPhone} onChange={e => setNcPhone(e.target.value)}
+                      className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+                  </div>
+                  {ncError && <p className="text-[12px] text-red-600">{ncError}</p>}
+                </div>
+                <div className="flex justify-end gap-2 mt-5">
+                  <button onClick={resetNewClient}
+                    className="h-8 px-4 text-[12.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400">
+                    Cancel
+                  </button>
+                  <button onClick={createClient} disabled={ncSaving}
+                    className="h-8 px-4 text-[12.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40">
+                    {ncSaving ? 'Creating…' : 'Create client'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -558,7 +654,7 @@ function RowMenu({
       {open && (
         <div className="absolute right-0 top-8 z-40 bg-white border border-neutral-200 rounded-xl shadow-lg py-1.5 w-48">
           <MenuItem label="View profile"  onClick={onViewProfile} />
-          <MenuItem label="Book a class"  onClick={onClose} muted />
+          <MenuItem label="Book a class"  onClick={() => { onClose(); window.location.href = '/admin/checkin' }} />
           <MenuItem label="Send email"    onClick={() => { window.location.href = `mailto:${contact.email}`; onClose() }} disabled={!contact.email} />
           <div className="my-1 border-t border-neutral-100" />
           <MenuItem label="Copy email"    onClick={copyEmail} disabled={!contact.email} />
