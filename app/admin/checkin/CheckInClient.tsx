@@ -182,11 +182,38 @@ export default function CheckInClient({ sessions, services }: Props) {
                 </p>
               )}
               {filteredBookings.map((b, i) => {
-                const state    = attended[b.id]
-                const isIn     = state === 'present'
+                const state     = attended[b.id]
+                const isIn      = state === 'present'
                 const isLoading = state === 'loading'
-                const name     = `${b.contactDetails.firstName} ${b.contactDetails.lastName}`.trim() || '—'
-                const initials = `${b.contactDetails.firstName[0] ?? ''}${b.contactDetails.lastName[0] ?? ''}`.toUpperCase()
+                const name      = `${b.contactDetails.firstName} ${b.contactDetails.lastName}`.trim() || '—'
+                const initials  = `${b.contactDetails.firstName[0] ?? ''}${b.contactDetails.lastName[0] ?? ''}`.toUpperCase()
+
+                const hasPlan    = !!b.planOverride
+                const isExpired  = b.memberStatus === 'inactive' || b.memberStatus === 'expired'
+                const noClasses  = b.classesRemaining !== null && b.classesRemaining === 0
+                const showSell   = !hasPlan || isExpired || noClasses
+
+                let classesLabel: string
+                let classesColour: string
+                if (!hasPlan) {
+                  classesLabel  = 'No plan'
+                  classesColour = 'text-neutral-400'
+                } else if (isExpired) {
+                  classesLabel  = 'Expired'
+                  classesColour = 'text-red-500'
+                } else if (b.classesRemaining === null) {
+                  classesLabel  = 'Unlimited'
+                  classesColour = 'text-emerald-600'
+                } else if (b.classesRemaining === 0) {
+                  classesLabel  = '0 left'
+                  classesColour = 'text-red-500'
+                } else if (b.classesRemaining <= 2) {
+                  classesLabel  = `${b.classesRemaining} left`
+                  classesColour = 'text-amber-500'
+                } else {
+                  classesLabel  = `${b.classesRemaining} left`
+                  classesColour = 'text-neutral-600'
+                }
 
                 return (
                   <div
@@ -200,10 +227,40 @@ export default function CheckInClient({ sessions, services }: Props) {
                     }`}>
                       {initials}
                     </div>
+
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-medium text-neutral-900">{name}</p>
                       <p className="text-[11.5px] text-neutral-400 truncate">{b.contactDetails.email}</p>
                     </div>
+
+                    {/* Classes remaining */}
+                    <div className="w-24 shrink-0 text-right">
+                      <p className={`text-[12px] font-semibold ${classesColour}`}>{classesLabel}</p>
+                      {hasPlan && !isExpired && (
+                        <p className="text-[10.5px] text-neutral-400 truncate">{b.planOverride.split(' –')[0]}</p>
+                      )}
+                    </div>
+
+                    {/* Sell casual / renew button */}
+                    {showSell && (
+                      <div className="flex gap-1.5 shrink-0">
+                        <a
+                          href={`/admin/pos?client=${encodeURIComponent(b.contactDetails.email)}&product=casual`}
+                          className="h-7 px-2.5 text-[11px] font-medium rounded border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex items-center"
+                        >
+                          Sell casual
+                        </a>
+                        {(isExpired || hasPlan) && (
+                          <a
+                            href={`/admin/pos?client=${encodeURIComponent(b.contactDetails.email)}&product=renew`}
+                            className="h-7 px-2.5 text-[11px] font-medium rounded border border-neutral-200 bg-white text-neutral-600 hover:border-black hover:text-black transition-colors flex items-center"
+                          >
+                            Renew
+                          </a>
+                        )}
+                      </div>
+                    )}
+
                     <button
                       onClick={() => toggleAttendance(b.id, state)}
                       disabled={isLoading}

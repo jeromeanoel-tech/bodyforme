@@ -28,9 +28,9 @@ const config: Config = {
         canvas: '#fdfaf6',
       },
       fontFamily: {
-        sans:    ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
-        serif:   ['var(--font-cormorant)', 'Georgia', 'serif'],
-        jakarta: ['var(--font-jakarta)', 'system-ui', 'sans-serif'],
+        sans:    ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        serif:   ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        jakarta: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
       },
     },
   },

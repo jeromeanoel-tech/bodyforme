@@ -63,6 +63,11 @@ export type WixBooking = {
   id: string
   status: string
   contactDetails: { firstName: string; lastName: string; email: string }
+  memberId: string
+  planOverride: string
+  creditBalance: number
+  memberStatus: string
+  classesRemaining: number | null  // null = unlimited
 }
 
 export type MemberCredential = {
@@ -289,6 +294,8 @@ export async function getMemberByEmail(email: string): Promise<MemberCredential 
   return data ? rowToCredential(data) : null
 }
 
+export const getMemberById = async (id: string) => getMemberByContactId(id)
+
 export async function getMemberByContactId(id: string): Promise<MemberCredential | null> {
   const { data } = await supabase
     .from('members')
@@ -338,28 +345,145 @@ export async function getContactBookings(memberId: string): Promise<WixContactBo
 
 // ── Bookings for a session ────────────────────────────────────────────────────
 
+// Plans with a weekly class allowance — key fragment matched case-insensitively
+const WEEKLY_PLAN_ALLOWANCE: Record<string, number> = {
+  '3 per week': 3,
+  'weekly-3':   3,
+  '4 per week': 4,
+  'weekly-4':   4,
+}
+const UNLIMITED_KEYWORDS = ['unlimited', 'weekly-unlimited']
+
+function weekBounds() {
+  const now = new Date()
+  const day = now.getDay() // 0=Sun
+  const mon = new Date(now)
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
+  mon.setHours(0, 0, 0, 0)
+  const sun = new Date(mon)
+  sun.setDate(mon.getDate() + 6)
+  sun.setHours(23, 59, 59, 999)
+  return { weekStart: mon.toISOString(), weekEnd: sun.toISOString() }
+}
+
+function weeklyAllowance(plan: string): number | null {
+  const p = plan.toLowerCase()
+  if (UNLIMITED_KEYWORDS.some(k => p.includes(k))) return null   // unlimited
+  for (const [key, limit] of Object.entries(WEEKLY_PLAN_ALLOWANCE)) {
+    if (p.includes(key)) return limit
+  }
+  return undefined as unknown as number  // not a weekly plan
+}
+
 export async function getSessionBookings(sessionId: string): Promise<WixBooking[]> {
   const { data } = await supabase
     .from('bookings')
-    .select('id, status, members(first_name, last_name, email)')
+    .select('id, status, members(id, first_name, last_name, email, plan_override, credit_balance, status)')
     .eq('session_id', sessionId)
 
+  if (!data || data.length === 0) return []
+
+  // For weekly-allowance members, count confirmed bookings this Mon–Sun
+  const { weekStart, weekEnd } = weekBounds()
+
   // eslint-disable-next-line
-  return (data ?? []).map((r: any) => ({
-    id:     r.id,
-    status: r.status,
-    contactDetails: {
-      firstName: r.members?.first_name ?? '',
-      lastName:  r.members?.last_name  ?? '',
-      email:     r.members?.email      ?? '',
-    },
-  }))
+  const weeklyMemberIds = (data as any[])
+    .filter(r => {
+      const plan = r.members?.plan_override ?? ''
+      const a = weeklyAllowance(plan)
+      return a !== undefined && a !== null  // has a weekly limit (not unlimited, not a pack)
+    })
+    .map(r => r.members?.id)
+    .filter(Boolean)
+
+  const usageMap: Record<string, number> = {}
+  if (weeklyMemberIds.length > 0) {
+    const { data: usageRows } = await supabase
+      .from('bookings')
+      .select('member_id, sessions!inner(start_time)')
+      .in('member_id', weeklyMemberIds)
+      .eq('status', 'CONFIRMED')
+      .gte('sessions.start_time', weekStart)
+      .lte('sessions.start_time', weekEnd)
+
+    // eslint-disable-next-line
+    ;(usageRows ?? []).forEach((r: any) => {
+      usageMap[r.member_id] = (usageMap[r.member_id] ?? 0) + 1
+    })
+  }
+
+  // eslint-disable-next-line
+  return (data as any[]).map(r => {
+    const plan    = r.members?.plan_override ?? ''
+    const credits = Number(r.members?.credit_balance ?? 0)
+    const wa      = weeklyAllowance(plan)
+    let classesRemaining: number | null
+
+    if (wa === null) {
+      // Unlimited plan
+      classesRemaining = null
+    } else if (wa !== undefined) {
+      // Weekly-allowance plan
+      const used = usageMap[r.members?.id] ?? 0
+      classesRemaining = Math.max(0, wa - used)
+    } else {
+      // Class pack — credit balance (decremented on each attendance)
+      classesRemaining = credits
+    }
+
+    return {
+      id:     r.id,
+      status: r.status,
+      contactDetails: {
+        firstName: r.members?.first_name ?? '',
+        lastName:  r.members?.last_name  ?? '',
+        email:     r.members?.email      ?? '',
+      },
+      memberId:         r.members?.id      ?? '',
+      planOverride:     plan,
+      creditBalance:    credits,
+      memberStatus:     r.members?.status  ?? '',
+      classesRemaining,
+    }
+  })
 }
 
 // ── Mark attendance ───────────────────────────────────────────────────────────
 
+// Plans that consume a credit per class attended
+const CREDIT_PLANS = [
+  'Casual Drop-in', 'casual',
+  '5-Class Pack', '10-Class Pack', '20-Class Pack', '50-Class Pass',
+  'Free Trial', '7-Day Unlimited', 'intro-offer',
+]
+
 export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {
+  // Mark the booking
   await supabase.from('bookings').update({ attended }).eq('id', bookingId)
+
+  // Deduct or restore credit for class-pack members
+  const { data: booking } = await supabase
+    .from('bookings')
+    .select('member_id, members(plan_override, credit_balance)')
+    .eq('id', bookingId)
+    .single()
+
+  if (!booking) return
+  // eslint-disable-next-line
+  const member     = (booking as any).members
+  const plan       = (member?.plan_override ?? '') as string
+  const isPackPlan = CREDIT_PLANS.some(p => plan.toLowerCase().includes(p.toLowerCase()))
+
+  if (!isPackPlan) return
+
+  const current = Number(member?.credit_balance ?? 0)
+  const delta   = attended ? -1 : 1   // deduct on check-in, restore on un-check
+  const next    = Math.max(0, current + delta)
+
+  await supabase
+    .from('members')
+    .update({ credit_balance: next })
+    .eq('id', booking.member_id)
 }
 
 // ── Create / cancel booking ───────────────────────────────────────────────────

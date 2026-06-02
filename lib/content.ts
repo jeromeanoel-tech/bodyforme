@@ -560,8 +560,8 @@ export const signupPlans: Record<string, {
   'weekly-3': {
     name:            '3 Per Week',
     tag:             'Flexible',
-    amount:          4900,
-    period:          '$49 / week',
+    amount:          4500,
+    period:          '$45 / week',
     description:     '3 classes per week. Weekly direct debit, cancel with 7 days\' notice.',
     mode:            'subscription',
     billingInterval: 'week',

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { getAdminSession } from '@/lib/adminSession'
 import AdminSidebar from '@/components/AdminSidebar'
+import LiveClock from '@/components/LiveClock'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getAdminSession()
@@ -15,11 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-[52px] shrink-0 relative flex items-center justify-between px-6 border-b border-neutral-200 bg-white">
           <div className="flex-1 max-w-xs">
-            <input
-              type="text"
-              placeholder="Search clients..."
-              className="w-full h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black focus:ring-1 focus:ring-black"
-            />
+            <LiveClock variant="admin" />
           </div>
           {/* Centred logo */}
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center">

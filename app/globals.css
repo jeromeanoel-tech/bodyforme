@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --font-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-jakarta: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-dm-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-cormorant: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* Design system tokens */
   --linen:  #f4ede1;
@@ -22,6 +24,14 @@
   --rust:   #9a5a3a;
 }
 
+@media (min-width: 1024px) {
+  .text-xs   { font-size: 18px; line-height: 24px; }
+  .text-sm   { font-size: 20px; line-height: 28px; }
+  .text-base { font-size: 22px; line-height: 32px; }
+  .text-lg   { font-size: 24px; line-height: 34px; }
+  .text-xl   { font-size: 26px; line-height: 36px; }
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; overflow-x: hidden; max-width: 100%; }
 img, video, svg { max-width: 100%; }
@@ -34,7 +44,7 @@ img, video, svg { max-width: 100%; }
 
 /* ── Public site base ── */
 .site-body {
-  font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background: var(--linen);
   color: var(--text);
   font-weight: 300;

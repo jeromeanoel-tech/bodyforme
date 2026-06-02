@@ -21,6 +21,6 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json(
     { sessions, scheduleToName, resourceToStaff },
-    { headers: { 'Cache-Control': 's-maxage=300, stale-while-revalidate=60' } }
+    { headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=30' } }
   )
 }

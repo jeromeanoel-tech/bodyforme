@@ -10,16 +10,18 @@ export async function GET(req: NextRequest) {
   const customerId = member?.stripeCustomerId
 
   if (!customerId) {
-    // No Stripe customer yet — send them to the sign-up flow
-    return NextResponse.redirect(new URL('/sign-up', req.url))
+    return NextResponse.redirect(
+      new URL('/app/membership?billing=no-account', req.url)
+    )
   }
 
+  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
   const returnUrl = `${req.nextUrl.origin}/app/membership`
 
   const res = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {
     method: 'POST',
     headers: {
-      Authorization:  `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+      Authorization:  `Bearer ${stripeKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: new URLSearchParams({ customer: customerId, return_url: returnUrl }).toString(),
@@ -28,7 +30,9 @@ export async function GET(req: NextRequest) {
   if (!res.ok) {
     const err = await res.text()
     console.error('Stripe portal error:', err)
-    return NextResponse.json({ error: 'Could not open billing portal. Please contact the studio.' }, { status: 500 })
+    return NextResponse.redirect(
+      new URL('/app/membership?billing=error', req.url)
+    )
   }
 
   const { url } = await res.json() as { url: string }

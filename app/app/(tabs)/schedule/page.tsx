@@ -100,32 +100,48 @@ export default function SchedulePage() {
   const [loading,      setLoading]      = useState(true)
   const [pending,      setPending]      = useState<string | null>(null)
   const [toast,        setToast]        = useState<{ msg: string; ok: boolean } | null>(null)
+  // Ticks every 30 s so isPast status updates without a page reload
+  const [now,          setNow]          = useState(() => new Date())
 
-  useEffect(() => {
-    setLoading(true)
-    const days = getWeekDays(weekOffset)
+  function fetchWeek(offset: number) {
+    const days = getWeekDays(offset)
     const from = days[0].iso
     const to   = days[6].iso
-    Promise.all([
+    return Promise.all([
       fetch(`/api/app/schedule?from=${from}T00:00:00&to=${to}T23:59:59`).then(r => r.json()),
       fetch(`/api/app/my-bookings?from=${from}&to=${to}`).then(r => r.json()),
       fetch(`/api/app/waitlist?from=${from}&to=${to}`).then(r => r.json()).catch(() => ({ sessionIds: [] })),
-    ])
-      .then(([schedData, bookingsData, waitlistData]) => {
-        setSessions(schedData.sessions ?? [])
-        setStaffMap(schedData.resourceToStaff ?? {})
-        const bm: BookedMap = {}
-        ;(bookingsData.bookings as MemberBooking[] ?? []).forEach(b => {
-          if (b.status === 'CONFIRMED') bm[b.sessionId] = { bookingId: b.bookingId }
-        })
-        setBookedMap(bm)
-        const wm: WaitlistMap = {}
-        ;(waitlistData.sessionIds as string[] ?? []).forEach(id => { wm[id] = true })
-        setWaitlistMap(wm)
-        setLoading(false)
+    ]).then(([schedData, bookingsData, waitlistData]) => {
+      setSessions(schedData.sessions ?? [])
+      setStaffMap(schedData.resourceToStaff ?? {})
+      const bm: BookedMap = {}
+      ;(bookingsData.bookings as MemberBooking[] ?? []).forEach(b => {
+        if (b.status === 'CONFIRMED') bm[b.sessionId] = { bookingId: b.bookingId }
       })
-      .catch(() => setLoading(false))
+      setBookedMap(bm)
+      const wm: WaitlistMap = {}
+      ;(waitlistData.sessionIds as string[] ?? []).forEach(id => { wm[id] = true })
+      setWaitlistMap(wm)
+    })
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    fetchWeek(weekOffset).catch(() => {}).finally(() => setLoading(false))
+
+    // Re-fetch every 60 s so booking availability stays current
+    const fetchId = setInterval(() => {
+      fetchWeek(weekOffset).catch(() => {})
+    }, 60_000)
+
+    return () => clearInterval(fetchId)
   }, [weekOffset]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tick every 30 s to update past/upcoming status live
+  useEffect(() => {
+    const tickId = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(tickId)
+  }, [])
 
   useEffect(() => {
     const days = getWeekDays(weekOffset)
@@ -243,7 +259,7 @@ export default function SchedulePage() {
           position: 'fixed', top: 64, left: '50%', transform: 'translateX(-50%)',
           background: toast.ok ? T.esp : T.rust,
           color: T.linen, padding: '10px 20px',
-          fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, fontWeight: 500,
+          fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 500,
           letterSpacing: '0.06em', zIndex: 100, pointerEvents: 'none',
           boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
           maxWidth: 'calc(100vw - 40px)', textAlign: 'center',
@@ -257,17 +273,15 @@ export default function SchedulePage() {
         height: 56, padding: '0 20px', borderBottom: `1px solid ${T.rule}`,
         background: T.linen, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, fontWeight: 500, color: T.esp }}>
-          Body<em style={{ color: T.brown, fontWeight: 400 }}>forme</em>
-        </div>
-        <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 20, fontStyle: 'italic', color: T.esp }}>Schedule</div>
+        <img src="/bodyforme-wordmark.png" alt="BodyForme" style={{ height: 18, width: 'auto' }} />
+        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 20, fontStyle: 'italic', color: T.esp }}>Schedule</div>
       </div>
 
       {/* Week label */}
       <div style={{ padding: '18px 20px 10px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>Week of</div>
-          <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 24, fontWeight: 400, color: T.esp, marginTop: 2 }}>
+          <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>Week of</div>
+          <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 24, fontWeight: 400, color: T.esp, marginTop: 2 }}>
             <em style={{ color: T.brown }}>{weekLabel}</em>{' '}
             {weekDays[0].date.getDate()}–{weekDays[6].date.getDate()}
           </div>
@@ -302,8 +316,8 @@ export default function SchedulePage() {
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2,
               cursor: 'pointer', padding: 0,
             }}>
-              <span style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 8, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: on ? 'rgba(244,237,225,.6)' : T.muted }}>{DAYS[i]}</span>
-              <span style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 20, fontWeight: 400, color: on ? T.linen : T.esp, lineHeight: 1 }}>{d.date.getDate()}</span>
+              <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: on ? 'rgba(244,237,225,.6)' : T.muted }}>{DAYS[i]}</span>
+              <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 20, fontWeight: 400, color: on ? T.linen : T.esp, lineHeight: 1 }}>{d.date.getDate()}</span>
               {today && !on && <span style={{ width: 4, height: 4, borderRadius: '50%', background: T.brown, display: 'block' }} />}
             </button>
           )
@@ -312,7 +326,7 @@ export default function SchedulePage() {
 
       {/* Class list */}
       <div style={{ flex: 1, overflowY: 'auto', borderTop: `1px solid ${T.rule}`, background: T.canvas }}>
-        <div style={{ padding: '12px 20px 8px', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>
+        <div style={{ padding: '12px 20px 8px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>
           {DAYS[selIdx]} · {loading ? '…' : `${dayClasses.length} class${dayClasses.length !== 1 ? 'es' : ''}`}
         </div>
 
@@ -321,8 +335,8 @@ export default function SchedulePage() {
 
         {!loading && dayClasses.length === 0 && (
           <div style={{ padding: '48px 20px', textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, color: T.mid, fontStyle: 'italic' }}>No classes today</div>
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, color: T.muted, marginTop: 8 }}>Try a different day or week</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, color: T.mid, fontStyle: 'italic' }}>No classes today</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: T.muted, marginTop: 8 }}>Try a different day or week</div>
           </div>
         )}
 
@@ -332,7 +346,7 @@ export default function SchedulePage() {
           const isLow       = spots > 0 && spots <= 3
           const isBooked    = !!bookedMap[s.id]
           const onWaitlist  = !!waitlistMap[s.id]
-          const isPast      = new Date(s.start) < new Date()
+          const isPast      = new Date(s.start) < now
           const inFlight    = pending === s.id
           const color       = classColor(s.title)
           const duration    = classDuration(s.start, s.end)
@@ -350,56 +364,56 @@ export default function SchedulePage() {
 
               {/* Time */}
               <div style={{ width: 50, flexShrink: 0 }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 20, fontWeight: 400, color: T.esp, lineHeight: 1 }}>{fmt12(s.start)}</div>
-                {duration && <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, color: T.muted, marginTop: 3, letterSpacing: '0.04em' }}>{duration}</div>}
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 20, fontWeight: 400, color: T.esp, lineHeight: 1 }}>{fmt12(s.start)}</div>
+                {duration && <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, color: T.muted, marginTop: 3, letterSpacing: '0.04em' }}>{duration}</div>}
               </div>
 
               {/* Class info */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 3 }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 3 }}>
                   {s.title.split('(')[0].trim()}
                 </div>
-                <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 18, fontStyle: 'italic', color: T.esp, lineHeight: 1.1 }}>{s.title}</div>
-                {teacher && <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, color: T.mid, marginTop: 3 }}>w/ {teacher}</div>}
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 18, fontStyle: 'italic', color: T.esp, lineHeight: 1.1 }}>{s.title}</div>
+                {teacher && <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.mid, marginTop: 3 }}>w/ {teacher}</div>}
               </div>
 
               {/* Action */}
               <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                 {isPast ? (
-                  <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Past</div>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Past</div>
                 ) : isBooked ? (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                       <svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke={T.sage} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <span style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.sage }}>Booked</span>
+                      <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.sage }}>Booked</span>
                     </div>
                     <button
                       onClick={() => handleCancel(s.id, bookedMap[s.id].bookingId)}
                       disabled={inFlight}
-                      style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, color: T.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', opacity: inFlight ? 0.4 : 1 }}
+                      style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, color: T.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', opacity: inFlight ? 0.4 : 1 }}
                     >
                       {inFlight ? '…' : 'Cancel'}
                     </button>
                   </>
                 ) : onWaitlist ? (
                   <>
-                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.sand }}>Waitlisted</div>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.sand }}>Waitlisted</div>
                     <button
                       onClick={() => handleLeaveWaitlist(s.id)}
                       disabled={inFlight}
-                      style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, color: T.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', opacity: inFlight ? 0.4 : 1 }}
+                      style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, color: T.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline', opacity: inFlight ? 0.4 : 1 }}
                     >
                       {inFlight ? '…' : 'Leave'}
                     </button>
                   </>
                 ) : isFull ? (
                   <>
-                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Full</div>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted }}>Full</div>
                     <button
                       onClick={() => handleJoinWaitlist(s.id)}
                       disabled={inFlight}
                       style={{
-                        fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500,
+                        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
                         color: T.brown, background: 'none',
                         border: `1px solid ${T.brown}`, padding: '5px 10px',
@@ -415,7 +429,7 @@ export default function SchedulePage() {
                       onClick={() => handleBook(s.id)}
                       disabled={inFlight}
                       style={{
-                        fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 600,
+                        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 600,
                         letterSpacing: '0.12em', textTransform: 'uppercase',
                         color: T.linen, background: T.esp, border: 'none',
                         padding: '7px 14px', cursor: 'pointer', opacity: inFlight ? 0.5 : 1,
@@ -423,7 +437,7 @@ export default function SchedulePage() {
                     >
                       {inFlight ? '…' : 'Book'}
                     </button>
-                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, color: isLow ? T.rust : T.muted, textAlign: 'right' }}>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, color: isLow ? T.rust : T.muted, textAlign: 'right' }}>
                       {spots} {isLow ? 'left' : 'spots'}
                     </div>
                   </>

@@ -18,7 +18,7 @@ interface EmailPayload {
 
 const HEADER = `
   <div style="padding:34px 48px 28px;border-bottom:1px solid #d8ccba">
-    <span style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:30px;font-weight:500;color:#2a1506;letter-spacing:.01em">Bodyforme</span>
+    <span style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-style:italic;font-size:30px;font-weight:500;color:#2a1506;letter-spacing:.01em">Bodyforme</span>
   </div>`
 
 const FOOTER = `
@@ -37,7 +37,7 @@ const FOOTER = `
   </div>`
 
 function wrap(body: string) {
-  return `<div style="background:#f4ede1;padding:56px 24px 96px;font-family:'DM Sans',system-ui,sans-serif">
+  return `<div style="background:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
   <div style="width:100%;max-width:600px;margin:0 auto;background:#fdfaf6;border:1px solid #d8ccba;overflow:hidden">
     ${HEADER}
     <div style="padding:44px 48px 40px">
@@ -53,7 +53,7 @@ function eyebrow(text: string) {
 }
 
 function heading(html: string) {
-  return `<h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:38px;font-weight:500;line-height:1.12;color:#2a1506;margin:0 0 24px">${html}</h1>`
+  return `<h1 style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:38px;font-weight:500;line-height:1.12;color:#2a1506;margin:0 0 24px">${html}</h1>`
 }
 
 function p(html: string, muted = false) {
@@ -61,7 +61,7 @@ function p(html: string, muted = false) {
 }
 
 function cta(label: string, href: string) {
-  return `<a href="${href}" style="display:inline-block;background:#2a1506;color:#f4ede1;font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:15px 34px;margin:12px 0 8px">${label}</a>`
+  return `<a href="${href}" style="display:inline-block;background:#2a1506;color:#f4ede1;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:15px 34px;margin:12px 0 8px">${label}</a>`
 }
 
 function detailBox(rows: [string, string][]) {
@@ -75,7 +75,7 @@ function detailBox(rows: [string, string][]) {
 function signoff(line: string) {
   return `<div style="margin-top:28px;font-size:15px;line-height:1.7;color:#2a1506">
     ${line}<br>
-    <span style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:20px">The BodyForme team</span>
+    <span style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-style:italic;font-size:20px">The BodyForme team</span>
   </div>`
 }
 

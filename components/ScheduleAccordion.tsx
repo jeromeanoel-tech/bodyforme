@@ -45,9 +45,19 @@ export default function ScheduleAccordion({
       {days.map((day) => {
         const dayStr = day.toISOString().slice(0, 10)
         const isToday = dayStr === todayStr
-        const daySessions = sessions
-          .filter(s => s.start.startsWith(dayStr) && !s.title.toLowerCase().includes('cancel'))
-          .sort((a, b) => a.start.localeCompare(b.start))
+        const daySessions = (() => {
+          const seen = new Set<string>()
+          return sessions
+            .filter(s => s.start.startsWith(dayStr) && !s.title.toLowerCase().includes('cancel'))
+            .sort((a, b) => a.start.localeCompare(b.start))
+            .filter(s => {
+              const name = (scheduleToName?.[s.scheduleId] ?? s.title).toLowerCase()
+              const key  = `${s.start.slice(0, 16)}|${name}`
+              if (seen.has(key)) return false
+              seen.add(key)
+              return true
+            })
+        })()
 
         return (
           <div key={dayStr} style={{ borderBottom: '1px solid var(--rule)' }}>

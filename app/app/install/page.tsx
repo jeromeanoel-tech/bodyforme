@@ -21,7 +21,7 @@ export default function InstallPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
         @keyframes pulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(0.92); }
@@ -54,29 +54,29 @@ export default function InstallPage() {
         }
       `}</style>
 
-      <div style={{ background: '#f4ede1', minHeight: '100vh', fontFamily: "'DM Sans', -apple-system, system-ui, sans-serif", WebkitFontSmoothing: 'antialiased' }}>
+      <div style={{ background: '#f4ede1', minHeight: '100vh', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", WebkitFontSmoothing: 'antialiased' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 56px 80px' }}>
 
           {/* Brand bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid #d8ccba' }}>
             <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 28, width: 'auto', display: 'block' }} />
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>
               Member app · Install guide
             </div>
           </div>
 
           {/* Title + URL card */}
           <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: 56, padding: '56px 0 48px', borderBottom: '1px solid #d8ccba' }}>
-            <h1 style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 76, fontWeight: 400, lineHeight: 1.0, letterSpacing: '-0.01em', margin: 0, color: '#2a1506' }}>
-              Add Bodyforme<br />to your <em style={{ color: '#7a4a2a', fontWeight: 400 }}>home screen</em>.
+            <h1 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 76, fontWeight: 400, lineHeight: 1.0, letterSpacing: '-0.01em', margin: 0, color: '#2a1506' }}>
+              Add <img src="/bodyforme-wordmark.png" alt="BodyForme" style={{ height: 64, width: 'auto', verticalAlign: 'middle' }} /><br />to your <em style={{ color: '#7a4a2a', fontWeight: 400 }}>home screen</em>.
             </h1>
             <div style={{ paddingTop: 14 }}>
-              <p style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 14, fontWeight: 300, lineHeight: 1.7, color: '#6b4e36', margin: '0 0 22px' }}>
+              <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 14, fontWeight: 300, lineHeight: 1.7, color: '#6b4e36', margin: '0 0 22px' }}>
                 Our member app lives on the web — there&apos;s nothing to download from a store. Just open the link below in your phone&apos;s browser, then add it to your home screen for one-tap access to bookings, schedule and your membership.
               </p>
               <div style={{ background: '#2a1506', color: '#f4ede1', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
                 <div>
-                  <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.5)', marginBottom: 6 }}>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.5)', marginBottom: 6 }}>
                     Open in your browser
                   </div>
                   <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 18, fontWeight: 500, color: '#f4ede1', letterSpacing: '0.01em' }}>
@@ -88,7 +88,7 @@ export default function InstallPage() {
                   onClick={handleCopy}
                   style={{
                     marginLeft: 'auto', border: '1px solid rgba(244,237,225,0.35)', padding: '10px 16px',
-                    fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500,
+                    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500,
                     letterSpacing: '0.18em', textTransform: 'uppercase', color: copied ? '#2a1506' : '#f4ede1',
                     cursor: 'pointer', background: copied ? '#c4a882' : 'transparent',
                     borderColor: copied ? '#c4a882' : 'rgba(244,237,225,0.35)',
@@ -107,10 +107,10 @@ export default function InstallPage() {
             {/* ─── iPhone column ─── */}
             <div style={{ paddingLeft: 0, paddingRight: 36 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', paddingBottom: 18, borderBottom: '1px solid #d8ccba' }}>
-                <h2 style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}>
+                <h2 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}>
                   <em style={{ color: '#7a4a2a' }}>iPhone</em> &amp; iPad
                 </h2>
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Safari</div>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Safari</div>
               </div>
 
               <Step num="1" title="Open the link in Safari." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Safari&apos;s address bar. The browser must be Safari — not Chrome, not the in-app browser inside Instagram or Facebook.</>}>
@@ -143,9 +143,9 @@ export default function InstallPage() {
                 <MockPhone type="ios">
                   <StatusBar minimal />
                   <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 8, color: '#6b4e36' }}>Cancel</div>
-                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 600, color: '#2a1506' }}>Add to Home Screen</div>
-                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 8, fontWeight: 600, color: '#7a4a2a', position: 'relative' }}>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, color: '#6b4e36' }}>Cancel</div>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 600, color: '#2a1506' }}>Add to Home Screen</div>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, fontWeight: 600, color: '#7a4a2a', position: 'relative' }}>
                       Add
                       <span className="tap-ring" style={{ right: -8, top: -6 }} />
                     </div>
@@ -154,11 +154,11 @@ export default function InstallPage() {
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid #d8ccba' }}>
                       <img src="/icons/icon-192.png" alt="Bodyforme" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
                       <div>
-                        <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, color: '#2a1506' }}>Bodyforme</div>
-                        <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 7, color: '#a08568', marginTop: 2 }}>bodyforme.com.au</div>
+                        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, color: '#2a1506' }}>Bodyforme</div>
+                        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7, color: '#a08568', marginTop: 2 }}>bodyforme.com.au</div>
                       </div>
                     </div>
-                    <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 7.5, color: '#a08568', marginTop: 10, lineHeight: 1.5 }}>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, color: '#a08568', marginTop: 10, lineHeight: 1.5 }}>
                       An icon will be added to your Home Screen so you can quickly access this website.
                     </div>
                   </div>
@@ -179,10 +179,10 @@ export default function InstallPage() {
             {/* ─── Android column ─── */}
             <div style={{ paddingLeft: 36, paddingRight: 0 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', paddingBottom: 18, borderBottom: '1px solid #d8ccba' }}>
-                <h2 style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}>
+                <h2 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}>
                   <em style={{ color: '#7a4a2a' }}>Android</em>
                 </h2>
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Chrome</div>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Chrome</div>
               </div>
 
               <Step num="1" title="Open the link in Chrome." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Chrome&apos;s address bar. Chrome works best — Samsung Internet and Edge also support installing.</>}>
@@ -235,11 +235,11 @@ export default function InstallPage() {
 
           {/* Footer */}
           <div style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid #d8ccba', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'end' }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, lineHeight: 1.3, color: '#2a1506', maxWidth: 600 }}>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, lineHeight: 1.3, color: '#2a1506', maxWidth: 600 }}>
               Stuck? Email <em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>hello@bodyforme.com.au</em><br />
               or ask at the front desk — we&apos;ll get you sorted in a minute.
             </div>
-            <div style={{ textAlign: 'right', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568', lineHeight: 1.8 }}>
+            <div style={{ textAlign: 'right', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568', lineHeight: 1.8 }}>
               Bodyforme · Doncaster<br />
               Member App v1.0
             </div>
@@ -263,19 +263,19 @@ function Step({ num, title, body, keytap, children, last }: {
 }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr', gap: 0, padding: '28px 0', borderBottom: last ? 'none' : '1px solid #d8ccba' }}>
-      <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 44, fontWeight: 300, color: '#7a4a2a', lineHeight: 1, fontStyle: 'italic' }}>
+      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 44, fontWeight: 300, color: '#7a4a2a', lineHeight: 1, fontStyle: 'italic' }}>
         {num}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 168px', gap: 24, alignItems: 'start' }}>
         <div>
-          <h3 style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, fontWeight: 400, lineHeight: 1.2, margin: '0 0 8px', color: '#2a1506' }}>
+          <h3 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontWeight: 400, lineHeight: 1.2, margin: '0 0 8px', color: '#2a1506' }}>
             {title}
           </h3>
-          <p style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13, fontWeight: 300, lineHeight: 1.65, margin: 0, color: '#6b4e36' }}>
+          <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, fontWeight: 300, lineHeight: 1.65, margin: 0, color: '#6b4e36' }}>
             {body}
           </p>
           {keytap && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '5px 10px', background: '#ede4d4', border: '1px solid #d8ccba', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, color: '#2a1506', fontWeight: 500 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '5px 10px', background: '#ede4d4', border: '1px solid #d8ccba', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: '#2a1506', fontWeight: 500 }}>
               {keytap}
             </div>
           )}
@@ -343,7 +343,7 @@ function ChromeBar({ android, highlightMenu }: { android?: boolean; highlightMen
 function WebpagePreview({ short }: { short?: boolean }) {
   return (
     <div style={{ padding: '12px 12px 0', display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 14, fontStyle: 'italic', color: '#2a1506', lineHeight: 1, marginTop: 6 }}>
+      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 14, fontStyle: 'italic', color: '#2a1506', lineHeight: 1, marginTop: 6 }}>
         Body<em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>forme</em>
       </div>
       <div style={{ height: 4, background: '#d8ccba', borderRadius: 2, width: '80%' }} />
@@ -351,7 +351,7 @@ function WebpagePreview({ short }: { short?: boolean }) {
       {!short && <>
         <div style={{ height: 4, background: '#d8ccba', borderRadius: 2 }} />
         <div style={{ height: 4, background: '#d8ccba', borderRadius: 2, width: '80%' }} />
-        <div style={{ marginTop: 6, padding: '5px 0', textAlign: 'center', background: '#2a1506', color: '#f4ede1', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 6.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+        <div style={{ marginTop: 6, padding: '5px 0', textAlign: 'center', background: '#2a1506', color: '#f4ede1', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 6.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
           Sign in to book
         </div>
       </>}
@@ -404,7 +404,7 @@ function SheetRow({ label, icon, highlight, after }: { label: string; icon: Reac
       <div style={{ width: 22, height: 22, background: highlight ? 'rgba(255,255,255,0.1)' : '#ede4d4', borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {icon}
       </div>
-      <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 8.5, color: highlight ? '#f4ede1' : '#2a1506', fontWeight: highlight ? 500 : 400, flex: 1 }}>
+      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8.5, color: highlight ? '#f4ede1' : '#2a1506', fontWeight: highlight ? 500 : 400, flex: 1 }}>
         {label}
       </div>
       {after}
@@ -419,7 +419,7 @@ function AndroidMenu() {
       {items.map(item => (
         <div key={item} style={{
           padding: '5px 10px',
-          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
           fontSize: 8,
           color: item === 'Install app' ? '#7a4a2a' : '#2a1506',
           background: item === 'Install app' ? '#ede4d4' : 'transparent',
@@ -442,13 +442,13 @@ function InstallDialog() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <img src="/icons/icon-192.png" alt="Bodyforme" style={{ width: 28, height: 28, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
           <div>
-            <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 11, fontWeight: 500, color: '#2a1506' }}>Install Bodyforme</div>
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 7, color: '#a08568', marginTop: 1 }}>bodyforme.com.au</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 500, color: '#2a1506' }}>Install Bodyforme</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7, color: '#a08568', marginTop: 1 }}>bodyforme.com.au</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-          <div style={{ padding: '4px 10px', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 7.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 4, color: '#6b4e36' }}>Cancel</div>
-          <div style={{ padding: '4px 10px', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 7.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 4, background: '#2a1506', color: '#f4ede1', position: 'relative', boxShadow: '0 0 0 3px rgba(122,74,42,0.25)' }}>
+          <div style={{ padding: '4px 10px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 4, color: '#6b4e36' }}>Cancel</div>
+          <div style={{ padding: '4px 10px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 4, background: '#2a1506', color: '#f4ede1', position: 'relative', boxShadow: '0 0 0 3px rgba(122,74,42,0.25)' }}>
             Install
             <span className="tap-ring" style={{ right: -6, top: -6 }} />
           </div>

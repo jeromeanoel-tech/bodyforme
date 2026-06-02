@@ -13,7 +13,7 @@ export const metadata = {
   description: 'Browse the BodyForme weekly timetable. Hot Pilates, Bikram, Hot HIIT, Tabata, Yin Yoga, Special Forces and more in Doncaster.',
 }
 
-export const revalidate = 300  // refresh schedule every 5 minutes
+export const revalidate = 60
 
 const COLOR_MAP: Record<string, string> = {
   'bikram':     'var(--sage)',
@@ -129,9 +129,18 @@ export default async function ClassesPage() {
           {days.map((day, di) => {
             const dayStr = day.toISOString().slice(0, 10)
             const isToday = dayStr === todayStr
-            const daySessions = sessions
-              .filter(s => s.start.startsWith(dayStr) && s.status !== 'CANCELLED')
-              .sort((a, b) => a.start.localeCompare(b.start))
+            const daySessions = (() => {
+              const seen = new Set<string>()
+              return sessions
+                .filter(s => s.start.startsWith(dayStr) && s.status !== 'CANCELLED')
+                .sort((a, b) => a.start.localeCompare(b.start))
+                .filter(s => {
+                  const key = `${s.start.slice(0, 16)}|${(scheduleToName[s.scheduleId] ?? s.title).toLowerCase()}`
+                  if (seen.has(key)) return false
+                  seen.add(key)
+                  return true
+                })
+            })()
 
             return (
               <div key={di} style={{ background: isToday ? 'var(--canvas)' : 'var(--linen)', display: 'flex', flexDirection: 'column' }}>

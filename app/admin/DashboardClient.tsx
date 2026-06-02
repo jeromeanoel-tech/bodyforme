@@ -66,8 +66,8 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
 
         {/* Header */}
         <div>
-          <h1 className="text-lg font-semibold text-neutral-900">{greeting}</h1>
-          <p className="text-sm text-neutral-400 mt-0.5">{dateLabel}</p>
+          <h1 className="text-xl font-semibold text-neutral-900">{greeting}</h1>
+          <p className="text-base text-neutral-400 mt-0.5">{dateLabel}</p>
         </div>
 
         {/* Top stats */}
@@ -105,8 +105,8 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
           {/* Today's classes */}
           <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
-              <h3 className="text-[13px] font-semibold text-neutral-900">Today&apos;s classes</h3>
-              <Link href="/admin/schedule" className="text-[12px] text-neutral-400 hover:text-neutral-700 transition-colors">
+              <h3 className="text-[18px] font-semibold text-neutral-900">Today&apos;s classes</h3>
+              <Link href="/admin/schedule" className="text-[17px] text-neutral-400 hover:text-neutral-700 transition-colors">
                 View schedule →
               </Link>
             </div>
@@ -121,8 +121,8 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
                     key={s.id}
                     className={`flex items-center gap-4 px-5 py-3 ${i < todaySessions.length - 1 ? 'border-b border-neutral-100' : ''}`}
                   >
-                    <span className="text-[11.5px] text-neutral-400 w-16 shrink-0">{fmt12(s.start)}</span>
-                    <span className="text-[13px] font-medium text-neutral-800 flex-1 truncate">
+                    <span className="text-[16.5px] text-neutral-400 w-16 shrink-0">{fmt12(s.start)}</span>
+                    <span className="text-[18px] font-medium text-neutral-800 flex-1 truncate">
                       {scheduleToName[s.scheduleId] ?? s.title}
                     </span>
                     <div className="flex items-center gap-2 shrink-0">
@@ -132,7 +132,7 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
                           style={{ width: `${Math.min(fill, 100)}%` }}
                         />
                       </div>
-                      <span className={`text-[12px] font-semibold w-12 text-right ${full ? 'text-red-500' : 'text-neutral-700'}`}>
+                      <span className={`text-[17px] font-semibold w-12 text-right ${full ? 'text-red-500' : 'text-neutral-700'}`}>
                         {s.bookedCount}/{s.capacity}
                       </span>
                     </div>
@@ -145,8 +145,8 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
           {/* Recent signups */}
           <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
-              <h3 className="text-[13px] font-semibold text-neutral-900">Recent sign-ups</h3>
-              <Link href="/admin/clients" className="text-[12px] text-neutral-400 hover:text-neutral-700 transition-colors">
+              <h3 className="text-[18px] font-semibold text-neutral-900">Recent sign-ups</h3>
+              <Link href="/admin/clients" className="text-[17px] text-neutral-400 hover:text-neutral-700 transition-colors">
                 View all →
               </Link>
             </div>
@@ -161,14 +161,14 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
                     key={c.id}
                     className={`flex items-center gap-3 px-5 py-3 ${i < recentSignups.length - 1 ? 'border-b border-neutral-100' : ''}`}
                   >
-                    <div className="w-7 h-7 rounded-full bg-neutral-900 text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-neutral-900 text-white text-[15px] font-semibold flex items-center justify-center shrink-0">
                       {initials}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-medium text-neutral-900 truncate">{name}</p>
-                      <p className="text-[11px] text-neutral-400 truncate">{c.email || 'No email'}</p>
+                      <p className="text-[18px] font-medium text-neutral-900 truncate">{name}</p>
+                      <p className="text-[16px] text-neutral-400 truncate">{c.email || 'No email'}</p>
                     </div>
-                    <span className="text-[11px] text-neutral-400 shrink-0">{fmtDate(c.createdDate)}</span>
+                    <span className="text-[16px] text-neutral-400 shrink-0">{fmtDate(c.createdDate)}</span>
                   </div>
                 )
               })
@@ -181,10 +181,10 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
           <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
               <div>
-                <h3 className="text-[13px] font-semibold text-neutral-900">Memberships expiring soon</h3>
-                <p className="text-[11.5px] text-neutral-400 mt-0.5">Within 14 days — may need a follow-up</p>
+                <h3 className="text-[18px] font-semibold text-neutral-900">Memberships expiring soon</h3>
+                <p className="text-[16.5px] text-neutral-400 mt-0.5">Within 14 days — may need a follow-up</p>
               </div>
-              <Link href="/admin/memberships" className="text-[12px] text-neutral-400 hover:text-neutral-700 transition-colors">
+              <Link href="/admin/memberships" className="text-[17px] text-neutral-400 hover:text-neutral-700 transition-colors">
                 View all →
               </Link>
             </div>
@@ -194,10 +194,10 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
                 return (
                   <div key={m.id} className="flex items-center justify-between px-5 py-3">
                     <div>
-                      <p className="text-[13px] font-medium text-neutral-900">{m.planName}</p>
-                      <p className="text-[11px] text-neutral-400 mt-0.5">Expires {fmtDate(m.endDate)}</p>
+                      <p className="text-[18px] font-medium text-neutral-900">{m.planName}</p>
+                      <p className="text-[16px] text-neutral-400 mt-0.5">Expires {fmtDate(m.endDate)}</p>
                     </div>
-                    <span className={`text-[12px] font-semibold px-2.5 py-1 rounded-full ${
+                    <span className={`text-[17px] font-semibold px-2.5 py-1 rounded-full ${
                       days <= 3 ? 'bg-neutral-100 text-neutral-700' : 'bg-neutral-100 text-neutral-500'
                     }`}>
                       {days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days}d`}
@@ -220,7 +220,7 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
             <Link
               key={href}
               href={href}
-              className="flex items-center justify-center h-10 bg-white border border-neutral-200 rounded-xl text-[13px] text-neutral-600 hover:border-black hover:text-black transition-colors font-medium"
+              className="flex items-center justify-center h-10 bg-white border border-neutral-200 rounded-xl text-[18px] text-neutral-600 hover:border-black hover:text-black transition-colors font-medium"
             >
               {label}
             </Link>
@@ -241,9 +241,9 @@ function StatCard({
 }) {
   return (
     <Link href={href} className="bg-white border border-neutral-200 rounded-xl px-5 py-4 hover:border-neutral-400 transition-colors block">
-      <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">{label}</p>
+      <p className="text-[15.5px] font-semibold text-neutral-400 uppercase tracking-wider">{label}</p>
       <p className={`text-3xl font-semibold mt-1 ${warn ? 'text-neutral-900' : 'text-neutral-900'}`}>{value}</p>
-      <p className="text-[11.5px] text-neutral-400 mt-1">{sub}</p>
+      <p className="text-[16.5px] text-neutral-400 mt-1">{sub}</p>
     </Link>
   )
 }

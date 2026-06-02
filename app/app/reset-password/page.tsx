@@ -60,7 +60,7 @@ function ResetPasswordForm() {
     border:       'none',
     borderBottom: `1px solid ${T.rule}`,
     padding:      '10px 0',
-    fontFamily:   "'DM Sans', system-ui, sans-serif",
+    fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
     fontSize:     15,
     fontWeight:   300,
     color:        T.esp,
@@ -79,7 +79,7 @@ function ResetPasswordForm() {
       padding:        '40px 32px',
     }}>
 
-      <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 52, width: 'auto', marginBottom: 48 }} />
+      <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 62, width: 'auto', marginBottom: 48 }} />
 
       <div style={{
         width:      '100%',
@@ -91,7 +91,7 @@ function ResetPasswordForm() {
         {done ? (
           <>
             <div style={{
-              fontFamily:   "'Cormorant Garamond', 'Times New Roman', serif",
+              fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:     26,
               fontWeight:   400,
               color:        T.esp,
@@ -100,7 +100,7 @@ function ResetPasswordForm() {
               Password <em style={{ fontWeight: 300, color: T.brown }}>updated</em>
             </div>
             <p style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:   13,
               fontWeight: 300,
               color:      T.muted,
@@ -113,7 +113,7 @@ function ResetPasswordForm() {
         ) : (
           <>
             <div style={{
-              fontFamily:   "'Cormorant Garamond', 'Times New Roman', serif",
+              fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:     26,
               fontWeight:   400,
               color:        T.esp,
@@ -122,7 +122,7 @@ function ResetPasswordForm() {
               New <em style={{ fontWeight: 300, color: T.brown }}>password</em>
             </div>
             <div style={{
-              fontFamily:   "'DM Sans', system-ui, sans-serif",
+              fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:     13,
               fontWeight:   300,
               color:        T.muted,
@@ -136,7 +136,7 @@ function ResetPasswordForm() {
               {/* Password */}
               <div style={{ marginBottom: 24, position: 'relative' }}>
                 <label style={{
-                  fontFamily:    "'DM Sans', system-ui, sans-serif",
+                  fontFamily:    "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   fontSize:      9.5,
                   fontWeight:    500,
                   letterSpacing: '0.16em',
@@ -179,7 +179,7 @@ function ResetPasswordForm() {
               {/* Confirm */}
               <div style={{ marginBottom: 32 }}>
                 <label style={{
-                  fontFamily:    "'DM Sans', system-ui, sans-serif",
+                  fontFamily:    "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   fontSize:      9.5,
                   fontWeight:    500,
                   letterSpacing: '0.16em',
@@ -208,7 +208,7 @@ function ResetPasswordForm() {
                     margin:     0,
                     fontSize:   12,
                     color:      T.rust,
-                    fontFamily: "'DM Sans', system-ui, sans-serif",
+                    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   }}>{error}</p>
                 </div>
               )}
@@ -222,7 +222,7 @@ function ResetPasswordForm() {
                   color:          T.linen,
                   border:         'none',
                   padding:        '15px 0',
-                  fontFamily:     "'DM Sans', system-ui, sans-serif",
+                  fontFamily:     "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   fontSize:       11,
                   fontWeight:     500,
                   letterSpacing:  '0.14em',

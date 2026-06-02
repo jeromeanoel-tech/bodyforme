@@ -6,8 +6,10 @@ import { usePathname, useRouter } from 'next/navigation'
 
 const NAV: ({ href: string; label: string; exact?: boolean } | null)[] = [
   { href: '/admin',             label: 'Dashboard', exact: true },
-  { href: '/admin/schedule',    label: 'Classes' },
+  { href: '/admin/schedule',    label: 'Schedule' },
+  { href: '/admin/classes',     label: 'Classes' },
   { href: '/admin/checkin',     label: 'Check In' },
+  { href: '/admin/pos',         label: 'POS' },
   null,
   { href: '/admin/clients',     label: 'Clients' },
   { href: '/admin/memberships', label: 'Memberships' },

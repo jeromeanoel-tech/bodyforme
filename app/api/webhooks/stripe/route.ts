@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { signupPlans } from '@/lib/content'
-import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
+import { getMemberByEmail, updateMemberCredential, getMemberById } from '@/lib/db'
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -56,7 +56,41 @@ export async function POST(req: NextRequest) {
 
   switch (event.type) {
     case 'checkout.session.completed': {
-      const meta      = (obj.metadata ?? {}) as Record<string, string>
+      const meta = (obj.metadata ?? {}) as Record<string, string>
+
+      // ── POS sale ──────────────────────────────────────────────────────────
+      if (meta.source === 'pos') {
+        const memberId = meta.memberId ?? ''
+        const actions: { memberAction: string; creditAmount: number; planName: string; quantity: number }[] =
+          JSON.parse(meta.actions ?? '[]')
+
+        if (memberId) {
+          const member = await getMemberById(memberId)
+          if (member) {
+            let newCreditBalance = member.creditBalance
+            let newPlanOverride  = member.planOverride
+            let newStatus        = member.status ?? 'active'
+
+            for (const action of actions) {
+              if (action.memberAction === 'add_credits') {
+                newCreditBalance += (action.creditAmount ?? 0) * (action.quantity ?? 1)
+              } else if (action.memberAction === 'set_plan') {
+                newPlanOverride = action.planName
+                newStatus       = 'active'
+              }
+            }
+
+            await updateMemberCredential(memberId, {
+              creditBalance: newCreditBalance,
+              planOverride:  newPlanOverride,
+              status:        newStatus,
+            })
+          }
+        }
+        break
+      }
+
+      // ── Standard sign-up checkout ─────────────────────────────────────────
       const email     = (obj.customer_email as string) ?? ''
       const firstName = meta.firstName ?? ''
       const lastName  = meta.lastName  ?? ''
@@ -64,12 +98,24 @@ export async function POST(req: NextRequest) {
       const planName  = signupPlans[planKey]?.name ?? planKey
       const fullName  = `${firstName} ${lastName}`.trim()
 
-      // Activate member account
+      // Credits to seed for one-time class packs
+      const PLAN_CREDITS: Record<string, number> = {
+        'casual': 1, 'intro-offer': 0,
+        '10pack': 10, '20pack': 20, '50pack': 50,
+      }
+      const creditSeed = PLAN_CREDITS[planKey] ?? 0
+
+      // Activate member account and set plan
       if (email) {
         const stripeCustomerId = (obj.customer as string) ?? ''
         const member = await getMemberByEmail(email)
         if (member) {
-          await updateMemberCredential(member._id, { status: 'active', stripeCustomerId })
+          await updateMemberCredential(member._id, {
+            status:        'active',
+            stripeCustomerId,
+            planOverride:  planName,
+            creditBalance: creditSeed > 0 ? creditSeed : member.creditBalance,
+          })
         }
 
         await sendEmail(email, 'welcome', {

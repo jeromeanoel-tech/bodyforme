@@ -63,10 +63,8 @@ export default function BookingsPage() {
         height: 56, padding: '0 20px', borderBottom: `1px solid ${T.rule}`,
         background: T.linen, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, fontWeight: 500, color: T.esp }}>
-          Body<em style={{ color: T.brown, fontWeight: 400 }}>forme</em>
-        </div>
-        <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 20, fontStyle: 'italic', color: T.esp }}>Bookings</div>
+        <img src="/bodyforme-wordmark.png" alt="BodyForme" style={{ height: 18, width: 'auto' }} />
+        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 20, fontStyle: 'italic', color: T.esp }}>Bookings</div>
       </div>
 
       {/* Stats strip */}
@@ -80,8 +78,8 @@ export default function BookingsPage() {
             background: T.canvas, padding: '14px 10px', textAlign: 'center',
             borderRight: `1px solid ${T.rule}`,
           }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 26, color: T.esp, lineHeight: 1 }}>{loading ? '…' : s.n}</div>
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginTop: 6 }}>{s.l}</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 26, color: T.esp, lineHeight: 1 }}>{loading ? '…' : s.n}</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginTop: 6 }}>{s.l}</div>
           </div>
         ))}
       </div>
@@ -91,7 +89,7 @@ export default function BookingsPage() {
         {(['upcoming', 'past'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             paddingBottom: 12,
-            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize: 11, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase',
             color: tab === t ? T.esp : T.muted,
             borderBottom: tab === t ? `2px solid ${T.brown}` : '2px solid transparent',
@@ -107,16 +105,16 @@ export default function BookingsPage() {
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 20px', background: T.linen }}>
         {loading && (
-          <div style={{ textAlign: 'center', padding: '40px 0', fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13, color: T.muted }}>Loading…</div>
+          <div style={{ textAlign: 'center', padding: '40px 0', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.muted }}>Loading…</div>
         )}
 
         {!loading && shown.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, fontStyle: 'italic', color: T.mid }}>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontStyle: 'italic', color: T.mid }}>
               {tab === 'upcoming' ? 'No upcoming bookings' : 'No past classes yet'}
             </div>
             {tab === 'upcoming' && (
-              <a href="/app/schedule" style={{ display: 'inline-block', marginTop: 16, fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.brown, textDecoration: 'none', borderBottom: `1px solid ${T.brown}`, paddingBottom: 2 }}>
+              <a href="/app/schedule" style={{ display: 'inline-block', marginTop: 16, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.brown, textDecoration: 'none', borderBottom: `1px solid ${T.brown}`, paddingBottom: 2 }}>
                 Browse schedule →
               </a>
             )}
@@ -141,21 +139,21 @@ export default function BookingsPage() {
                 borderRight: `1px solid ${T.rule}`, paddingRight: 12,
                 display: 'flex', flexDirection: 'column', justifyContent: 'center',
               }}>
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 8.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted }}>
                   {fmt(b.start).split(' ')[0]}
                 </div>
-                <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 28, lineHeight: 1, color: T.esp, marginTop: 1 }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 28, lineHeight: 1, color: T.esp, marginTop: 1 }}>
                   {fmt(b.start).split(' ')[1]}
                 </div>
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, color: T.muted, marginTop: 3 }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, color: T.muted, marginTop: 3 }}>
                   {fmtTime(b.start)}
                 </div>
               </div>
 
               {/* Class */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 18, fontStyle: 'italic', color: T.esp }}>{b.title}</div>
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: b.status === 'CANCELED' ? T.muted : isPast ? T.sage : T.brown, marginTop: 8 }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 18, fontStyle: 'italic', color: T.esp }}>{b.title}</div>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: b.status === 'CANCELED' ? T.muted : isPast ? T.sage : T.brown, marginTop: 8 }}>
                   {b.status === 'CANCELED' ? 'Cancelled' : isPast ? '✓ Attended' : 'Booked'}
                 </div>
               </div>

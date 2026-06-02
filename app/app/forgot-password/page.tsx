@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
     border:       'none',
     borderBottom: `1px solid ${T.rule}`,
     padding:      '10px 0',
-    fontFamily:   "'DM Sans', system-ui, sans-serif",
+    fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
     fontSize:     15,
     fontWeight:   300,
     color:        T.esp,
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
       padding:        '40px 32px',
     }}>
 
-      <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 52, width: 'auto', marginBottom: 48 }} />
+      <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 62, width: 'auto', marginBottom: 48 }} />
 
       <div style={{
         width:      '100%',
@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
         {submitted ? (
           <>
             <div style={{
-              fontFamily:   "'Cormorant Garamond', 'Times New Roman', serif",
+              fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:     26,
               fontWeight:   400,
               color:        T.esp,
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
               Check your <em style={{ fontWeight: 300, color: T.brown }}>inbox</em>
             </div>
             <p style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:   13,
               fontWeight: 300,
               color:      T.muted,
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
               If that email is registered, we&apos;ve sent a reset link. It&apos;s valid for 1 hour.
             </p>
             <p style={{
-              fontFamily:  "'DM Sans', system-ui, sans-serif",
+              fontFamily:  "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:    12,
               fontWeight:  300,
               color:       T.muted,
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <>
             <div style={{
-              fontFamily:   "'Cormorant Garamond', 'Times New Roman', serif",
+              fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:     26,
               fontWeight:   400,
               color:        T.esp,
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
               Reset your <em style={{ fontWeight: 300, color: T.brown }}>password</em>
             </div>
             <div style={{
-              fontFamily:   "'DM Sans', system-ui, sans-serif",
+              fontFamily:   "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize:     13,
               fontWeight:   300,
               color:        T.muted,
@@ -140,7 +140,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit} noValidate>
               <div style={{ marginBottom: 32 }}>
                 <label style={{
-                  fontFamily:    "'DM Sans', system-ui, sans-serif",
+                  fontFamily:    "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   fontSize:      9.5,
                   fontWeight:    500,
                   letterSpacing: '0.16em',
@@ -170,7 +170,7 @@ export default function ForgotPasswordPage() {
                     margin:     0,
                     fontSize:   12,
                     color:      '#9a5a3a',
-                    fontFamily: "'DM Sans', system-ui, sans-serif",
+                    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   }}>{error}</p>
                 </div>
               )}
@@ -184,7 +184,7 @@ export default function ForgotPasswordPage() {
                   color:          T.linen,
                   border:         'none',
                   padding:        '15px 0',
-                  fontFamily:     "'DM Sans', system-ui, sans-serif",
+                  fontFamily:     "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   fontSize:       11,
                   fontWeight:     500,
                   letterSpacing:  '0.14em',
@@ -217,7 +217,7 @@ export default function ForgotPasswordPage() {
 
       <p style={{
         marginTop:  24,
-        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
         fontSize:   12,
         color:      T.muted,
         textAlign:  'center',

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
 
 const T = {
@@ -38,8 +38,8 @@ function ActionRow({ icon, label, sub, danger, last, onClick }: {
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">{icon}</svg>
       </div>
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13, fontWeight: 500, color: danger ? T.rust : T.esp }}>{label}</div>
-        {sub && <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, color: T.muted, marginTop: 2 }}>{sub}</div>}
+        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, fontWeight: 500, color: danger ? T.rust : T.esp }}>{label}</div>
+        {sub && <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 2 }}>{sub}</div>}
       </div>
       <svg width="6" height="11" viewBox="0 0 6 11" fill="none">
         <path d="M1 1l4 4.5L1 10" stroke={T.muted} strokeWidth="1.4" strokeLinecap="round"/>
@@ -52,10 +52,76 @@ function ActionRow({ icon, label, sub, danger, last, onClick }: {
 
 type PauseState = 'idle' | 'open' | 'sending' | 'done'
 
+type MemberStatus = {
+  plan:            string | null
+  creditBalance:   number
+  nextBillingDate: string | null
+  status:          string
+}
+
+const RECURRING_PLANS = ['Bronze – $120/mo', 'Silver – $200/mo', 'Unlimited – $260/mo']
+const PACK_PLANS      = ['5-Class Pack', '10-Class Pack', 'Casual Drop-in', 'Free Trial']
+
+function planSummary(ms: MemberStatus): { label: string; value: string; sub: string } {
+  const plan = ms.plan ?? ''
+
+  if (RECURRING_PLANS.includes(plan)) {
+    const planName = plan.split(' –')[0]
+    if (ms.nextBillingDate) {
+      const d    = new Date(ms.nextBillingDate)
+      const diff = Math.ceil((d.getTime() - Date.now()) / 86_400_000)
+      const fmt  = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+      return {
+        label: planName,
+        value: fmt,
+        sub:   diff > 0 ? `Next payment in ${diff} day${diff === 1 ? '' : 's'}` : 'Payment due',
+      }
+    }
+    return { label: planName, value: 'Active', sub: 'Direct debit' }
+  }
+
+  if (PACK_PLANS.includes(plan) || plan.includes('Pack') || plan.includes('pack')) {
+    const left = ms.creditBalance
+    return {
+      label: plan,
+      value: `${left} class${left === 1 ? '' : 'es'} left`,
+      sub:   left === 0 ? 'All classes used' : left <= 2 ? 'Running low' : 'Available to book',
+    }
+  }
+
+  if (plan === 'Unlimited – $260/mo') {
+    return { label: 'Unlimited', value: 'Unlimited', sub: 'Book as many classes as you like' }
+  }
+
+  if (!plan) return { label: 'No plan', value: '—', sub: 'Contact the studio to sign up' }
+  return { label: plan, value: 'Active', sub: '' }
+}
+
 export default function MembershipPage() {
   const session = useSession()
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [billingMsg,    setBillingMsg]    = useState<string | null>(null)
+  const [memberStatus,  setMemberStatus]  = useState<MemberStatus | null>(null)
 
-  const stripePortalUrl = session ? `/api/billing/portal?email=${encodeURIComponent(session.email)}` : '#'
+  useEffect(() => {
+    // Show message if redirected back from portal with an error/no-account flag
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('billing') === 'no-account')
+      setBillingMsg('No active Stripe subscription found. Contact the studio to link your billing account.')
+    if (params.get('billing') === 'error')
+      setBillingMsg('Could not open billing portal. Please try again or contact the studio.')
+
+    // Fetch live membership status
+    fetch('/api/app/membership-status')
+      .then(r => r.json())
+      .then(setMemberStatus)
+      .catch(() => {})
+  }, [])
+
+  function openPortal() {
+    setPortalLoading(true)
+    window.location.href = '/api/billing/portal'
+  }
 
   const [pauseState,  setPauseState]  = useState<PauseState>('idle')
   const [pauseStart,  setPauseStart]  = useState('')
@@ -108,14 +174,14 @@ export default function MembershipPage() {
           }}>
             {pauseState === 'done' ? (
               <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 26, fontStyle: 'italic', color: T.esp, marginBottom: 10 }}>Request sent</div>
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 24 }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 26, fontStyle: 'italic', color: T.esp, marginBottom: 10 }}>Request sent</div>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 24 }}>
                   We&apos;ll confirm your pause by email within 1 business day.
                 </div>
                 <button
                   onClick={() => setPauseState('idle')}
                   style={{
-                    fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, fontWeight: 500,
+                    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 500,
                     letterSpacing: '0.14em', textTransform: 'uppercase',
                     background: T.esp, color: T.linen, border: 'none', padding: '12px 28px', cursor: 'pointer',
                   }}
@@ -126,7 +192,7 @@ export default function MembershipPage() {
             ) : (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                  <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, fontStyle: 'italic', color: T.esp }}>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontStyle: 'italic', color: T.esp }}>
                     Pause membership
                   </div>
                   <button
@@ -136,13 +202,13 @@ export default function MembershipPage() {
                   >×</button>
                 </div>
 
-                <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, color: T.mid, marginBottom: 20, lineHeight: 1.7 }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: T.mid, marginBottom: 20, lineHeight: 1.7 }}>
                   Pauses are available for 1–4 weeks. Your billing will be held during the pause and resume automatically when it ends.
                 </div>
 
                 {/* Start date */}
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
+                  <label style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
                     Pause starts
                   </label>
                   <input
@@ -152,7 +218,7 @@ export default function MembershipPage() {
                     onChange={e => setPauseStart(e.target.value)}
                     style={{
                       width: '100%', height: 44, padding: '0 12px', border: `1px solid ${T.rule}`,
-                      background: T.linen, fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 14,
+                      background: T.linen, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 14,
                       color: T.esp, outline: 'none', boxSizing: 'border-box',
                     }}
                   />
@@ -160,7 +226,7 @@ export default function MembershipPage() {
 
                 {/* Duration */}
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
+                  <label style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
                     Duration
                   </label>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -173,7 +239,7 @@ export default function MembershipPage() {
                           background: pauseWeeks === w ? T.esp : T.linen,
                           color: pauseWeeks === w ? T.linen : T.esp,
                           border: `1px solid ${pauseWeeks === w ? T.esp : T.rule}`,
-                          fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13,
+                          fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13,
                           cursor: 'pointer',
                         }}
                       >
@@ -185,7 +251,7 @@ export default function MembershipPage() {
 
                 {/* Reason (optional) */}
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
+                  <label style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, display: 'block', marginBottom: 8 }}>
                     Reason <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
                   </label>
                   <input
@@ -195,14 +261,14 @@ export default function MembershipPage() {
                     placeholder="e.g. Holiday, injury recovery…"
                     style={{
                       width: '100%', height: 44, padding: '0 12px', border: `1px solid ${T.rule}`,
-                      background: T.linen, fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 14,
+                      background: T.linen, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 14,
                       color: T.esp, outline: 'none', boxSizing: 'border-box',
                     }}
                   />
                 </div>
 
                 {pauseError && (
-                  <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, color: T.rust, marginBottom: 14 }}>{pauseError}</div>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: T.rust, marginBottom: 14 }}>{pauseError}</div>
                 )}
 
                 <button
@@ -211,7 +277,7 @@ export default function MembershipPage() {
                   style={{
                     width: '100%', height: 48,
                     background: T.esp, color: T.linen, border: 'none',
-                    fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11,
+                    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11,
                     fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
                     cursor: pauseState === 'sending' ? 'not-allowed' : 'pointer',
                     opacity: pauseState === 'sending' ? 0.6 : 1,
@@ -230,10 +296,8 @@ export default function MembershipPage() {
         height: 56, padding: '0 20px', borderBottom: `1px solid ${T.rule}`,
         background: T.linen, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0,
       }}>
-        <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 22, fontWeight: 500, color: T.esp }}>
-          Body<em style={{ color: T.brown, fontWeight: 400 }}>forme</em>
-        </div>
-        <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 20, fontStyle: 'italic', color: T.esp }}>Membership</div>
+        <img src="/bodyforme-wordmark.png" alt="BodyForme" style={{ height: 18, width: 'auto' }} />
+        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 20, fontStyle: 'italic', color: T.esp }}>Membership</div>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 20 }}>
@@ -243,52 +307,49 @@ export default function MembershipPage() {
           <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'repeating-linear-gradient(45deg, #fff 0 1px, transparent 1px 6px)' }} />
           <div style={{ position: 'relative' }}>
             <div style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500,
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500,
               letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.4)',
             }}>Your membership</div>
-            <div style={{ fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 34, color: T.linen, marginTop: 8, lineHeight: 1, fontStyle: 'italic' }}>
-              Active <em style={{ color: T.sand }}>member</em>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 34, color: T.linen, marginTop: 8, lineHeight: 1, fontStyle: 'italic' }}>
+              {(memberStatus?.plan?.split(' –')[0] || 'Active')} <em style={{ color: T.sand }}>member</em>
             </div>
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 13, color: 'rgba(244,237,225,0.65)', marginTop: 10 }}>
-              Hi {session.firstName} — your membership is active.
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: 'rgba(244,237,225,0.65)', marginTop: 10 }}>
+              Hi {session.firstName}
             </div>
 
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.12)', margin: '22px 0 18px' }} />
-
-            <div style={{ display: 'flex', gap: 8 }}>
-              <a
-                href="/app/schedule"
-                style={{
-                  flex: 1, padding: '12px 0', background: T.brown,
-                  textAlign: 'center',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: T.linen, textDecoration: 'none',
-                }}
-              >
-                Book a class
-              </a>
-              <a
-                href={stripePortalUrl}
-                style={{
-                  flex: 1, padding: '12px 0',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  textAlign: 'center',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: 'rgba(244,237,225,0.8)', textDecoration: 'none',
-                }}
-              >
-                Manage billing
-              </a>
-            </div>
+            {memberStatus && (() => {
+              const s = planSummary(memberStatus)
+              return (
+                <>
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.12)', margin: '22px 0 18px' }} />
+                  <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.4)', marginBottom: 6 }}>
+                        {RECURRING_PLANS.includes(memberStatus.plan ?? '') ? 'Next payment' : memberStatus.plan ? 'Classes remaining' : 'Membership status'}
+                      </div>
+                      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 26, fontWeight: 600, color: T.linen, lineHeight: 1 }}>
+                        {s.value}
+                      </div>
+                      {s.sub && (
+                        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: 'rgba(244,237,225,0.5)', marginTop: 5 }}>
+                          {s.sub}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.35)', textAlign: 'right' }}>
+                      {s.label}
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
           </div>
         </div>
 
         {/* Plan actions */}
         <div style={{ margin: '20px 20px 0' }}>
           <div style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500,
+            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500,
             letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 10,
           }}>Plan</div>
           <div style={{ background: T.canvas, border: `1px solid ${T.rule}` }}>
@@ -296,6 +357,7 @@ export default function MembershipPage() {
               icon={<><path d="M3 8h10M9 4l4 4-4 4" stroke={T.esp} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></>}
               label="Change plan"
               sub="Upgrade, downgrade, or switch billing"
+              onClick={openPortal}
             />
             <ActionRow
               icon={<><rect x="4" y="3" width="2" height="10" fill={T.esp}/><rect x="10" y="3" width="2" height="10" fill={T.esp}/></>}
@@ -307,6 +369,7 @@ export default function MembershipPage() {
               icon={<><path d="M4 4l8 8M12 4l-8 8" stroke={T.rust} strokeWidth="1.4" strokeLinecap="round"/></>}
               label="Cancel membership"
               danger
+              onClick={openPortal}
               last
             />
           </div>
@@ -315,7 +378,7 @@ export default function MembershipPage() {
         {/* Billing */}
         <div style={{ margin: '24px 20px 0' }}>
           <div style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 9.5, fontWeight: 500,
+            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500,
             letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 10,
           }}>Billing</div>
           <div style={{ background: T.canvas, border: `1px solid ${T.rule}` }}>
@@ -323,15 +386,22 @@ export default function MembershipPage() {
               icon={<><rect x="2" y="4" width="12" height="9" stroke={T.esp} strokeWidth="1.2" fill="none"/><path d="M2 7h12M5 10h2" stroke={T.esp} strokeWidth="1.2"/></>}
               label="Payment methods"
               sub="Update card or bank details"
+              onClick={openPortal}
             />
             <ActionRow
               icon={<><rect x="3" y="3" width="10" height="10" stroke={T.esp} strokeWidth="1.2" fill="none"/><path d="M5 6h6M5 9h4" stroke={T.esp} strokeWidth="1.2"/></>}
               label="Invoices & receipts"
               sub="Download past invoices"
+              onClick={openPortal}
               last
             />
           </div>
-          <p style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, color: T.muted, marginTop: 10, lineHeight: 1.6 }}>
+          {billingMsg && (
+            <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.rust, marginTop: 10, lineHeight: 1.6 }}>
+              {billingMsg}
+            </p>
+          )}
+          <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 10, lineHeight: 1.6 }}>
             Billing is managed securely via Stripe. Tap any item above to open your billing portal.
           </p>
         </div>
@@ -345,11 +415,11 @@ export default function MembershipPage() {
           <div style={{
             width: 32, height: 32, border: `1px solid ${T.brown}`, color: T.brown,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Cormorant Garamond', 'Times New Roman', serif", fontSize: 16, fontStyle: 'italic',
+            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 16, fontStyle: 'italic',
           }}>%</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 12, fontWeight: 500, color: T.esp }}>Refer a friend, get 2 weeks free</div>
-            <div style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 11, color: T.muted, marginTop: 2 }}>Ask at the studio for your referral code</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 500, color: T.esp }}>Refer a friend, get 2 weeks free</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 2 }}>Ask at the studio for your referral code</div>
           </div>
         </div>
 
