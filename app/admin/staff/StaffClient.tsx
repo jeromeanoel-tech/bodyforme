@@ -41,8 +41,8 @@ export default function StaffClient({ staff, services, sessions }: Props) {
 
         {staff.length === 0 ? (
           <div className="bg-white border border-neutral-200 rounded-xl px-6 py-12 text-center">
-            <p className="text-sm text-neutral-400">No staff members found in Wix Bookings.</p>
-            <p className="text-[12px] text-neutral-300 mt-1">Add staff in your Wix dashboard under Bookings → Staff.</p>
+            <p className="text-sm text-neutral-400">No instructors found yet.</p>
+            <p className="text-[12px] text-neutral-300 mt-1">Instructors appear here automatically once sessions are created with instructor names in the Classes page.</p>
           </div>
         ) : (
           staff.map(member => {

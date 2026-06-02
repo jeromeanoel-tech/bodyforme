@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { WixSession, WixService, WixBooking } from '@/lib/db'
 
 type Props = {
@@ -31,6 +31,52 @@ export default function CheckInClient({ sessions, services }: Props) {
   const [loading, setLoading]     = useState(false)
   const [search, setSearch]       = useState('')
   const [attended, setAttended]   = useState<AttendeeState>({})
+
+  // Casual state
+  const [walkInOpen, setWalkInOpen]         = useState(false)
+  const [walkInQuery, setWalkInQuery]       = useState('')
+  const [walkInResults, setWalkInResults]   = useState<{ id: string; firstName: string; lastName: string; email: string }[]>([])
+  const [walkInLoading, setWalkInLoading]   = useState(false)
+  const [walkInAdding, setWalkInAdding]     = useState(false)
+  const [walkInError, setWalkInError]       = useState('')
+  const walkInDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (walkInDebounce.current) clearTimeout(walkInDebounce.current)
+    if (walkInQuery.length < 2) { setWalkInResults([]); return }
+    walkInDebounce.current = setTimeout(() => {
+      setWalkInLoading(true)
+      fetch(`/api/admin/search-members?q=${encodeURIComponent(walkInQuery)}`)
+        .then(r => r.json())
+        .then(d => { setWalkInResults(d.members ?? []); setWalkInLoading(false) })
+        .catch(() => setWalkInLoading(false))
+    }, 250)
+  }, [walkInQuery])
+
+  async function addWalkIn(member: { id: string; firstName: string; lastName: string; email: string }) {
+    if (!selectedSession) return
+    setWalkInAdding(true)
+    setWalkInError('')
+    const res = await fetch('/api/admin/book-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId: member.id, sessionId: selectedSession.id }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setWalkInError(data.error ?? 'Failed to add casual'); setWalkInAdding(false); return }
+
+    // Add to bookings list and mark as present
+    setBookings(prev => {
+      const existing = (prev ?? []).find(b => b.memberId === member.id)
+      if (existing) return prev
+      return [...(prev ?? []), data.booking]
+    })
+    setAttended(a => ({ ...a, [data.booking.id]: 'present' }))
+    setWalkInAdding(false)
+    setWalkInOpen(false)
+    setWalkInQuery('')
+    setWalkInResults([])
+  }
 
   const scheduleToName = Object.fromEntries(services.map(s => [s.scheduleId, s.name]))
 
@@ -162,14 +208,71 @@ export default function CheckInClient({ sessions, services }: Props) {
                   </div>
                 )}
               </div>
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="mt-3 w-full h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-              />
+              <div className="mt-3 flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Search by name or email..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="flex-1 h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                />
+                <button
+                  onClick={() => { setWalkInOpen(true); setWalkInQuery(''); setWalkInResults([]); setWalkInError('') }}
+                  className="h-8 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors shrink-0"
+                >
+                  + Casual
+                </button>
+              </div>
             </div>
+
+            {/* Casual panel */}
+            {walkInOpen && (
+              <div className="shrink-0 border-b border-neutral-200 bg-amber-50 px-6 py-4">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[13px] font-semibold text-neutral-900">Add casual</p>
+                  <button onClick={() => setWalkInOpen(false)} className="text-neutral-400 hover:text-neutral-700">✕</button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search member by name or email…"
+                  value={walkInQuery}
+                  onChange={e => setWalkInQuery(e.target.value)}
+                  autoFocus
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white"
+                />
+                {walkInError && <p className="text-[12px] text-red-600 mt-2">{walkInError}</p>}
+                {walkInLoading && <p className="text-[12px] text-neutral-400 mt-2">Searching…</p>}
+                {walkInResults.length > 0 && (
+                  <div className="mt-2 border border-neutral-200 rounded-lg bg-white overflow-hidden">
+                    {walkInResults.map((m, i) => {
+                      const alreadyIn = (bookings ?? []).some(b => b.memberId === m.id)
+                      return (
+                        <div key={m.id} className={`flex items-center justify-between px-3 py-2.5 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
+                          <div>
+                            <p className="text-[13px] font-medium text-neutral-900">{m.firstName} {m.lastName}</p>
+                            <p className="text-[11px] text-neutral-400">{m.email}</p>
+                          </div>
+                          {alreadyIn ? (
+                            <span className="text-[11px] text-neutral-400 italic">Already booked</span>
+                          ) : (
+                            <button
+                              onClick={() => addWalkIn(m)}
+                              disabled={walkInAdding}
+                              className="h-7 px-3 text-[11.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40"
+                            >
+                              {walkInAdding ? '…' : 'Add & check in'}
+                            </button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {walkInQuery.length >= 2 && !walkInLoading && walkInResults.length === 0 && (
+                  <p className="text-[12px] text-neutral-400 mt-2">No members found. Check spelling or create them via Clients first.</p>
+                )}
+              </div>
+            )}
 
             {/* Attendee list */}
             <div className="flex-1 overflow-y-auto">

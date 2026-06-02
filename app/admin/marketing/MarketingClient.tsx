@@ -272,7 +272,7 @@ export default function MarketingClient() {
             <>
               <div>
                 <p className="text-[13px] text-neutral-500">
-                  These emails fire automatically based on triggers. They run via Wix Automations → webhook → this app → Resend.
+                  These emails fire automatically based on triggers. They are built into the booking system and send via Resend.
                 </p>
               </div>
 
@@ -298,7 +298,7 @@ export default function MarketingClient() {
               ))}
 
               <p className="text-[12px] text-neutral-400 pb-2">
-                To add or modify automation triggers, go to your Wix dashboard → Automations → set the trigger condition and point the webhook to <code className="text-neutral-600">/api/email/send</code>.
+                To add or modify automation triggers, contact Jerome — they are configured in the codebase and send via <code className="text-neutral-600">/api/email/send</code>.
               </p>
             </>
           )}

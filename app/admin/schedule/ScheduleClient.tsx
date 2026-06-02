@@ -10,6 +10,7 @@ type Props = {
   scheduleToService: Record<string, WixService>
   resourceToStaff: Record<string, WixStaff>
   weekStart: string
+  weekOffset: number
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -31,7 +32,7 @@ function isToday(date: Date, now: Date) {
   return date.toDateString() === now.toDateString()
 }
 
-export default function ScheduleClient({ sessions, scheduleToService, resourceToStaff, weekStart }: Props) {
+export default function ScheduleClient({ sessions, scheduleToService, resourceToStaff, weekStart, weekOffset }: Props) {
   const router = useRouter()
   const [selectedSession, setSelectedSession] = useState<WixSession | null>(null)
   const [autoConfirmCancel, setAutoConfirmCancel] = useState(false)
@@ -83,11 +84,30 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
     <div className="h-full flex flex-col">
       {/* Toolbar */}
       <div className="shrink-0 flex items-center gap-3 px-6 py-3 border-b border-neutral-200 bg-white">
-        <span className="text-sm font-medium text-neutral-700">
-          {monday.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}
-          {' – '}
-          {new Date(monday.getTime() + 6 * 86400000).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </span>
+        {/* Week navigation */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => router.push(`/admin/schedule?week=${weekOffset - 1}`)}
+            className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm"
+          >‹</button>
+          <span className="text-sm font-medium text-neutral-700 px-2">
+            {monday.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+            {' – '}
+            {new Date(monday.getTime() + 6 * 86400000).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
+          <button
+            onClick={() => router.push(`/admin/schedule?week=${weekOffset + 1}`)}
+            className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm"
+          >›</button>
+          {weekOffset !== 0 && (
+            <button
+              onClick={() => router.push('/admin/schedule')}
+              className="h-8 px-3 text-xs rounded-lg border border-neutral-200 text-neutral-500 hover:border-neutral-400 hover:text-black transition-colors ml-1"
+            >
+              Today
+            </button>
+          )}
+        </div>
         <div className="ml-auto flex items-center gap-2">
           <input
             type="text"

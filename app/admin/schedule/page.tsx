@@ -1,7 +1,7 @@
 import { getSessions, getServices, getStaff } from '@/lib/db'
 import ScheduleClient from './ScheduleClient'
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 function weekRange(offsetWeeks = 0) {
   const now = new Date()
@@ -15,8 +15,13 @@ function weekRange(offsetWeeks = 0) {
   return { from: `${pad(mon)}T00:00:00`, to: `${pad(sun)}T23:59:59`, monday: mon }
 }
 
-export default async function AdminSchedulePage() {
-  const { from, to, monday } = weekRange(0)
+export default async function AdminSchedulePage({
+  searchParams,
+}: {
+  searchParams: { week?: string }
+}) {
+  const offset = parseInt(searchParams.week ?? '0', 10) || 0
+  const { from, to, monday } = weekRange(offset)
 
   const [sessions, services, staff] = await Promise.all([
     getSessions(from, to),
@@ -33,6 +38,7 @@ export default async function AdminSchedulePage() {
       scheduleToService={scheduleToService}
       resourceToStaff={resourceToStaff}
       weekStart={monday.toISOString()}
+      weekOffset={offset}
     />
   )
 }

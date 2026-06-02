@@ -190,15 +190,17 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
             </div>
             <div className="divide-y divide-neutral-100">
               {expiringSoon.slice(0, 6).map(m => {
-                const days = daysUntil(m.endDate)!
+                const days    = daysUntil(m.endDate)!
+                const contact = contacts.find(c => c.id === m.contactId)
+                const name    = contact ? `${contact.firstName} ${contact.lastName}`.trim() : '—'
                 return (
                   <div key={m.id} className="flex items-center justify-between px-5 py-3">
                     <div>
-                      <p className="text-[18px] font-medium text-neutral-900">{m.planName}</p>
-                      <p className="text-[16px] text-neutral-400 mt-0.5">Expires {fmtDate(m.endDate)}</p>
+                      <p className="text-[14px] font-medium text-neutral-900">{name}</p>
+                      <p className="text-[12px] text-neutral-400 mt-0.5">{m.planName} · Expires {fmtDate(m.endDate)}</p>
                     </div>
-                    <span className={`text-[17px] font-semibold px-2.5 py-1 rounded-full ${
-                      days <= 3 ? 'bg-neutral-100 text-neutral-700' : 'bg-neutral-100 text-neutral-500'
+                    <span className={`text-[13px] font-semibold px-2.5 py-1 rounded-full ${
+                      days <= 3 ? 'bg-red-50 text-red-600' : 'bg-neutral-100 text-neutral-500'
                     }`}>
                       {days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `${days}d`}
                     </span>
@@ -210,9 +212,11 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
         )}
 
         {/* Quick links */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-6 gap-3">
           {[
-            { label: 'View schedule',    href: '/admin/schedule'    },
+            { label: 'Check In',         href: '/admin/checkin'     },
+            { label: 'POS',              href: '/admin/pos'         },
+            { label: 'Schedule',         href: '/admin/schedule'    },
             { label: 'Client list',      href: '/admin/clients'     },
             { label: 'Memberships',      href: '/admin/memberships' },
             { label: 'Insights',         href: '/admin/insights'    },
