@@ -1,19 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import type { WixSession, WixService, WixStaff, WixBooking } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
 type Props = {
-  sessions: WixSession[]
+  initialSessions: WixSession[]
   scheduleToService: Record<string, WixService>
   resourceToStaff: Record<string, WixStaff>
-  weekStart: string
-  weekOffset: number
+  initialWeekOffset: number
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+function weekRange(offset: number) {
+  const now = new Date()
+  const mon = new Date(now)
+  mon.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7)
+  mon.setHours(0, 0, 0, 0)
+  const sun = new Date(mon)
+  sun.setDate(mon.getDate() + 6)
+  sun.setHours(23, 59, 59, 0)
+  const pad = (d: Date) => d.toISOString().slice(0, 10)
+  return { from: `${pad(mon)}T00:00:00`, to: `${pad(sun)}T23:59:59`, monday: mon }
+}
 
 function fmt12(iso: string) {
   if (!iso) return ''
@@ -32,32 +42,64 @@ function isToday(date: Date, now: Date) {
   return date.toDateString() === now.toDateString()
 }
 
-export default function ScheduleClient({ sessions, scheduleToService, resourceToStaff, weekStart, weekOffset }: Props) {
-  const router = useRouter()
+export default function ScheduleClient({ initialSessions, scheduleToService, resourceToStaff, initialWeekOffset }: Props) {
+  const [weekOffset,      setWeekOffset]      = useState(initialWeekOffset)
+  const [sessions,        setSessions]        = useState(initialSessions)
+  const [loadingSessions, setLoadingSessions] = useState(false)
   const [selectedSession, setSelectedSession] = useState<WixSession | null>(null)
   const [autoConfirmCancel, setAutoConfirmCancel] = useState(false)
-  const [search, setSearch] = useState('')
-  const [cancelledIds, setCancelledIds] = useState<Set<string>>(new Set())
-  const [now, setNow] = useState(() => new Date())
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [search,          setSearch]          = useState('')
+  const [cancelledIds,    setCancelledIds]    = useState<Set<string>>(new Set())
+  const [now,             setNow]             = useState(() => new Date())
+  const [menuOpenId,      setMenuOpenId]      = useState<string | null>(null)
 
-  // Refresh server data every 60 s and tick "now" every 30 s
+  const { settings } = useSettings()
+
+  async function fetchSessions(offset: number) {
+    const { from, to } = weekRange(offset)
+    try {
+      const res  = await fetch(`/api/admin/schedule-sessions?from=${from}&to=${to}`)
+      const data = await res.json()
+      setSessions(data.sessions ?? [])
+    } catch { /* silent refresh */ }
+  }
+
+  async function goToWeek(offset: number) {
+    window.history.pushState(null, '', offset === 0 ? '/admin/schedule' : `/admin/schedule?week=${offset}`)
+    setLoadingSessions(true)
+    try {
+      const { from, to } = weekRange(offset)
+      const res  = await fetch(`/api/admin/schedule-sessions?from=${from}&to=${to}`)
+      const data = await res.json()
+      setWeekOffset(offset)
+      setSessions(data.sessions ?? [])
+      setCancelledIds(new Set())
+    } finally {
+      setLoadingSessions(false)
+    }
+  }
+
+  // Auto-refresh sessions every 60 s without a full page reload
   useEffect(() => {
-    const refreshId = setInterval(() => router.refresh(), 60_000)
-    const tickId    = setInterval(() => setNow(new Date()), 30_000)
-    return () => { clearInterval(refreshId); clearInterval(tickId) }
-  }, [router])
+    const id = setInterval(() => fetchSessions(weekOffset), 60_000)
+    return () => clearInterval(id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekOffset])
+
+  // Tick "now" every 30 s
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(id)
+  }, [])
 
   function handleCancelled(id: string) {
     setCancelledIds(s => new Set([...s, id]))
   }
-  const { settings } = useSettings()
 
-  const monday = new Date(weekStart)
+  const { monday } = weekRange(weekOffset)
 
-  // Build 7-day structure
   const days = DAYS.map((_, i) => {
-    const date = new Date(monday)
+    const date    = new Date(monday)
     date.setDate(monday.getDate() + i)
     const dateStr = date.toISOString().slice(0, 10)
     const daySessions = sessions
@@ -65,7 +107,7 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
       .filter(s => settings.showCancelledClasses || (s.status !== 'CANCELLED' && !cancelledIds.has(s.id)))
       .filter(s => {
         if (!search) return true
-        const svc = scheduleToService[s.scheduleId]
+        const svc   = scheduleToService[s.scheduleId]
         const staff = resourceToStaff[s.staffResourceId]
         return (
           svc?.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -84,10 +126,9 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
     <div className="h-full flex flex-col">
       {/* Toolbar */}
       <div className="shrink-0 flex items-center gap-3 px-6 py-3 border-b border-neutral-200 bg-white">
-        {/* Week navigation */}
         <div className="flex items-center gap-1">
           <button
-            onClick={() => router.push(`/admin/schedule?week=${weekOffset - 1}`)}
+            onClick={() => goToWeek(weekOffset - 1)}
             className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm"
           >‹</button>
           <span className="text-sm font-medium text-neutral-700 px-2">
@@ -96,12 +137,12 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
             {new Date(monday.getTime() + 6 * 86400000).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
           <button
-            onClick={() => router.push(`/admin/schedule?week=${weekOffset + 1}`)}
+            onClick={() => goToWeek(weekOffset + 1)}
             className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm"
           >›</button>
           {weekOffset !== 0 && (
             <button
-              onClick={() => router.push('/admin/schedule')}
+              onClick={() => goToWeek(0)}
               className="h-8 px-3 text-xs rounded-lg border border-neutral-200 text-neutral-500 hover:border-neutral-400 hover:text-black transition-colors ml-1"
             >
               Today
@@ -109,6 +150,9 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
           )}
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {loadingSessions && (
+            <span className="text-xs text-neutral-400 animate-pulse">Loading…</span>
+          )}
           <input
             type="text"
             placeholder="Filter by class or instructor..."
@@ -121,23 +165,18 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
       </div>
 
       {/* Schedule */}
-      <div className="flex-1 overflow-y-auto">
+      <div className={`flex-1 overflow-y-auto transition-opacity duration-150 ${loadingSessions ? 'opacity-40' : 'opacity-100'}`}>
         {days.map(({ date, daySessions }) => (
           <section key={date.toISOString()}>
-            {/* Day header */}
             <div className={`sticky top-0 z-10 grid border-b border-neutral-200 px-6 py-2 ${
               isToday(date, now) ? 'bg-neutral-100' : 'bg-neutral-50'
             }`}
               style={{ gridTemplateColumns: '160px 1fr 200px 160px 48px' }}
             >
               <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-neutral-800">
-                  {dayLabel(date)}
-                </span>
+                <span className="text-[13px] font-semibold text-neutral-800">{dayLabel(date)}</span>
                 {isToday(date, now) && (
-                  <span className="text-[10px] font-semibold bg-black text-white px-2 py-0.5 rounded-full">
-                    TODAY
-                  </span>
+                  <span className="text-[10px] font-semibold bg-black text-white px-2 py-0.5 rounded-full">TODAY</span>
                 )}
               </div>
               <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider self-center">Class</span>
@@ -146,11 +185,8 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
               <span />
             </div>
 
-            {/* Sessions */}
             {daySessions.length === 0 ? (
-              <div className="px-6 py-4 text-sm text-neutral-400 border-b border-neutral-100">
-                No classes scheduled
-              </div>
+              <div className="px-6 py-4 text-sm text-neutral-400 border-b border-neutral-100">No classes scheduled</div>
             ) : (
               daySessions.map(session => {
                 const svc       = scheduleToService[session.scheduleId]
@@ -168,12 +204,10 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
                     style={{ gridTemplateColumns: '160px 1fr 200px 160px 48px' }}
                     onClick={() => !cancelled && setSelectedSession(session)}
                   >
-                    {/* Time */}
                     <span className={`text-[12px] ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-500'}`}>
                       {fmt12(session.start)} – {fmt12(session.end)}
                     </span>
 
-                    {/* Class */}
                     <div className="flex items-center gap-2">
                       <div className={`w-5 h-5 rounded shrink-0 ${cancelled ? 'bg-neutral-300' : 'bg-black'}`} />
                       <span className={`text-[12.5px] font-medium ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-800'}`}>
@@ -186,15 +220,11 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
                       )}
                     </div>
 
-                    {/* Instructor */}
                     <div className="flex items-center gap-2">
                       <div className="w-[14px] h-[14px] rounded border border-neutral-300 shrink-0" />
-                      <span className="text-[12.5px] text-neutral-700">
-                        {staff?.name ?? '—'}
-                      </span>
+                      <span className="text-[12.5px] text-neutral-700">{staff?.name ?? '—'}</span>
                     </div>
 
-                    {/* Sign in */}
                     {cancelled ? (
                       <span />
                     ) : (
@@ -211,7 +241,6 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
                       </div>
                     )}
 
-                    {/* Actions */}
                     <div className="relative" onClick={e => e.stopPropagation()}>
                       <button
                         className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
@@ -248,7 +277,6 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
           </section>
         ))}
 
-        {/* Stats footer */}
         <div className="px-6 py-5 border-t border-neutral-200 bg-white flex items-center gap-8">
           <div>
             <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Sessions</p>
@@ -267,7 +295,6 @@ export default function ScheduleClient({ sessions, scheduleToService, resourceTo
         </div>
       </div>
 
-      {/* Attendee drawer */}
       {selectedSession && (
         <AttendeeDrawer
           session={selectedSession}
@@ -294,18 +321,19 @@ function AttendeeDrawer({
   onCancelled: (id: string) => void
   initialConfirmCancel?: boolean
 }) {
-  const [bookings,    setBookings]    = useState<WixBooking[] | null>(null)
-  const [loading,     setLoading]     = useState(false)
-  const [cancelling,  setCancelling]  = useState(false)
+  const [bookings,      setBookings]     = useState<WixBooking[] | null>(null)
+  const [loading,       setLoading]      = useState(true)
+  const [cancelling,    setCancelling]   = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(initialConfirmCancel ?? false)
 
-  if (bookings === null && !loading) {
-    setLoading(true)
+  useEffect(() => {
+    let active = true
     fetch(`/api/admin/session-bookings?eventId=${session.id}`)
       .then(r => r.json())
-      .then(d => { setBookings(d.bookings ?? []); setLoading(false) })
-      .catch(() => { setBookings([]); setLoading(false) })
-  }
+      .then(d => { if (active) { setBookings(d.bookings ?? []); setLoading(false) } })
+      .catch(() => { if (active) { setBookings([]); setLoading(false) } })
+    return () => { active = false }
+  }, [session.id])
 
   async function cancelSession() {
     setCancelling(true)
@@ -323,7 +351,6 @@ function AttendeeDrawer({
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
       <div className="relative w-[380px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
-        {/* Header */}
         <div className="px-6 py-5 border-b border-neutral-200 flex items-start justify-between">
           <div className="flex-1 pr-4">
             <h2 className="font-semibold text-neutral-900">{serviceName}</h2>
@@ -359,7 +386,6 @@ function AttendeeDrawer({
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl mt-0.5">×</button>
         </div>
 
-        {/* Attendees */}
         <div className="flex-1 overflow-y-auto">
           {loading && (
             <div className="px-6 py-8 text-sm text-neutral-400">Loading attendees…</div>

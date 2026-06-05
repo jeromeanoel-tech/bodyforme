@@ -1,7 +1,7 @@
 import { getSessions, getServices, getStaff } from '@/lib/db'
 import ScheduleClient from './ScheduleClient'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 30
 
 function weekRange(offsetWeeks = 0) {
   const now = new Date()
@@ -34,11 +34,10 @@ export default async function AdminSchedulePage({
 
   return (
     <ScheduleClient
-      sessions={sessions}
+      initialSessions={sessions}
       scheduleToService={scheduleToService}
       resourceToStaff={resourceToStaff}
-      weekStart={monday.toISOString()}
-      weekOffset={offset}
+      initialWeekOffset={offset}
     />
   )
 }

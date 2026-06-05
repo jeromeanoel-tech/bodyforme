@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import ClassesClient from './ClassesClient'
 
-export const revalidate = 0
+export const revalidate = 30
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
