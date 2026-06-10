@@ -4,19 +4,46 @@ import { useState } from 'react'
 import { useSettings } from '@/lib/useSettings'
 import type { AdminSettings } from '@/lib/settings'
 
-type Section = 'clients' | 'memberships' | 'schedule' | 'insights'
+type Section = 'clients' | 'memberships' | 'schedule' | 'insights' | 'data'
 
 const NAV: { key: Section; label: string }[] = [
   { key: 'clients',     label: 'Clients' },
   { key: 'memberships', label: 'Memberships' },
   { key: 'schedule',    label: 'Schedule' },
   { key: 'insights',    label: 'Insights' },
+  { key: 'data',        label: 'Data' },
 ]
+
+type ImportState = 'idle' | 'running' | 'done' | 'error'
+type ImportResult = { summary: { created: number; updated: number; skipped: number; errors: number; total: number }; results: { name: string; status: string; error?: string }[] }
 
 export default function SettingsClient() {
   const { settings, update } = useSettings()
-  const [section, setSection] = useState<Section>('clients')
-  const [saved, setSaved]     = useState(false)
+  const [section, setSection]       = useState<Section>('clients')
+  const [saved, setSaved]           = useState(false)
+  const [importState, setImportState] = useState<ImportState>('idle')
+  const [importResult, setImportResult] = useState<ImportResult | null>(null)
+  const [importError, setImportError]   = useState('')
+
+  async function runImport(force = false) {
+    setImportState('running')
+    setImportResult(null)
+    setImportError('')
+    try {
+      const res = await fetch(`/api/admin/import-members${force ? '?force=1' : ''}`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setImportError(data.error ?? 'Import failed')
+        setImportState('error')
+      } else {
+        setImportResult(data)
+        setImportState('done')
+      }
+    } catch (e) {
+      setImportError(String(e))
+      setImportState('error')
+    }
+  }
 
   function set<K extends keyof AdminSettings>(key: K, val: AdminSettings[K]) {
     update({ [key]: val })
@@ -116,6 +143,74 @@ export default function SettingsClient() {
                 onChange={v => set('showCancelledClasses', v)}
               />
             </SettingRow>
+          </div>
+        )}
+
+        {/* ── Data ── */}
+        {section === 'data' && (
+          <div className="space-y-6">
+            <Heading title="Data" sub="One-time data imports and migrations" />
+
+            <div className="py-1 space-y-3">
+              <div>
+                <p className="text-[13.5px] font-medium text-neutral-800">Import Mind Body members</p>
+                <p className="text-[12px] text-neutral-400 mt-0.5">
+                  Imports 57 members from the Mind Body export into the members and memberships tables.
+                  Safe to run once — skips if more than 5 members already exist.
+                </p>
+              </div>
+
+              {importState === 'idle' && (
+                <button
+                  onClick={() => runImport(false)}
+                  className="h-9 px-4 text-[13px] bg-black text-white rounded-lg hover:bg-neutral-800"
+                >
+                  Run import
+                </button>
+              )}
+
+              {importState === 'running' && (
+                <div className="flex items-center gap-2 text-[13px] text-neutral-500">
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-neutral-300 border-t-black rounded-full" />
+                  Importing members…
+                </div>
+              )}
+
+              {importState === 'error' && (
+                <div className="space-y-2">
+                  <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-[13px] text-red-700">
+                    {importError}
+                  </div>
+                  <button onClick={() => setImportState('idle')} className="text-[12px] text-neutral-500 underline">
+                    Try again
+                  </button>
+                </div>
+              )}
+
+              {importState === 'done' && importResult && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-[13px] text-green-700 flex gap-4">
+                      <span><strong>{importResult.summary.created}</strong> created</span>
+                      <span><strong>{importResult.summary.updated}</strong> updated</span>
+                      <span><strong>{importResult.summary.skipped}</strong> skipped</span>
+                      {importResult.summary.errors > 0 && (
+                        <span className="text-red-600"><strong>{importResult.summary.errors}</strong> errors</span>
+                      )}
+                    </div>
+                  </div>
+                  {importResult.results.filter(r => r.status === 'error').map((r, i) => (
+                    <p key={i} className="text-[12px] text-red-600">{r.name}: {r.error}</p>
+                  ))}
+                  <button
+                    onClick={() => runImport(true)}
+                    className="text-[12px] text-neutral-500 underline"
+                  >
+                    Re-run with force (updates existing records)
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
