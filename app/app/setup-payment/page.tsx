@@ -34,7 +34,7 @@ export default function SetupPaymentPage() {
           Set up your<br /><em>bank debit</em>
         </h1>
         <p className="text-[14px] text-[#6b5240] leading-relaxed mb-8">
-          Enter the email address on your BodyForme account and we'll take you to a secure page to add your BSB and account number.
+          Enter the email address on your BodyForme account and we&apos;ll take you to a secure page to add your BSB and account number.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,7 +68,7 @@ export default function SetupPaymentPage() {
         </form>
 
         <p className="mt-6 text-[11px] text-[#a08568] leading-relaxed">
-          You'll be taken to a Stripe-hosted page to securely enter your bank details. BodyForme never sees your account number — it's handled entirely by Stripe.
+          You&apos;ll be taken to a Stripe-hosted page to securely enter your bank details. BodyForme never sees your account number — it&apos;s handled entirely by Stripe.
         </p>
       </div>
     </main>

@@ -10,7 +10,7 @@ export default function SetupPaymentSuccessPage() {
           Bank details<br /><em>saved</em>
         </h1>
         <p className="text-[14px] text-[#6b5240] leading-relaxed mb-8">
-          Your direct debit is now set up. We'll debit your account automatically on your billing date — nothing else you need to do.
+          Your direct debit is now set up. We&apos;ll debit your account automatically on your billing date — nothing else you need to do.
         </p>
         <a
           href="/app"
