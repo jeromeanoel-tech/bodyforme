@@ -4,7 +4,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
 const BASE           = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
 
-type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'migration' | 'custom'
+type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'migration' | 'dd-payment-setup' | 'custom'
 
 interface EmailPayload {
   to:       string
@@ -182,6 +182,27 @@ function buildEmail(template: Template, vars: Record<string, string>): { subject
           detailBox([['Step 1', 'Create your account'], ['Step 2', 'Confirm your details'], ['Step 3', 'Book as usual']]) +
           cta('Create account', signup) +
           p('Use the same email address you booked with on Mind Body and everything will link up. Need a hand? Just reply — we\'re happy to walk you through it.', true)
+        ),
+      }
+
+    case 'dd-payment-setup':
+      return {
+        subject: 'One small thing to sort before your next class',
+        html: wrap(
+          eyebrow('Action needed') +
+          heading('Nearly <em style="font-style:italic">there</em> — just one small thing') +
+          p(`Hi ${first},`) +
+          p(`Thanks for signing up to your <strong>${plan}</strong> with us — we're really glad to have you.`) +
+          p('To get your direct debit sorted, we just need your bank account details (BSB and account number). It only takes two minutes, and you can do it with Suzanne next time you\'re in the studio.') +
+          detailBox([
+            ['What to bring', 'Your BSB + account number'],
+            ['When', 'Next time you\'re in'],
+            ['Who to see', 'Suzanne at the front desk'],
+          ]) +
+          p('Once that\'s done, your membership will run automatically each fortnight — nothing else you need to do.') +
+          RULE +
+          p('Any questions? Just reply to this email or call us on the day.', true) +
+          signoff('See you on the mat,')
         ),
       }
 
