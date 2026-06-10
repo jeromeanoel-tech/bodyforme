@@ -59,38 +59,42 @@ type MemberStatus = {
   status:          string
 }
 
-const RECURRING_PLANS = ['Bronze – $120/mo', 'Silver – $200/mo', 'Unlimited – $260/mo']
-const PACK_PLANS      = ['5-Class Pack', '10-Class Pack', 'Casual Drop-in', 'Free Trial']
+const PACK_PLANS = ['10-Class Pack', '20-Class Pack', '50-Class Pass', '5-Class Pack', 'casual', 'intro-offer', 'Free Trial', 'Casual Drop-in']
 
 function planSummary(ms: MemberStatus): { label: string; value: string; sub: string } {
   const plan = ms.plan ?? ''
+  const p    = plan.toLowerCase()
 
-  if (RECURRING_PLANS.includes(plan)) {
-    const planName = plan.split(' –')[0]
+  // Unlimited — no credit tracking
+  if (p.includes('unlimited')) {
     if (ms.nextBillingDate) {
       const d    = new Date(ms.nextBillingDate)
       const diff = Math.ceil((d.getTime() - Date.now()) / 86_400_000)
       const fmt  = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-      return {
-        label: planName,
-        value: fmt,
-        sub:   diff > 0 ? `Next payment in ${diff} day${diff === 1 ? '' : 's'}` : 'Payment due',
-      }
+      return { label: 'Unlimited', value: fmt, sub: diff > 0 ? `Next payment in ${diff} day${diff === 1 ? '' : 's'}` : 'Payment due' }
     }
-    return { label: planName, value: 'Active', sub: 'Direct debit' }
+    return { label: 'Unlimited', value: 'Active', sub: 'Book as many classes as you like' }
   }
 
-  if (PACK_PLANS.includes(plan) || plan.includes('Pack') || plan.includes('pack')) {
-    const left = ms.creditBalance
+  // Weekly DD plans
+  if (p.includes('3 per week') || p.includes('weekly-3')) {
+    if (ms.nextBillingDate) {
+      const d   = new Date(ms.nextBillingDate)
+      const fmt = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+      return { label: '3 classes / week', value: fmt, sub: 'Direct debit' }
+    }
+    return { label: '3 classes / week', value: 'Active', sub: 'Direct debit' }
+  }
+
+  // Class packs / casual
+  if (PACK_PLANS.some(pk => p.includes(pk.toLowerCase())) || p.includes('pack') || p.includes('pass') || p === 'casual' || p === 'intro-offer') {
+    const left  = ms.creditBalance
+    const label = plan === 'casual' ? 'Casual Drop-in' : plan === 'intro-offer' ? 'Intro Pass' : plan
     return {
-      label: plan,
+      label,
       value: `${left} class${left === 1 ? '' : 'es'} left`,
       sub:   left === 0 ? 'All classes used' : left <= 2 ? 'Running low' : 'Available to book',
     }
-  }
-
-  if (plan === 'Unlimited – $260/mo') {
-    return { label: 'Unlimited', value: 'Unlimited', sub: 'Book as many classes as you like' }
   }
 
   if (!plan) return { label: 'No plan', value: '—', sub: 'Contact the studio to sign up' }
@@ -325,7 +329,7 @@ export default function MembershipPage() {
                   <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.4)', marginBottom: 6 }}>
-                        {RECURRING_PLANS.includes(memberStatus.plan ?? '') ? 'Next payment' : memberStatus.plan ? 'Classes remaining' : 'Membership status'}
+                        {memberStatus.nextBillingDate ? 'Next payment' : memberStatus.plan ? 'Classes remaining' : 'Membership status'}
                       </div>
                       <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 26, fontWeight: 600, color: T.linen, lineHeight: 1 }}>
                         {s.value}

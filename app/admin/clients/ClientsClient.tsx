@@ -979,21 +979,22 @@ function OverviewTab({ contact, loading, totalBookings, attended, cancelled, las
 // ── Memberships tab ───────────────────────────────────────────────────────────
 
 const PLAN_OPTIONS = [
-  { label: 'Bronze – 4 classes/mo ($120)',    value: 'Bronze – $120/mo' },
-  { label: 'Silver – 8 classes/mo ($200)',    value: 'Silver – $200/mo' },
-  { label: 'Unlimited – ($260/mo)',            value: 'Unlimited – $260/mo' },
-  { label: '10-Class Pack',                    value: '10-Class Pack' },
-  { label: '5-Class Pack',                     value: '5-Class Pack' },
-  { label: 'Casual Drop-in',                   value: 'Casual Drop-in' },
-  { label: 'Free Trial',                       value: 'Free Trial' },
+  { label: 'Unlimited (DD)',         value: 'Unlimited' },
+  { label: '3 classes/week (DD)',    value: '3 per week' },
+  { label: '10-Class Pack',          value: '10-Class Pack' },
+  { label: '20-Class Pack',          value: '20-Class Pack' },
+  { label: '50-Class Pass',          value: '50-Class Pass' },
+  { label: 'Casual Drop-in',         value: 'casual' },
+  { label: 'Intro Pass',             value: 'intro-offer' },
+  { label: 'Free Trial',             value: 'Free Trial' },
 ]
 
 const QUICK_PRESETS = [
-  { label: 'Silver monthly',  plan: 'Silver – $200/mo',    credits: 0 },
-  { label: 'Unlimited',       plan: 'Unlimited – $260/mo', credits: 0 },
-  { label: 'Bronze monthly',  plan: 'Bronze – $120/mo',    credits: 0 },
-  { label: '10-class pack',   plan: '10-Class Pack',       credits: 10 },
-  { label: '5-class pack',    plan: '5-Class Pack',        credits: 5 },
+  { label: 'Unlimited',      plan: 'Unlimited',    credits: 0  },
+  { label: '3/week DD',      plan: '3 per week',   credits: 0  },
+  { label: '10-class pack',  plan: '10-Class Pack', credits: 10 },
+  { label: '20-class pack',  plan: '20-Class Pack', credits: 20 },
+  { label: 'Casual',         plan: 'casual',        credits: 1  },
 ]
 
 function MembershipsTab({ contact, memberships, member, memberLoading, onMemberUpdate }: {
