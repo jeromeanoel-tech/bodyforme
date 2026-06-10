@@ -50,6 +50,12 @@ function isExpiringSoon(m: MembershipRow, threshold: number) {
   return m.status === 'ACTIVE' && days !== null && days >= 0 && days <= threshold
 }
 
+type BulkSendState = 'idle' | 'confirming' | 'sending' | 'done'
+
+function isDDPlan(planName: string) {
+  return /direct.?debit/i.test(planName)
+}
+
 export default function MembershipsClient({ rows: initialRows }: Props) {
   const [rows, setRows]     = useState<MembershipRow[]>(initialRows)
   const [tab, setTab]       = useState<TabKey>('all')
@@ -59,6 +65,48 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
   const [selected, setSelected]     = useState<MembershipRow | null>(null)
   const { settings } = useSettings()
   const expiringDays = settings.expiringDays
+
+  // Bulk DD email send
+  const [bulkState, setBulkState]   = useState<BulkSendState>('idle')
+  const [bulkProgress, setBulkProgress] = useState({ sent: 0, total: 0 })
+  const [bulkErrors, setBulkErrors] = useState<string[]>([])
+
+  const ddTargets = useMemo(() =>
+    rows.filter(r =>
+      r.status === 'ACTIVE' &&
+      isDDPlan(r.planName ?? '') &&
+      r.email &&
+      !r.email.includes('@bodyforme.placeholder')
+    )
+  , [rows])
+
+  async function sendDDEmails() {
+    setBulkState('sending')
+    setBulkProgress({ sent: 0, total: ddTargets.length })
+    setBulkErrors([])
+    const errs: string[] = []
+    for (let i = 0; i < ddTargets.length; i++) {
+      const m = ddTargets[i]
+      const [firstName] = m.clientName.split(' ')
+      try {
+        const res = await fetch('/api/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: m.email,
+            template: 'dd-payment-setup',
+            vars: { firstName, planName: m.planName },
+          }),
+        })
+        if (!res.ok) errs.push(`${m.clientName}: server error`)
+      } catch {
+        errs.push(`${m.clientName}: network error`)
+      }
+      setBulkProgress({ sent: i + 1, total: ddTargets.length })
+    }
+    setBulkErrors(errs)
+    setBulkState('done')
+  }
 
   function handleStatusChange(id: string, status: string) {
     setRows(prev => prev.map(r => r.id === id ? { ...r, status } : r))
@@ -290,7 +338,104 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
           <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Total orders</p>
           <p className="text-xl font-semibold text-neutral-900 mt-0.5">{rows.length}</p>
         </div>
+        {ddTargets.length > 0 && (
+          <div className="ml-auto">
+            <button
+              onClick={() => setBulkState('confirming')}
+              className="h-9 px-4 text-[13px] border border-neutral-200 rounded-lg text-neutral-700 hover:border-black hover:text-black transition-colors flex items-center gap-2"
+            >
+              <span>✉</span>
+              Send payment setup emails
+              <span className="text-[10px] font-semibold bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded-full">
+                {ddTargets.length}
+              </span>
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* ── Bulk send modal ── */}
+      {bulkState !== 'idle' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/30" onClick={() => bulkState !== 'sending' && setBulkState('idle')} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-[480px] max-h-[80vh] flex flex-col overflow-hidden">
+
+            <div className="px-6 py-5 border-b border-neutral-200">
+              <h2 className="font-semibold text-neutral-900">
+                {bulkState === 'confirming' && 'Send payment setup emails'}
+                {bulkState === 'sending'    && 'Sending…'}
+                {bulkState === 'done'       && 'All done'}
+              </h2>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {bulkState === 'confirming' && (
+                <>
+                  <p className="text-[13px] text-neutral-600 mb-4">
+                    This will email <strong>{ddTargets.length} active direct debit members</strong> asking them to pop in and set up their payment details. Members without an email are skipped automatically.
+                  </p>
+                  <div className="space-y-1">
+                    {ddTargets.map(m => (
+                      <div key={m.id} className="flex items-center justify-between py-1.5 border-b border-neutral-100 last:border-0">
+                        <span className="text-[13px] text-neutral-800">{m.clientName}</span>
+                        <span className="text-[11px] text-neutral-400 truncate max-w-[200px]">{m.email}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {bulkState === 'sending' && (
+                <div className="space-y-4">
+                  <div className="w-full bg-neutral-100 rounded-full h-2">
+                    <div
+                      className="bg-black h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(bulkProgress.sent / bulkProgress.total) * 100}%` }}
+                    />
+                  </div>
+                  <p className="text-[13px] text-neutral-600 text-center">
+                    {bulkProgress.sent} of {bulkProgress.total} sent…
+                  </p>
+                </div>
+              )}
+
+              {bulkState === 'done' && (
+                <>
+                  <p className="text-[13px] text-neutral-600 mb-3">
+                    Sent <strong>{bulkProgress.total - bulkErrors.length}</strong> of <strong>{bulkProgress.total}</strong> emails successfully.
+                  </p>
+                  {bulkErrors.length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-1">
+                      <p className="text-[11.5px] font-semibold text-red-700 uppercase tracking-wide mb-2">Failed</p>
+                      {bulkErrors.map((e, i) => (
+                        <p key={i} className="text-[12px] text-red-600">{e}</p>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-neutral-200 flex justify-end gap-2">
+              {bulkState === 'confirming' && (
+                <>
+                  <button onClick={() => setBulkState('idle')} className="h-9 px-4 text-[13px] border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400">
+                    Cancel
+                  </button>
+                  <button onClick={sendDDEmails} className="h-9 px-4 text-[13px] bg-black text-white rounded-lg hover:bg-neutral-800">
+                    Send {ddTargets.length} emails
+                  </button>
+                </>
+              )}
+              {bulkState === 'done' && (
+                <button onClick={() => setBulkState('idle')} className="h-9 px-4 text-[13px] bg-black text-white rounded-lg hover:bg-neutral-800">
+                  Done
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Detail drawer ── */}
       {selected && (
