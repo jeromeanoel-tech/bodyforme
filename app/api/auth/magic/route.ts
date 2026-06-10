@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   // Ensure password is set
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!)
-  const hash = await bcrypt.hash('BodyForme2026!', 10)
+  const hash = await bcrypt.hash(process.env.MEMBER_PLACEHOLDER_PASSWORD ?? 'changeme', 10)
   await supabase.from('members').update({ password_hash: hash }).eq('email', email)
 
   // Log in

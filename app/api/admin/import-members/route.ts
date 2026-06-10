@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     }, { status: 409 })
   }
 
-  const placeholderHash = await bcrypt.hash('BodyForme2026!', 8)
+  const placeholderHash = await bcrypt.hash(process.env.MEMBER_PLACEHOLDER_PASSWORD ?? 'changeme', 8)
   const results: { name: string; status: string; error?: string }[] = []
 
   for (const m of MEMBERS) {
