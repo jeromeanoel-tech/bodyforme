@@ -177,13 +177,21 @@ export default function SettingsClient() {
               )}
 
               {importState === 'error' && (
-                <div className="space-y-2">
-                  <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-[13px] text-red-700">
+                <div className="space-y-3">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-[13px] text-amber-800">
                     {importError}
                   </div>
-                  <button onClick={() => setImportState('idle')} className="text-[12px] text-neutral-500 underline">
-                    Try again
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => runImport(true)}
+                      className="h-9 px-4 text-[13px] bg-black text-white rounded-lg hover:bg-neutral-800"
+                    >
+                      Force import (update existing)
+                    </button>
+                    <button onClick={() => setImportState('idle')} className="text-[12px] text-neutral-500 underline">
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
 
