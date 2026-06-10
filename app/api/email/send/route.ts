@@ -193,15 +193,10 @@ function buildEmail(template: Template, vars: Record<string, string>): { subject
           heading('Nearly <em style="font-style:italic">there</em> — just one small thing') +
           p(`Hi ${first},`) +
           p(`Thanks for signing up to your <strong>${plan}</strong> with us — we're really glad to have you.`) +
-          p('To get your direct debit sorted, we just need your bank account details (BSB and account number). It only takes two minutes, and you can do it with Suzanne next time you\'re in the studio.') +
-          detailBox([
-            ['What to bring', 'Your BSB + account number'],
-            ['When', 'Next time you\'re in'],
-            ['Who to see', 'Suzanne at the front desk'],
-          ]) +
-          p('Once that\'s done, your membership will run automatically each fortnight — nothing else you need to do.') +
+          p('To get your direct debit running, we just need your BSB and account number. It takes about two minutes and is handled securely by Stripe — we never see your account details.') +
+          cta('Set up direct debit', `${BASE}/app/setup-payment`) +
           RULE +
-          p('Any questions? Just reply to this email or call us on the day.', true) +
+          p('Any questions? Just reply to this email or speak to Suzanne next time you\'re in.', true) +
           signoff('See you on the mat,')
         ),
       }

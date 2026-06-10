@@ -58,6 +58,24 @@ export async function POST(req: NextRequest) {
     case 'checkout.session.completed': {
       const meta = (obj.metadata ?? {}) as Record<string, string>
 
+      // ── BECS direct debit setup ───────────────────────────────────────────
+      if (obj.mode === 'setup') {
+        const memberId         = meta.memberId ?? ''
+        const stripeCustomerId = (obj.customer as string) ?? ''
+        if (memberId && stripeCustomerId) {
+          await updateMemberCredential(memberId, { stripeCustomerId })
+        }
+        // Notify studio that a member has set up their debit
+        const member = memberId ? await getMemberById(memberId) : null
+        if (member) {
+          await sendEmail(STUDIO_EMAIL, 'custom', {
+            subject: `Direct debit set up — ${member.firstName} ${member.lastName}`,
+            html: `<p>${member.firstName} ${member.lastName} (${member.email}) has completed their BECS direct debit setup. Their bank details are now saved in Stripe.</p>`,
+          })
+        }
+        break
+      }
+
       // ── POS sale ──────────────────────────────────────────────────────────
       if (meta.source === 'pos') {
         const memberId = meta.memberId ?? ''
