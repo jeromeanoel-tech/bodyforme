@@ -18,6 +18,9 @@ type ImportState = 'idle' | 'running' | 'done' | 'error'
 type ImportResult = { summary: { created: number; updated: number; skipped: number; errors: number; total: number }; results: { name: string; status: string; error?: string }[] }
 type OnboardState = 'idle' | 'confirming' | 'sending' | 'done' | 'error'
 type OnboardResult = { sent: number; failed: number; total: number; results: { email: string; ok: boolean; error?: string }[] }
+type CleanupState = 'idle' | 'confirming' | 'running' | 'done' | 'error'
+type PosSetupState = 'idle' | 'running' | 'done' | 'error'
+type PosSetupResult = { created: number; skipped: number; results: { name: string; status: string }[] }
 
 export default function SettingsClient() {
   const { settings, update } = useSettings()
@@ -28,6 +31,35 @@ export default function SettingsClient() {
   const [importError, setImportError]   = useState('')
   const [onboardState, setOnboardState]   = useState<OnboardState>('idle')
   const [onboardResult, setOnboardResult] = useState<OnboardResult | null>(null)
+  const [cleanupState, setCleanupState]   = useState<CleanupState>('idle')
+  const [cleanupCount, setCleanupCount]   = useState<number | null>(null)
+  const [posState,     setPosState]       = useState<PosSetupState>('idle')
+  const [posResult,    setPosResult]      = useState<PosSetupResult | null>(null)
+
+  async function runCleanup() {
+    setCleanupState('running')
+    try {
+      const res  = await fetch('/api/admin/cleanup-members?purge-test=1', { method: 'DELETE' })
+      const data = await res.json()
+      setCleanupCount(data.deleted ?? 0)
+      setCleanupState('done')
+    } catch {
+      setCleanupState('error')
+    }
+  }
+
+  async function setupPosProducts() {
+    setPosState('running')
+    setPosResult(null)
+    try {
+      const res  = await fetch('/api/admin/setup-pos-products', { method: 'POST' })
+      const data: PosSetupResult = await res.json()
+      setPosResult(data)
+      setPosState('done')
+    } catch {
+      setPosState('error')
+    }
+  }
 
   async function sendOnboardingEmails() {
     setOnboardState('sending')
@@ -295,6 +327,94 @@ export default function SettingsClient() {
                   <button onClick={() => setOnboardState('idle')} className="text-[12px] text-neutral-500 underline">
                     Reset
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* ── POS products ── */}
+            <div className="border-t border-neutral-100 pt-6 space-y-3">
+              <div>
+                <p className="text-[13.5px] font-medium text-neutral-800">Set up POS products in Stripe</p>
+                <p className="text-[12px] text-neutral-400 mt-0.5">
+                  Creates the 8 standard products in your Stripe account (Casual, class packs, prepaid unlimited)
+                  so they appear in the POS panel. Safe to run more than once — skips products that already exist.
+                </p>
+              </div>
+              {posState === 'idle' && (
+                <button onClick={setupPosProducts} className="h-9 px-4 text-[13px] bg-black text-white rounded-lg hover:bg-neutral-800">
+                  Create POS products
+                </button>
+              )}
+              {posState === 'running' && (
+                <div className="flex items-center gap-2 text-[13px] text-neutral-500">
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-neutral-300 border-t-black rounded-full" />
+                  Creating products in Stripe…
+                </div>
+              )}
+              {posState === 'done' && posResult && (
+                <div className="space-y-2">
+                  <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-[13px] text-green-700 flex gap-4">
+                    <span><strong>{posResult.created}</strong> created</span>
+                    {posResult.skipped > 0 && <span className="text-neutral-500"><strong>{posResult.skipped}</strong> already existed</span>}
+                  </div>
+                  {posResult.results.map((r, i) => (
+                    <p key={i} className="text-[12px] text-neutral-500">{r.name} — {r.status}</p>
+                  ))}
+                </div>
+              )}
+              {posState === 'error' && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-[13px] text-red-700 space-y-2">
+                  <p>Something went wrong. Check that your Stripe key is configured on Vercel.</p>
+                  <button onClick={() => setPosState('idle')} className="text-[12px] underline">Try again</button>
+                </div>
+              )}
+            </div>
+
+            {/* ── Test account cleanup ── */}
+            <div className="border-t border-neutral-100 pt-6 space-y-3">
+              <div>
+                <p className="text-[13.5px] font-medium text-neutral-800">Remove test accounts</p>
+                <p className="text-[12px] text-neutral-400 mt-0.5">
+                  Deletes any member account that isn&apos;t in the real member list and isn&apos;t a placeholder.
+                  This removes any test logins created during setup. Cannot be undone.
+                </p>
+              </div>
+              {cleanupState === 'idle' && (
+                <button
+                  onClick={() => setCleanupState('confirming')}
+                  className="h-9 px-4 text-[13px] border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
+                >
+                  Remove test accounts
+                </button>
+              )}
+              {cleanupState === 'confirming' && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 space-y-3">
+                  <p className="text-[13px] text-red-800">This will permanently delete test accounts. Are you sure?</p>
+                  <div className="flex items-center gap-3">
+                    <button onClick={runCleanup} className="h-8 px-4 text-[12.5px] bg-red-600 text-white rounded-lg hover:bg-red-700">
+                      Yes, delete them
+                    </button>
+                    <button onClick={() => setCleanupState('idle')} className="text-[12px] text-neutral-500 underline">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+              {cleanupState === 'running' && (
+                <div className="flex items-center gap-2 text-[13px] text-neutral-500">
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-neutral-300 border-t-black rounded-full" />
+                  Removing accounts…
+                </div>
+              )}
+              {cleanupState === 'done' && (
+                <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-[13px] text-green-700">
+                  Done — <strong>{cleanupCount}</strong> test account{cleanupCount !== 1 ? 's' : ''} removed.
+                </div>
+              )}
+              {cleanupState === 'error' && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-[13px] text-red-700 space-y-2">
+                  <p>Something went wrong. Try again or check the server logs.</p>
+                  <button onClick={() => setCleanupState('idle')} className="text-[12px] underline">Try again</button>
                 </div>
               )}
             </div>
