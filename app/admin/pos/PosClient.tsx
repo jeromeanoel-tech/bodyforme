@@ -6,37 +6,53 @@ import type { PosProduct } from '@/app/api/admin/pos/products/route'
 import type { CheckoutItem } from '@/app/api/admin/pos/checkout/route'
 
 type Member = {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-  planOverride: string
+  id:            string
+  firstName:     string
+  lastName:      string
+  email:         string
+  planOverride:  string
   creditBalance: number
-  status: string
+  status:        string
 }
 
 type CartItem = PosProduct & { quantity: number }
+
+type TerminalStatus =
+  | 'idle'
+  | 'connecting'
+  | 'waiting_card'
+  | 'processing'
+  | 'success'
+  | 'error'
 
 function fmt(cents: number) {
   return `$${(cents / 100).toFixed(2).replace('.00', '')}`
 }
 
 export default function PosClient() {
-  const params = useSearchParams()
+  const params   = useSearchParams()
   const justPaid = params.get('success') === '1'
 
-  const [products, setProducts]           = useState<PosProduct[]>([])
+  const [products, setProducts]               = useState<PosProduct[]>([])
   const [productsLoading, setProductsLoading] = useState(true)
-  const [cart, setCart]                   = useState<CartItem[]>([])
-  const [memberQuery, setMemberQuery]     = useState('')
-  const [memberResults, setMemberResults] = useState<Member[]>([])
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null)
-  const [searchOpen, setSearchOpen]       = useState(false)
-  const [charging, setCharging]           = useState(false)
-  const [paymentUrl, setPaymentUrl]       = useState<string | null>(null)
-  const [copied, setCopied]               = useState(false)
-  const [successBanner, setSuccessBanner] = useState(justPaid)
-  const searchRef = useRef<HTMLDivElement>(null)
+  const [cart, setCart]                       = useState<CartItem[]>([])
+  const [memberQuery, setMemberQuery]         = useState('')
+  const [memberResults, setMemberResults]     = useState<Member[]>([])
+  const [selectedMember, setSelectedMember]   = useState<Member | null>(null)
+  const [searchOpen, setSearchOpen]           = useState(false)
+  const [charging, setCharging]               = useState(false)
+  const [paymentUrl, setPaymentUrl]           = useState<string | null>(null)
+  const [copied, setCopied]                   = useState(false)
+  const [successBanner, setSuccessBanner]     = useState(justPaid)
+
+  // Terminal state
+  const [terminalStatus, setTerminalStatus] = useState<TerminalStatus>('idle')
+  const [terminalError, setTerminalError]   = useState<string | null>(null)
+  const [readerName, setReaderName]         = useState<string | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const terminalRef = useRef<any>(null)
+
+  const searchRef   = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Load products from Stripe
@@ -53,6 +69,20 @@ export default function PosClient() {
     const t = setTimeout(() => setSuccessBanner(false), 4000)
     return () => clearTimeout(t)
   }, [successBanner])
+
+  // Auto-clear after terminal success
+  useEffect(() => {
+    if (terminalStatus !== 'success') return
+    const t = setTimeout(() => {
+      setTerminalStatus('idle')
+      setCart([])
+      setSelectedMember(null)
+      setMemberQuery('')
+      setPaymentUrl(null)
+      setSuccessBanner(true)
+    }, 3000)
+    return () => clearTimeout(t)
+  }, [terminalStatus])
 
   // Member search debounce
   useEffect(() => {
@@ -102,6 +132,7 @@ export default function PosClient() {
 
   const total = cart.reduce((sum, i) => sum + i.amount * i.quantity, 0)
 
+  // ── Online payment link ──────────────────────────────────────────────────
   async function handleCharge() {
     if (!cart.length) return
     setCharging(true)
@@ -114,9 +145,9 @@ export default function PosClient() {
         planName:     i.planName,
       }))
       const res = await fetch('/api/admin/pos/checkout', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body:    JSON.stringify({
           memberId:    selectedMember?.id    ?? '',
           memberEmail: selectedMember?.email ?? '',
           memberName:  selectedMember ? `${selectedMember.firstName} ${selectedMember.lastName}` : '',
@@ -130,12 +161,122 @@ export default function PosClient() {
     }
   }
 
+  // ── Terminal (reader) charge ─────────────────────────────────────────────
+  async function handleTerminalCharge() {
+    if (!cart.length) return
+    setTerminalError(null)
+    setTerminalStatus('connecting')
+
+    try {
+      // Lazy-load Terminal SDK once per session
+      if (!terminalRef.current) {
+        const { loadStripeTerminal } = await import('@stripe/terminal-js')
+        const StripeTerminal = await loadStripeTerminal()
+        if (!StripeTerminal) {
+          setTerminalStatus('error')
+          setTerminalError('Failed to load Stripe Terminal. Check your internet connection.')
+          return
+        }
+        terminalRef.current = StripeTerminal.create({
+          onFetchConnectionToken: async () => {
+            const r = await fetch('/api/admin/pos/terminal-connection-token', { method: 'POST' })
+            const d = await r.json()
+            return d.secret as string
+          },
+          onUnexpectedReaderDisconnect: () => {
+            setReaderName(null)
+            setTerminalStatus('error')
+            setTerminalError('Reader disconnected. Make sure it\'s powered on and connected to Wi-Fi.')
+          },
+        })
+      }
+
+      const terminal = terminalRef.current
+
+      // Connect to reader if not already connected
+      const connected = terminal.getConnectedReader()
+      if (!connected) {
+        const discover = await terminal.discoverReaders({ simulated: false })
+        if (discover.error) {
+          setTerminalStatus('error')
+          setTerminalError(discover.error.message ?? 'Could not search for readers.')
+          return
+        }
+        if (!discover.discoveredReaders?.length) {
+          setTerminalStatus('error')
+          setTerminalError('No reader found. Make sure the reader is powered on and connected to Wi-Fi.')
+          return
+        }
+        const connectResult = await terminal.connectReader(discover.discoveredReaders[0])
+        if (connectResult.error) {
+          setTerminalStatus('error')
+          setTerminalError(connectResult.error.message ?? 'Could not connect to reader.')
+          return
+        }
+        setReaderName(connectResult.reader?.label ?? connectResult.reader?.id ?? 'Reader')
+      } else {
+        setReaderName(connected.label ?? connected.id ?? 'Reader')
+      }
+
+      // Build actions payload (same shape as checkout route)
+      const actions = cart.map(i => ({
+        memberAction: i.memberAction,
+        creditAmount: i.creditAmount,
+        planName:     i.planName,
+        quantity:     i.quantity,
+      }))
+
+      // Create PaymentIntent on the server
+      const piRes = await fetch('/api/admin/pos/terminal-payment', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          amount:     total,
+          memberId:   selectedMember?.id    ?? '',
+          memberName: selectedMember ? `${selectedMember.firstName} ${selectedMember.lastName}` : '',
+          actions,
+        }),
+      })
+      const piData = await piRes.json()
+      if (!piData.clientSecret) {
+        setTerminalStatus('error')
+        setTerminalError(piData.error ?? 'Failed to create payment.')
+        return
+      }
+
+      // Present card to reader
+      setTerminalStatus('waiting_card')
+      const collectResult = await terminal.collectPaymentMethod(piData.clientSecret)
+      if (collectResult.error) {
+        setTerminalStatus('error')
+        setTerminalError(collectResult.error.message ?? 'Card collection cancelled.')
+        return
+      }
+
+      // Process
+      setTerminalStatus('processing')
+      const processResult = await terminal.processPayment(collectResult.paymentIntent)
+      if (processResult.error) {
+        setTerminalStatus('error')
+        setTerminalError(processResult.error.message ?? 'Payment failed. Please try again.')
+        return
+      }
+
+      setTerminalStatus('success')
+    } catch (err: unknown) {
+      setTerminalStatus('error')
+      setTerminalError(err instanceof Error ? err.message : 'Unexpected error.')
+    }
+  }
+
   async function copyLink() {
     if (!paymentUrl) return
     await navigator.clipboard.writeText(paymentUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const terminalBusy = terminalStatus === 'connecting' || terminalStatus === 'waiting_card' || terminalStatus === 'processing'
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-neutral-50">
@@ -199,9 +340,7 @@ export default function PosClient() {
                 <button
                   onClick={() => { setSelectedMember(null); setMemberQuery('') }}
                   className="text-neutral-400 hover:text-black text-[11px] ml-2"
-                >
-                  ✕
-                </button>
+                >✕</button>
               </div>
             ) : (
               <div ref={searchRef} className="relative">
@@ -273,14 +412,14 @@ export default function PosClient() {
             )}
           </div>
 
-          {/* Total + charge button */}
+          {/* Total + action buttons */}
           <div className="shrink-0 px-4 py-4 border-t border-neutral-100 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-[13px] text-neutral-500">Total</span>
               <span className="text-[20px] font-bold text-neutral-900">{fmt(total)}</span>
             </div>
 
-            {/* Payment link modal-style panel */}
+            {/* Payment link panel */}
             {paymentUrl ? (
               <div className="space-y-2">
                 <p className="text-[11.5px] text-neutral-500">Share this link with the client to pay:</p>
@@ -312,14 +451,71 @@ export default function PosClient() {
                   Clear and start over
                 </button>
               </div>
-            ) : (
+
+            ) : terminalStatus === 'success' ? (
+              /* Terminal success */
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-4 text-center">
+                <p className="text-[15px] font-semibold text-emerald-700">Payment complete!</p>
+                <p className="text-[11.5px] text-emerald-600 mt-1">Member record is updating…</p>
+              </div>
+
+            ) : terminalStatus === 'error' ? (
+              /* Terminal error */
               <div className="space-y-2">
+                <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-3">
+                  <p className="text-[12px] font-semibold text-red-700">Payment failed</p>
+                  <p className="text-[11px] text-red-500 mt-0.5 leading-snug">{terminalError}</p>
+                </div>
+                <button
+                  onClick={() => { setTerminalStatus('idle'); setTerminalError(null) }}
+                  className="w-full h-9 bg-black text-white text-[12.5px] font-medium rounded-lg hover:bg-neutral-800 transition-colors"
+                >
+                  Try again
+                </button>
+                <button
+                  onClick={clearCart}
+                  className="w-full h-8 text-[12px] text-neutral-400 hover:text-black transition-colors"
+                >
+                  Clear cart
+                </button>
+              </div>
+
+            ) : terminalBusy ? (
+              /* Terminal in progress */
+              <div className="bg-neutral-50 border border-neutral-200 rounded-xl px-3 py-4 text-center space-y-1">
+                {terminalStatus === 'connecting' && (
+                  <p className="text-[12.5px] text-neutral-600">Connecting to reader…</p>
+                )}
+                {terminalStatus === 'waiting_card' && (
+                  <>
+                    {readerName && <p className="text-[10.5px] text-neutral-400">{readerName}</p>}
+                    <p className="text-[13px] font-semibold text-neutral-800">Present card on reader</p>
+                    <p className="text-[11px] text-neutral-400">Tap, insert, or swipe</p>
+                  </>
+                )}
+                {terminalStatus === 'processing' && (
+                  <p className="text-[12.5px] text-neutral-600">Processing payment…</p>
+                )}
+              </div>
+
+            ) : (
+              /* Default action buttons */
+              <div className="space-y-2">
+                {/* Primary: reader */}
+                <button
+                  onClick={handleTerminalCharge}
+                  disabled={cart.length === 0}
+                  className="w-full h-10 bg-black text-white text-[13px] font-semibold rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {cart.length > 0 ? `Charge reader ${fmt(total)}` : 'Charge reader'}
+                </button>
+                {/* Secondary: online link */}
                 <button
                   onClick={handleCharge}
                   disabled={cart.length === 0 || charging}
-                  className="w-full h-10 bg-black text-white text-[13px] font-semibold rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full h-9 border border-neutral-300 text-[12.5px] font-medium text-neutral-700 rounded-lg hover:border-black hover:text-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {charging ? 'Creating link…' : `Charge ${fmt(total)}`}
+                  {charging ? 'Creating link…' : 'Send payment link'}
                 </button>
                 {cart.length > 0 && (
                   <button
@@ -330,6 +526,13 @@ export default function PosClient() {
                   </button>
                 )}
               </div>
+            )}
+
+            {/* Reader indicator (shown when idle and connected) */}
+            {readerName && terminalStatus === 'idle' && (
+              <p className="text-[10.5px] text-neutral-400 text-center pt-1">
+                Reader connected: {readerName}
+              </p>
             )}
           </div>
         </div>

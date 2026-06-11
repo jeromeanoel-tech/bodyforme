@@ -190,6 +190,41 @@ export async function POST(req: NextRequest) {
       break
     }
 
+    case 'payment_intent.succeeded': {
+      // Terminal (in-person reader) POS payments
+      const meta = (obj.metadata ?? {}) as Record<string, string>
+      if (meta.source !== 'pos_terminal') break
+
+      const memberId = meta.memberId ?? ''
+      if (!memberId) break
+
+      const actions: { memberAction: string; creditAmount: number; planName: string; quantity: number }[] =
+        JSON.parse(meta.actions ?? '[]')
+
+      const member = await getMemberById(memberId)
+      if (!member) break
+
+      let newCreditBalance = member.creditBalance
+      let newPlanOverride  = member.planOverride
+      let newStatus        = member.status ?? 'active'
+
+      for (const action of actions) {
+        if (action.memberAction === 'add_credits') {
+          newCreditBalance += (action.creditAmount ?? 0) * (action.quantity ?? 1)
+        } else if (action.memberAction === 'set_plan') {
+          newPlanOverride = action.planName
+          newStatus       = 'active'
+        }
+      }
+
+      await updateMemberCredential(memberId, {
+        creditBalance: newCreditBalance,
+        planOverride:  newPlanOverride,
+        status:        newStatus,
+      })
+      break
+    }
+
     case 'customer.subscription.deleted': {
       // Weekly subscription cancelled — look up member by Stripe customer ID and deactivate
       const cancelledCustomerId = (obj.customer as string) ?? ''
