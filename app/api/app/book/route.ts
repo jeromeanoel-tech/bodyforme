@@ -16,23 +16,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Your membership is not active. Please contact the studio.' }, { status: 403 })
   }
 
+  // Verify session exists and hasn't been cancelled
+  const sess = await getSessionById(sessionId)
+  if (!sess) {
+    return NextResponse.json({ error: 'Class not found.' }, { status: 404 })
+  }
+  if (sess.status === 'CANCELLED') {
+    return NextResponse.json({ error: 'This class has been cancelled.' }, { status: 409 })
+  }
+
   try {
     const bookingId = await createBooking(session.id, sessionId)
 
     // fire-and-forget confirmation email
-    Promise.all([
-      getMemberByContactId(session.id),
-      getSessionById(sessionId),
-    ]).then(([member, sess]) => {
-      if (member && sess) {
-        emailBookingConfirmed({
-          to:             member.email,
-          firstName:      member.firstName,
-          className:      sess.title,
-          startTime:      sess.start_time,
-          instructorName: sess.instructor_name || undefined,
-        })
-      }
+    emailBookingConfirmed({
+      to:             member.email,
+      firstName:      member.firstName,
+      className:      sess.title,
+      startTime:      sess.start_time,
+      instructorName: sess.instructor_name || undefined,
     }).catch(() => {})
 
     return NextResponse.json({ ok: true, bookingId })

@@ -557,10 +557,10 @@ export async function cancelBooking(bookingId: string, memberId: string): Promis
 
 // ── Session lookup ────────────────────────────────────────────────────────────
 
-export async function getSessionById(id: string): Promise<{ title: string; start_time: string; instructor_name: string } | null> {
+export async function getSessionById(id: string): Promise<{ title: string; start_time: string; instructor_name: string; status: string } | null> {
   const { data } = await supabase
     .from('sessions')
-    .select('title, start_time, instructor_name')
+    .select('title, start_time, instructor_name, status')
     .eq('id', id)
     .single()
   return data ?? null
