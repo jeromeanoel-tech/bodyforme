@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { signupPlans } from '@/lib/content'
-import { getMemberByEmail, updateMemberCredential, getMemberById } from '@/lib/db'
+import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById } from '@/lib/db'
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -123,16 +123,27 @@ export async function POST(req: NextRequest) {
       }
       const creditSeed = PLAN_CREDITS[planKey] ?? 0
 
+      // End date for prepaid unlimited plans
+      const PLAN_MONTHS: Record<string, number> = { '3month': 3, '6month': 6, '12month': 12 }
+      const prepaidMonths = PLAN_MONTHS[planKey]
+      let membershipEndDate: string | undefined
+      if (prepaidMonths) {
+        const d = new Date()
+        d.setMonth(d.getMonth() + prepaidMonths)
+        membershipEndDate = d.toISOString().slice(0, 10)
+      }
+
       // Activate member account and set plan
       if (email) {
         const stripeCustomerId = (obj.customer as string) ?? ''
         const member = await getMemberByEmail(email)
         if (member) {
           await updateMemberCredential(member._id, {
-            status:        'active',
+            status:             'active',
             stripeCustomerId,
-            planOverride:  planName,
-            creditBalance: creditSeed > 0 ? creditSeed : member.creditBalance,
+            planOverride:       planName,
+            creditBalance:      creditSeed > 0 ? creditSeed : member.creditBalance,
+            ...(membershipEndDate ? { membershipEndDate } : {}),
           })
         }
 
@@ -170,8 +181,14 @@ export async function POST(req: NextRequest) {
     }
 
     case 'customer.subscription.deleted': {
-      // Subscription cancelled — log for now, extend later if needed
-      console.log('Subscription cancelled:', obj.id)
+      // Weekly subscription cancelled — look up member by Stripe customer ID and deactivate
+      const cancelledCustomerId = (obj.customer as string) ?? ''
+      if (cancelledCustomerId) {
+        const member = await getMemberByStripeCustomerId(cancelledCustomerId)
+        if (member) {
+          await updateMemberCredential(member._id, { status: 'inactive', planOverride: '' })
+        }
+      }
       break
     }
   }

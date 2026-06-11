@@ -71,20 +71,21 @@ export type WixBooking = {
 }
 
 export type MemberCredential = {
-  _id:              string
-  email:            string
-  passwordHash:     string
-  firstName:        string
-  lastName:         string
-  phone:            string
-  suburb:           string
-  status:           string
-  wixContactId:     string
-  stripeCustomerId: string
-  planOverride:     string
-  nextBillingDate:  string
-  creditBalance:    number
-  adminNotes:       string
+  _id:                string
+  email:              string
+  passwordHash:       string
+  firstName:          string
+  lastName:           string
+  phone:              string
+  suburb:             string
+  status:             string
+  wixContactId:       string
+  stripeCustomerId:   string
+  planOverride:       string
+  nextBillingDate:    string
+  membershipEndDate:  string  // ISO date; for prepaid plans (3/6/12 month)
+  creditBalance:      number
+  adminNotes:         string
 }
 
 export type MemberBooking = {
@@ -106,20 +107,21 @@ function isoSlice(ts: string) {
 // eslint-disable-next-line
 function rowToCredential(r: any): MemberCredential {
   return {
-    _id:              r.id,
-    email:            r.email,
-    passwordHash:     r.password_hash,
-    firstName:        r.first_name,
-    lastName:         r.last_name,
-    phone:            r.phone            ?? '',
-    suburb:           r.suburb           ?? '',
-    status:           r.status,
-    wixContactId:     '',
-    stripeCustomerId: r.stripe_customer_id ?? '',
-    planOverride:     r.plan_override    ?? '',
-    nextBillingDate:  r.next_billing_date ?? '',
-    creditBalance:    Number(r.credit_balance ?? 0),
-    adminNotes:       r.admin_notes      ?? '',
+    _id:               r.id,
+    email:             r.email,
+    passwordHash:      r.password_hash,
+    firstName:         r.first_name,
+    lastName:          r.last_name,
+    phone:             r.phone             ?? '',
+    suburb:            r.suburb            ?? '',
+    status:            r.status,
+    wixContactId:      '',
+    stripeCustomerId:  r.stripe_customer_id ?? '',
+    planOverride:      r.plan_override      ?? '',
+    nextBillingDate:   r.next_billing_date  ?? '',
+    membershipEndDate: r.end_date           ?? '',
+    creditBalance:     Number(r.credit_balance ?? 0),
+    adminNotes:        r.admin_notes        ?? '',
   }
 }
 
@@ -294,6 +296,15 @@ export async function getMemberByEmail(email: string): Promise<MemberCredential 
   return data ? rowToCredential(data) : null
 }
 
+export async function getMemberByStripeCustomerId(customerId: string): Promise<MemberCredential | null> {
+  const { data } = await supabase
+    .from('members')
+    .select('*')
+    .eq('stripe_customer_id', customerId)
+    .single()
+  return data ? rowToCredential(data) : null
+}
+
 export const getMemberById = async (id: string) => getMemberByContactId(id)
 
 export async function getMemberByContactId(id: string): Promise<MemberCredential | null> {
@@ -315,10 +326,11 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
   if (patch.suburb           !== undefined) update.suburb            = patch.suburb
   if (patch.status           !== undefined) update.status            = patch.status
   if (patch.stripeCustomerId !== undefined) update.stripe_customer_id = patch.stripeCustomerId
-  if (patch.planOverride     !== undefined) update.plan_override     = patch.planOverride
-  if (patch.nextBillingDate  !== undefined) update.next_billing_date = patch.nextBillingDate
-  if (patch.creditBalance    !== undefined) update.credit_balance    = patch.creditBalance
-  if (patch.adminNotes       !== undefined) update.admin_notes       = patch.adminNotes
+  if (patch.planOverride      !== undefined) update.plan_override      = patch.planOverride
+  if (patch.nextBillingDate   !== undefined) update.next_billing_date  = patch.nextBillingDate
+  if (patch.membershipEndDate !== undefined) update.end_date           = patch.membershipEndDate
+  if (patch.creditBalance     !== undefined) update.credit_balance     = patch.creditBalance
+  if (patch.adminNotes        !== undefined) update.admin_notes        = patch.adminNotes
 
   if (!Object.keys(update).length) return
   await supabase.from('members').update(update).eq('id', id)
@@ -452,9 +464,12 @@ export async function getSessionBookings(sessionId: string): Promise<WixBooking[
 
 // Plans that consume a credit per class attended
 const CREDIT_PLANS = [
-  'Casual Drop-in', 'casual',
-  '5-Class Pack', '10-Class Pack', '20-Class Pack', '50-Class Pass',
-  'Free Trial', '7-Day Unlimited', 'intro-offer',
+  'Casual Drop-in', 'casual', 'Casual Class',
+  '5-Class Pack', '5 Class Pack',
+  '10-Class Pack', '10 Class Pack',
+  '20-Class Pack', '20 Class Pack',
+  '50-Class Pass', '50 Class Pass',
+  'Free Trial', '7-Day Unlimited', '7 Day Unlimited', 'intro-offer',
 ]
 
 export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {

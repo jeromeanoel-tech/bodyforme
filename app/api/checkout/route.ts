@@ -31,6 +31,10 @@ export async function POST(req: NextRequest) {
     cancel_url:           cancelUrl,
     allow_promotion_codes: true,
     billing_address_collection: 'auto',
+    // Offer BECS direct debit for subscriptions, card as fallback
+    ...(plan.mode === 'subscription'
+      ? { payment_method_types: ['au_becs_debit', 'card'] }
+      : {}),
     line_items: [
       {
         quantity: 1,
