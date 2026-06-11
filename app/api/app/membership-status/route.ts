@@ -13,16 +13,17 @@ export async function GET() {
 
   const { data } = await supabase
     .from('members')
-    .select('plan_override, credit_balance, next_billing_date, status')
+    .select('plan_override, credit_balance, next_billing_date, end_date, status')
     .eq('id', session.id)
     .single()
 
-  if (!data) return NextResponse.json({ plan: null, creditBalance: 0, nextBillingDate: null, status: 'inactive' })
+  if (!data) return NextResponse.json({ plan: null, creditBalance: 0, nextBillingDate: null, membershipEndDate: null, status: 'inactive' })
 
   return NextResponse.json({
-    plan:            data.plan_override  ?? null,
-    creditBalance:   Number(data.credit_balance ?? 0),
-    nextBillingDate: data.next_billing_date ?? null,
-    status:          data.status ?? 'active',
+    plan:               data.plan_override     ?? null,
+    creditBalance:      Number(data.credit_balance ?? 0),
+    nextBillingDate:    data.next_billing_date  ?? null,
+    membershipEndDate:  data.end_date           ?? null,
+    status:             data.status             ?? 'active',
   })
 }

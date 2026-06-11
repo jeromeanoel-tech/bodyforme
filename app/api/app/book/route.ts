@@ -10,6 +10,12 @@ export async function POST(req: NextRequest) {
   const { sessionId } = await req.json()
   if (!sessionId) return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
 
+  // Block inactive members from booking
+  const member = await getMemberByContactId(session.id)
+  if (!member || member.status === 'inactive') {
+    return NextResponse.json({ error: 'Your membership is not active. Please contact the studio.' }, { status: 403 })
+  }
+
   try {
     const bookingId = await createBooking(session.id, sessionId)
 

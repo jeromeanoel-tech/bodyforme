@@ -83,7 +83,7 @@ export type MemberCredential = {
   stripeCustomerId:   string
   planOverride:       string
   nextBillingDate:    string
-  membershipEndDate:  string  // ISO date; for prepaid plans (3/6/12 month)
+  membershipEndDate?: string  // ISO date; for prepaid plans (3/6/12 month)
   creditBalance:      number
   adminNotes:         string
 }

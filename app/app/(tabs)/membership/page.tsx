@@ -53,37 +53,53 @@ function ActionRow({ icon, label, sub, danger, last, onClick }: {
 type PauseState = 'idle' | 'open' | 'sending' | 'done'
 
 type MemberStatus = {
-  plan:            string | null
-  creditBalance:   number
-  nextBillingDate: string | null
-  status:          string
+  plan:               string | null
+  creditBalance:      number
+  nextBillingDate:    string | null
+  membershipEndDate:  string | null
+  status:             string
 }
 
-const PACK_PLANS = ['10-Class Pack', '20-Class Pack', '50-Class Pass', '5-Class Pack', 'casual', 'intro-offer', 'Free Trial', 'Casual Drop-in']
+const PACK_PLANS = ['10-Class Pack', '10 Class Pack', '20-Class Pack', '20 Class Pack', '50-Class Pass', '50 Class Pass', '5-Class Pack', '5 Class Pack', 'casual', 'intro-offer', 'Free Trial', 'Casual Drop-in', 'Casual Class']
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 function planSummary(ms: MemberStatus): { label: string; value: string; sub: string } {
   const plan = ms.plan ?? ''
   const p    = plan.toLowerCase()
 
-  // Unlimited — no credit tracking
-  if (p.includes('unlimited')) {
+  // Weekly recurring DD plans (3/4 per week)
+  if (p.includes('3 per week') || p.includes('weekly-3')) {
     if (ms.nextBillingDate) {
       const d    = new Date(ms.nextBillingDate)
       const diff = Math.ceil((d.getTime() - Date.now()) / 86_400_000)
-      const fmt  = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-      return { label: 'Unlimited', value: fmt, sub: diff > 0 ? `Next payment in ${diff} day${diff === 1 ? '' : 's'}` : 'Payment due' }
-    }
-    return { label: 'Unlimited', value: 'Active', sub: 'Book as many classes as you like' }
-  }
-
-  // Weekly DD plans
-  if (p.includes('3 per week') || p.includes('weekly-3')) {
-    if (ms.nextBillingDate) {
-      const d   = new Date(ms.nextBillingDate)
-      const fmt = d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
-      return { label: '3 classes / week', value: fmt, sub: 'Direct debit' }
+      return { label: '3 classes / week', value: fmtDate(ms.nextBillingDate), sub: diff > 0 ? `Next payment in ${diff} day${diff === 1 ? '' : 's'}` : 'Payment due' }
     }
     return { label: '3 classes / week', value: 'Active', sub: 'Direct debit' }
+  }
+  if (p.includes('4 per week') || p.includes('weekly-4')) {
+    if (ms.nextBillingDate) {
+      const diff = Math.ceil((new Date(ms.nextBillingDate).getTime() - Date.now()) / 86_400_000)
+      return { label: '4 classes / week', value: fmtDate(ms.nextBillingDate), sub: diff > 0 ? `Next payment in ${diff} day${diff === 1 ? '' : 's'}` : 'Payment due' }
+    }
+    return { label: '4 classes / week', value: 'Active', sub: 'Direct debit' }
+  }
+
+  // Unlimited — could be weekly DD or prepaid (3/6/12 month)
+  if (p.includes('unlimited')) {
+    // Weekly recurring: has a billing date
+    if (ms.nextBillingDate) {
+      const diff = Math.ceil((new Date(ms.nextBillingDate).getTime() - Date.now()) / 86_400_000)
+      return { label: 'Unlimited', value: fmtDate(ms.nextBillingDate), sub: diff > 0 ? `Next payment in ${diff} day${diff === 1 ? '' : 's'}` : 'Payment due' }
+    }
+    // Prepaid: has an end date
+    if (ms.membershipEndDate) {
+      const diff = Math.ceil((new Date(ms.membershipEndDate).getTime() - Date.now()) / 86_400_000)
+      return { label: 'Unlimited', value: fmtDate(ms.membershipEndDate), sub: diff > 0 ? `Expires in ${diff} day${diff === 1 ? '' : 's'}` : 'Expired — contact studio' }
+    }
+    return { label: 'Unlimited', value: 'Active', sub: 'Book as many classes as you like' }
   }
 
   // Class packs / casual
@@ -93,7 +109,7 @@ function planSummary(ms: MemberStatus): { label: string; value: string; sub: str
     return {
       label,
       value: `${left} class${left === 1 ? '' : 'es'} left`,
-      sub:   left === 0 ? 'All classes used' : left <= 2 ? 'Running low' : 'Available to book',
+      sub:   left === 0 ? 'All classes used — contact studio' : left <= 2 ? 'Running low' : 'Available to book',
     }
   }
 
@@ -107,6 +123,13 @@ export default function MembershipPage() {
   const [billingMsg,    setBillingMsg]    = useState<string | null>(null)
   const [memberStatus,  setMemberStatus]  = useState<MemberStatus | null>(null)
 
+  function fetchStatus() {
+    fetch('/api/app/membership-status')
+      .then(r => r.json())
+      .then(setMemberStatus)
+      .catch(() => {})
+  }
+
   useEffect(() => {
     // Show message if redirected back from portal with an error/no-account flag
     const params = new URLSearchParams(window.location.search)
@@ -115,11 +138,10 @@ export default function MembershipPage() {
     if (params.get('billing') === 'error')
       setBillingMsg('Could not open billing portal. Please try again or contact the studio.')
 
-    // Fetch live membership status
-    fetch('/api/app/membership-status')
-      .then(r => r.json())
-      .then(setMemberStatus)
-      .catch(() => {})
+    // Fetch live membership status and poll every 30 seconds
+    fetchStatus()
+    const interval = setInterval(fetchStatus, 30_000)
+    return () => clearInterval(interval)
   }, [])
 
   function openPortal() {
@@ -329,7 +351,7 @@ export default function MembershipPage() {
                   <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.4)', marginBottom: 6 }}>
-                        {memberStatus.nextBillingDate ? 'Next payment' : memberStatus.plan ? 'Classes remaining' : 'Membership status'}
+                        {memberStatus.nextBillingDate ? 'Next payment' : memberStatus.membershipEndDate ? 'Expires' : memberStatus.plan ? 'Classes remaining' : 'Membership status'}
                       </div>
                       <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 26, fontWeight: 600, color: T.linen, lineHeight: 1 }}>
                         {s.value}

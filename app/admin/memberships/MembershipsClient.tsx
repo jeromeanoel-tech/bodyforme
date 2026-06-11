@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { WixMembership } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
@@ -53,7 +53,13 @@ function isExpiringSoon(m: MembershipRow, threshold: number) {
 type BulkSendState = 'idle' | 'confirming' | 'sending' | 'done'
 
 function isDDPlan(planName: string) {
-  return /direct.?debit/i.test(planName)
+  const p = planName.toLowerCase()
+  return (
+    /direct.?debit/i.test(planName) ||
+    p.includes('unlimited') ||
+    p.includes('per week') ||
+    p.includes('weekly-')
+  )
 }
 
 export default function MembershipsClient({ rows: initialRows }: Props) {
@@ -65,6 +71,13 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
   const [selected, setSelected]     = useState<MembershipRow | null>(null)
   const { settings } = useSettings()
   const expiringDays = settings.expiringDays
+  const router = useRouter()
+
+  // Live refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => router.refresh(), 30_000)
+    return () => clearInterval(interval)
+  }, [router])
 
   // Bulk DD email send
   const [bulkState, setBulkState]   = useState<BulkSendState>('idle')
