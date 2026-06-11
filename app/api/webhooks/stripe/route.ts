@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { signupPlans } from '@/lib/content'
-import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById } from '@/lib/db'
+import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership } from '@/lib/db'
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -144,6 +144,16 @@ export async function POST(req: NextRequest) {
             planOverride:       planName,
             creditBalance:      creditSeed > 0 ? creditSeed : member.creditBalance,
             ...(membershipEndDate ? { membershipEndDate } : {}),
+          })
+
+          // Sync a memberships row so this member appears in the admin Memberships panel
+          const today = new Date().toISOString().slice(0, 10)
+          await upsertMembership({
+            memberId:  member._id,
+            planName,
+            status:    'ACTIVE',
+            startDate: today,
+            endDate:   membershipEndDate ?? '',
           })
         }
 

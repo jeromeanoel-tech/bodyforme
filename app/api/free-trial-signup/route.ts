@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -6,6 +7,16 @@ export async function POST(req: NextRequest) {
 
   if (!firstName || !email) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+
+  // Activate the member account with a Free Trial plan and 1 credit
+  const member = await getMemberByEmail(email.toLowerCase().trim())
+  if (member) {
+    await updateMemberCredential(member._id, {
+      status:        'active',
+      planOverride:  'Free Trial',
+      creditBalance: 1,
+    })
   }
 
   const RESEND_KEY    = process.env.RESEND_API_KEY

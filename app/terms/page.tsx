@@ -131,7 +131,7 @@ export default function TermsPage() {
           <h3 style={{ fontSize: 16, fontWeight: 500, color: 'var(--esp)', margin: '24px 0 8px' }}>Who we share it with</h3>
           <Ul items={[
             'Stripe — for payment processing.',
-            'Wix — for booking management.',
+            'BodyForme — booking data is stored securely in our own database.',
             'Resend — for transactional emails.',
             'We do not sell your personal information to third parties.',
           ]} />

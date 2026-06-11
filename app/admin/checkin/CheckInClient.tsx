@@ -83,7 +83,7 @@ export default function CheckInClient({ sessions, services }: Props) {
   function selectSession(s: WixSession) {
     setSelectedSession(s)
     setBookings(null)
-    setAttended({})
+    setAttended({})  // will be re-populated from DB when bookings load
     setSearch('')
     loadBookings(s.id)
   }
@@ -92,7 +92,15 @@ export default function CheckInClient({ sessions, services }: Props) {
     setLoading(true)
     fetch(`/api/admin/session-bookings?eventId=${eventId}`)
       .then(r => r.json())
-      .then(d => { setBookings(d.bookings ?? []); setLoading(false) })
+      .then(d => {
+        const bookings: WixBooking[] = d.bookings ?? []
+        setBookings(bookings)
+        // Pre-populate attended state from DB so Suzanne sees who's already been checked in
+        const initialAttended: AttendeeState = {}
+        bookings.forEach(b => { if (b.attended) initialAttended[b.id] = 'present' })
+        setAttended(initialAttended)
+        setLoading(false)
+      })
       .catch(() => { setBookings([]); setLoading(false) })
   }
 

@@ -62,6 +62,7 @@ export type WixContactBooking = {
 export type WixBooking = {
   id: string
   status: string
+  attended: boolean
   contactDetails: { firstName: string; lastName: string; email: string }
   memberId: string
   planOverride: string
@@ -221,6 +222,27 @@ export async function createSession(data: {
 }
 
 // ── Memberships ───────────────────────────────────────────────────────────────
+
+export async function upsertMembership(data: {
+  memberId: string
+  planName: string
+  status: string
+  startDate: string
+  endDate: string
+}): Promise<void> {
+  await supabase
+    .from('memberships')
+    .upsert(
+      {
+        member_id:  data.memberId,
+        plan_name:  data.planName,
+        status:     data.status,
+        start_date: data.startDate,
+        end_date:   data.endDate,
+      },
+      { onConflict: 'member_id' },
+    )
+}
 
 export async function getMemberships(): Promise<WixMembership[]> {
   const { data } = await supabase
@@ -390,7 +412,7 @@ function weeklyAllowance(plan: string): number | null {
 export async function getSessionBookings(sessionId: string): Promise<WixBooking[]> {
   const { data } = await supabase
     .from('bookings')
-    .select('id, status, members(id, first_name, last_name, email, plan_override, credit_balance, status)')
+    .select('id, status, attended, members(id, first_name, last_name, email, plan_override, credit_balance, status)')
     .eq('session_id', sessionId)
 
   if (!data || data.length === 0) return []
@@ -444,8 +466,9 @@ export async function getSessionBookings(sessionId: string): Promise<WixBooking[
     }
 
     return {
-      id:     r.id,
-      status: r.status,
+      id:       r.id,
+      status:   r.status,
+      attended: !!r.attended,
       contactDetails: {
         firstName: r.members?.first_name ?? '',
         lastName:  r.members?.last_name  ?? '',

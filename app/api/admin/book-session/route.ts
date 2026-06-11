@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { markAttendance } from '@/lib/db'
+import { getAdminSession } from '@/lib/adminSession'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,6 +9,9 @@ const supabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
+  const session = await getAdminSession()
+  if (!session || session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const { memberId, sessionId } = await req.json()
   if (!memberId || !sessionId) {
     return NextResponse.json({ error: 'memberId and sessionId required' }, { status: 400 })

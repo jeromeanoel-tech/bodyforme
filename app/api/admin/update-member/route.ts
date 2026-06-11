@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMemberByContactId, updateMemberCredential } from '@/lib/db'
+import { getAdminSession } from '@/lib/adminSession'
 
 export async function PATCH(req: NextRequest) {
+  const session = await getAdminSession()
+  if (!session || session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const body = await req.json() as {
     contactId:        string
     email?:           string
