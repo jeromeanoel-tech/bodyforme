@@ -142,10 +142,9 @@ export default function HomePage() {
               ))}
             </ul>
           </ScrollReveal>
-          {/* Mat image — swap back to studio photo post-reno */}
           <ScrollReveal>
             <div style={{ height: 'clamp(260px, 40vw, 560px)', overflow: 'hidden' }}>
-              <img src="/mat.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }} />
+              <img src="/website-asset-1.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
             </div>
           </ScrollReveal>
         </div>

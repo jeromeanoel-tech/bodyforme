@@ -4,7 +4,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
 const BASE           = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
 
-type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'migration' | 'dd-payment-setup' | 'custom'
+type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'migration' | 'dd-payment-setup' | 'member-onboarding' | 'custom'
 
 interface EmailPayload {
   to:       string
@@ -197,6 +197,63 @@ function buildEmail(template: Template, vars: Record<string, string>): { subject
           cta('Set up direct debit', `${BASE}/app/setup-payment`) +
           RULE +
           p('Any questions? Just reply to this email or speak to Suzanne next time you\'re in.', true) +
+          signoff('See you on the mat,')
+        ),
+      }
+
+    case 'member-onboarding':
+      return {
+        subject: 'Your account is ready — here\'s how to get started',
+        html: wrap(
+          eyebrow('Welcome to the new system') +
+          heading('Get set up in<br><em style="font-style:italic">three quick steps</em>') +
+          p(`Hi ${first},`) +
+          p('We\'ve moved to a new online booking system and member app. Getting up and running only takes a few minutes — here\'s everything you need.') +
+          RULE +
+
+          `<div style="margin:0 0 10px">
+            <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7a4a2a;margin-bottom:10px">Step 1 — Create your account</div>
+            <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 12px">Head to the link below and sign up using the email address you've been booking classes with. Your membership and any remaining credits will be linked automatically.</p>
+            ${cta('Create your account', `${BASE}/sign-up`)}
+          </div>` +
+          RULE +
+
+          `<div style="margin:0 0 10px">
+            <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7a4a2a;margin-bottom:10px">Step 2 — Add the app to your home screen</div>
+            <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 10px">The member app works right in your browser — no App Store needed. Save it to your home screen for quick access.</p>
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f4ede1;border:1px solid #d8ccba;padding:20px 24px;margin:6px 0 16px">
+              <tr>
+                <td style="padding:0 16px 0 0;vertical-align:top;width:50%">
+                  <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#a08568;margin-bottom:8px">On iPhone (Safari)</div>
+                  <ol style="font-size:13px;line-height:1.8;color:#2a1506;margin:0;padding-left:18px">
+                    <li>Open <strong>bodyforme.com.au/app</strong></li>
+                    <li>Tap the <strong>Share</strong> button (box with arrow)</li>
+                    <li>Tap <strong>Add to Home Screen</strong></li>
+                    <li>Tap <strong>Add</strong></li>
+                  </ol>
+                </td>
+                <td style="vertical-align:top;width:50%">
+                  <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#a08568;margin-bottom:8px">On Android (Chrome)</div>
+                  <ol style="font-size:13px;line-height:1.8;color:#2a1506;margin:0;padding-left:18px">
+                    <li>Open <strong>bodyforme.com.au/app</strong></li>
+                    <li>Tap the <strong>three-dot menu</strong> (top right)</li>
+                    <li>Tap <strong>Add to Home screen</strong></li>
+                    <li>Tap <strong>Add</strong></li>
+                  </ol>
+                </td>
+              </tr>
+            </table>
+          </div>` +
+          RULE +
+
+          `<div style="margin:0 0 10px">
+            <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7a4a2a;margin-bottom:10px">Step 3 — Set up your direct debit <span style="font-size:10px;color:#a08568">(DD members only)</span></div>
+            <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 12px">If you're on a monthly membership, you'll need to add your BSB and account number so we can set up your direct debit. It takes two minutes and is handled securely by Stripe.</p>
+            ${cta('Set up direct debit', `${BASE}/app/setup-payment`)}
+          </div>` +
+          RULE +
+
+          p('Any questions? Just reply to this email or have a chat with Suzanne next time you\'re in.', true) +
           signoff('See you on the mat,')
         ),
       }

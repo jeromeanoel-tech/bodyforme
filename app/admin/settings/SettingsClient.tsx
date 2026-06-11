@@ -16,6 +16,8 @@ const NAV: { key: Section; label: string }[] = [
 
 type ImportState = 'idle' | 'running' | 'done' | 'error'
 type ImportResult = { summary: { created: number; updated: number; skipped: number; errors: number; total: number }; results: { name: string; status: string; error?: string }[] }
+type OnboardState = 'idle' | 'confirming' | 'sending' | 'done' | 'error'
+type OnboardResult = { sent: number; failed: number; total: number; results: { email: string; ok: boolean; error?: string }[] }
 
 export default function SettingsClient() {
   const { settings, update } = useSettings()
@@ -24,6 +26,21 @@ export default function SettingsClient() {
   const [importState, setImportState] = useState<ImportState>('idle')
   const [importResult, setImportResult] = useState<ImportResult | null>(null)
   const [importError, setImportError]   = useState('')
+  const [onboardState, setOnboardState]   = useState<OnboardState>('idle')
+  const [onboardResult, setOnboardResult] = useState<OnboardResult | null>(null)
+
+  async function sendOnboardingEmails() {
+    setOnboardState('sending')
+    try {
+      const res = await fetch('/api/admin/send-onboarding', { method: 'POST' })
+      const data: OnboardResult = await res.json()
+      setOnboardResult(data)
+      setOnboardState(data.failed > 0 ? 'error' : 'done')
+    } catch (e) {
+      setOnboardResult(null)
+      setOnboardState('error')
+    }
+  }
 
   async function runImport(force = false) {
     setImportState('running')
@@ -215,6 +232,68 @@ export default function SettingsClient() {
                     className="text-[12px] text-neutral-500 underline"
                   >
                     Re-run with force (updates existing records)
+                  </button>
+                </div>
+              )}
+            </div>
+            {/* ── Onboarding emails ── */}
+            <div className="border-t border-neutral-100 pt-6 space-y-3">
+              <div>
+                <p className="text-[13.5px] font-medium text-neutral-800">Send member onboarding emails</p>
+                <p className="text-[12px] text-neutral-400 mt-0.5">
+                  Sends the &ldquo;get started in three steps&rdquo; email to all members with a real email address.
+                  Covers: creating an account, adding to home screen, and setting up direct debit.
+                  Rate-limited to ~1.5/sec to stay within Resend limits.
+                </p>
+              </div>
+
+              {onboardState === 'idle' && (
+                <button
+                  onClick={() => setOnboardState('confirming')}
+                  className="h-9 px-4 text-[13px] bg-black text-white rounded-lg hover:bg-neutral-800"
+                >
+                  Send onboarding emails
+                </button>
+              )}
+
+              {onboardState === 'confirming' && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 space-y-3">
+                  <p className="text-[13px] text-amber-800">
+                    This will send the onboarding email to every member who has a real email address. Are you sure?
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={sendOnboardingEmails}
+                      className="h-8 px-4 text-[12.5px] bg-black text-white rounded-lg hover:bg-neutral-800"
+                    >
+                      Yes, send emails
+                    </button>
+                    <button onClick={() => setOnboardState('idle')} className="text-[12px] text-neutral-500 underline">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {onboardState === 'sending' && (
+                <div className="flex items-center gap-2 text-[13px] text-neutral-500">
+                  <span className="animate-spin inline-block w-4 h-4 border-2 border-neutral-300 border-t-black rounded-full" />
+                  Sending emails… this can take a couple of minutes
+                </div>
+              )}
+
+              {(onboardState === 'done' || onboardState === 'error') && onboardResult && (
+                <div className="space-y-2">
+                  <div className={`border rounded-lg px-4 py-3 text-[13px] flex gap-4 ${onboardResult.failed > 0 ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-green-50 border-green-200 text-green-700'}`}>
+                    <span><strong>{onboardResult.sent}</strong> sent</span>
+                    {onboardResult.failed > 0 && <span className="text-red-600"><strong>{onboardResult.failed}</strong> failed</span>}
+                    <span className="text-neutral-400">of {onboardResult.total} total</span>
+                  </div>
+                  {onboardResult.results.filter(r => !r.ok).map((r, i) => (
+                    <p key={i} className="text-[12px] text-red-600">{r.email}: {r.error}</p>
+                  ))}
+                  <button onClick={() => setOnboardState('idle')} className="text-[12px] text-neutral-500 underline">
+                    Reset
                   </button>
                 </div>
               )}
