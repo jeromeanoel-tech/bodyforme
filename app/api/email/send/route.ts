@@ -212,9 +212,10 @@ function buildEmail(template: Template, vars: Record<string, string>): { subject
           RULE +
 
           `<div style="margin:0 0 10px">
-            <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7a4a2a;margin-bottom:10px">Step 1 — Create your account</div>
-            <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 12px">Head to the link below and sign up using the email address you've been booking classes with. Your membership and any remaining credits will be linked automatically.</p>
-            ${cta('Create your account', `${BASE}/sign-up`)}
+            <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#7a4a2a;margin-bottom:10px">Step 1 — Set up your password</div>
+            <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 12px">Your account is already set up — you just need to create a password to log in. Tap the button below, enter your email address, and we'll send you a link to set your password straight away.</p>
+            ${cta('Create your password', `${BASE}/app/forgot-password`)}
+            <p style="font-size:13px;line-height:1.6;color:#a08568;margin:8px 0 0">Use the same email address you've been booking classes with.</p>
           </div>` +
           RULE +
 

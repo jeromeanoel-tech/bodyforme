@@ -496,32 +496,43 @@ const CREDIT_PLANS = [
 ]
 
 export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {
-  // Mark the booking
-  await supabase.from('bookings').update({ attended }).eq('id', bookingId)
-
-  // Deduct or restore credit for class-pack members
-  const { data: booking } = await supabase
+  // Read current attended state BEFORE updating so we know whether a credit was previously deducted
+  const { data: prev } = await supabase
     .from('bookings')
-    .select('member_id, members(plan_override, credit_balance)')
+    .select('attended, member_id, members(plan_override, credit_balance)')
     .eq('id', bookingId)
     .single()
 
-  if (!booking) return
+  // Mark the booking
+  await supabase.from('bookings').update({ attended }).eq('id', bookingId)
+
+  if (!prev) return
   // eslint-disable-next-line
-  const member     = (booking as any).members
+  const member     = (prev as any).members
   const plan       = (member?.plan_override ?? '') as string
   const isPackPlan = CREDIT_PLANS.some(p => plan.toLowerCase().includes(p.toLowerCase()))
 
   if (!isPackPlan) return
 
-  const current = Number(member?.credit_balance ?? 0)
-  const delta   = attended ? -1 : 1   // deduct on check-in, restore on un-check
-  const next    = Math.max(0, current + delta)
+  const wasAttended = !!prev.attended
+  const current     = Number(member?.credit_balance ?? 0)
 
-  await supabase
-    .from('members')
-    .update({ credit_balance: next })
-    .eq('id', booking.member_id)
+  let next = current
+  if (attended && !wasAttended) {
+    // Newly checked in — deduct one credit
+    next = Math.max(0, current - 1)
+  } else if (!attended && wasAttended) {
+    // Un-checked (was previously attended) — restore the credit that was deducted
+    next = current + 1
+  }
+  // If state didn't change, or both false, no credit adjustment needed
+
+  if (next !== current) {
+    await supabase
+      .from('members')
+      .update({ credit_balance: next })
+      .eq('id', prev.member_id)
+  }
 }
 
 // ── Create / cancel booking ───────────────────────────────────────────────────

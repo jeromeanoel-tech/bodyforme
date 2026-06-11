@@ -39,7 +39,18 @@ export default function CheckInClient({ sessions, services }: Props) {
   const [walkInLoading, setWalkInLoading]   = useState(false)
   const [walkInAdding, setWalkInAdding]     = useState(false)
   const [walkInError, setWalkInError]       = useState('')
-  const walkInDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const walkInDebounce    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const selectedSessionRef = useRef<WixSession | null>(null)
+
+  // Auto-refresh bookings every 60 seconds so new online bookings appear without a manual reload
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (selectedSessionRef.current) {
+        loadBookings(selectedSessionRef.current.id)
+      }
+    }, 60_000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     if (walkInDebounce.current) clearTimeout(walkInDebounce.current)
@@ -82,6 +93,7 @@ export default function CheckInClient({ sessions, services }: Props) {
 
   function selectSession(s: WixSession) {
     setSelectedSession(s)
+    selectedSessionRef.current = s
     setBookings(null)
     setAttended({})  // will be re-populated from DB when bookings load
     setSearch('')

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getContacts, getMemberships } from '@/lib/db'
+import { getAdminSession } from '@/lib/adminSession'
 
 type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | 'no-membership'
 
@@ -26,6 +27,8 @@ function wrapHtml(firstName: string, body: string, subject: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   try {
     const { segment, subject, body }: { segment: Segment; subject: string; body: string } = await req.json()
 
@@ -92,6 +95,8 @@ export async function POST(req: NextRequest) {
 
 // Preview how many recipients a segment would target (no emails sent)
 export async function GET(req: NextRequest) {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   try {
     const segment = req.nextUrl.searchParams.get('segment') as Segment
     if (!segment) return NextResponse.json({ error: 'segment required' }, { status: 400 })

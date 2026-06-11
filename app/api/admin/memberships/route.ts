@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { getAdminSession } from '@/lib/adminSession'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,6 +9,9 @@ const supabase = createClient(
 )
 
 export async function PATCH(req: NextRequest) {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const { id, status } = await req.json()
   if (!id || !status) return NextResponse.json({ error: 'id and status required' }, { status: 400 })
 

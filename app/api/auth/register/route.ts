@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { createMemberCredential, getMemberByEmail } from '@/lib/db'
-import { emailWelcome } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const { email, password, firstName, lastName, phone, suburb } = await req.json()
@@ -38,7 +37,8 @@ export async function POST(req: NextRequest) {
     adminNotes:       '',
   })
 
-  await emailWelcome({ to: email.toLowerCase(), firstName })
+  // Welcome email is sent by the Stripe webhook after checkout.session.completed
+  // (or by free-trial-signup route for free plans). Do not send here.
 
   return NextResponse.json({ ok: true })
 }

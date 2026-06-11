@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberByContactId, updateMemberCredential } from '@/lib/db'
+import { getMemberByContactId, updateMemberCredential, upsertMembership } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 
 export async function PATCH(req: NextRequest) {
@@ -23,5 +23,19 @@ export async function PATCH(req: NextRequest) {
   if (!member) return NextResponse.json({ error: 'No member record found for this contact' }, { status: 404 })
 
   await updateMemberCredential(member._id, patch)
+
+  // Keep memberships table in sync when plan or status is changed manually
+  if (patch.planOverride !== undefined || patch.status !== undefined) {
+    const newPlan   = patch.planOverride ?? member.planOverride
+    const newStatus = patch.status       ?? member.status
+    await upsertMembership({
+      memberId:  member._id,
+      planName:  newPlan,
+      status:    newStatus === 'active' ? 'ACTIVE' : newStatus === 'inactive' ? 'CANCELED' : 'ACTIVE',
+      startDate: '',
+      endDate:   '',
+    })
+  }
+
   return NextResponse.json({ ok: true })
 }

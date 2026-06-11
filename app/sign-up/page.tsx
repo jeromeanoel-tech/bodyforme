@@ -86,7 +86,7 @@ function SignUpForm() {
       const regRes = await fetch('/api/auth/register', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName }),
+        body:    JSON.stringify({ email: form.email, password: form.password, firstName: form.firstName, lastName: form.lastName, phone: form.phone, suburb: form.suburb }),
       })
       const regData = await regRes.json()
       if (!regRes.ok) throw new Error(regData.error ?? 'Account creation failed')

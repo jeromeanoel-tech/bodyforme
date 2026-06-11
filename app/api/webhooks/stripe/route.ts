@@ -197,6 +197,14 @@ export async function POST(req: NextRequest) {
         const member = await getMemberByStripeCustomerId(cancelledCustomerId)
         if (member) {
           await updateMemberCredential(member._id, { status: 'inactive', planOverride: '' })
+          // Sync the memberships table so admin Memberships panel shows correct status
+          await upsertMembership({
+            memberId:  member._id,
+            planName:  member.planOverride ?? '',
+            status:    'CANCELED',
+            startDate: '',
+            endDate:   '',
+          })
         }
       }
       break
