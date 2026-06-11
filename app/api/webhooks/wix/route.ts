@@ -6,13 +6,11 @@ type AllowedTemplate = typeof ALLOWED_TEMPLATES[number]
 const WIX_WEBHOOK_SECRET = process.env.WIX_WEBHOOK_SECRET
 
 export async function POST(req: NextRequest) {
-  // Optional: verify Wix webhook secret header (set WIX_WEBHOOK_SECRET env var and
-  // pass the same value as the Authorization header in Wix Automations)
-  if (WIX_WEBHOOK_SECRET) {
-    const auth = req.headers.get('authorization') ?? ''
-    if (auth !== `Bearer ${WIX_WEBHOOK_SECRET}`) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-    }
+  // Require the webhook secret — set WIX_WEBHOOK_SECRET in Vercel env vars and
+  // pass the same value as the Authorization header in Wix Automations.
+  const auth = req.headers.get('authorization') ?? ''
+  if (!WIX_WEBHOOK_SECRET || auth !== `Bearer ${WIX_WEBHOOK_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
 
   let body: Record<string, unknown>

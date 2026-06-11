@@ -28,7 +28,10 @@ async function sendEmail(to: string, template: string, vars: Record<string, stri
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
   await fetch(`${base}/api/email/send`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type':  'application/json',
+      'x-internal-key': process.env.STRIPE_WEBHOOK_SECRET ?? '',
+    },
     body: JSON.stringify({ to, template, vars }),
   })
 }

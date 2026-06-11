@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
   // Activate the member account with a Free Trial plan and 1 credit
   const member = await getMemberByEmail(email.toLowerCase().trim())
   if (member) {
+    // Don't override an existing active paid plan
+    if (member.status === 'active' && member.planOverride && member.planOverride !== 'Free Trial') {
+      return NextResponse.json({ error: 'An active account already exists for this email.' }, { status: 409 })
+    }
     await updateMemberCredential(member._id, {
       status:        'active',
       planOverride:  'Free Trial',

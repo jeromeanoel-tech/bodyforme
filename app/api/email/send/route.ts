@@ -275,6 +275,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'to and template are required' }, { status: 400 })
     }
 
+    // 'custom' template sends arbitrary HTML — restrict to internal callers only
+    if (template === 'custom') {
+      const internalKey = req.headers.get('x-internal-key')
+      const expected    = process.env.STRIPE_WEBHOOK_SECRET ?? ''
+      if (!expected || internalKey !== expected) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+
     const mergedVars = {
       ...(vars ?? {}),
       ...(template === 'custom' && payload.subject ? { subject: payload.subject } : {}),
