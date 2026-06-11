@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createBooking, getMemberByContactId, getSessionById } from '@/lib/db'
+import { createBooking, getMemberByContactId, getSessionById, CREDIT_PLANS } from '@/lib/db'
 import { emailBookingConfirmed } from '@/lib/email'
 import { getSession } from '@/lib/session'
 
@@ -14,6 +14,22 @@ export async function POST(req: NextRequest) {
   const member = await getMemberByContactId(session.id)
   if (!member || member.status === 'inactive') {
     return NextResponse.json({ error: 'Your membership is not active. Please contact the studio.' }, { status: 403 })
+  }
+
+  // Block if prepaid plan has expired
+  if (member.membershipEndDate) {
+    const today   = new Date(); today.setHours(0, 0, 0, 0)
+    const endDate = new Date(member.membershipEndDate); endDate.setHours(0, 0, 0, 0)
+    if (today > endDate) {
+      return NextResponse.json({ error: 'Your membership has expired. Please contact the studio to renew.' }, { status: 403 })
+    }
+  }
+
+  // Block if on a credit-based plan with no credits remaining
+  const plan        = member.planOverride.toLowerCase()
+  const isPackPlan  = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
+  if (isPackPlan && member.creditBalance <= 0) {
+    return NextResponse.json({ error: 'You have no classes remaining. Please purchase a new pack to continue booking.' }, { status: 403 })
   }
 
   // Verify session exists and hasn't been cancelled

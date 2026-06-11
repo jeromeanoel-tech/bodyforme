@@ -486,7 +486,7 @@ export async function getSessionBookings(sessionId: string): Promise<WixBooking[
 // ── Mark attendance ───────────────────────────────────────────────────────────
 
 // Plans that consume a credit per class attended
-const CREDIT_PLANS = [
+export const CREDIT_PLANS = [
   'Casual Drop-in', 'casual', 'Casual Class',
   '5-Class Pack', '5 Class Pack',
   '10-Class Pack', '10 Class Pack',
