@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import type { WixContact, WixContactBooking, WixMembership, MemberCredential } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
+import { StripeSetupForm } from '@/components/StripeSetupForm'
 
 type Props = {
   contacts: WixContact[]
@@ -144,9 +145,13 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
   const [ncLastName, setNcLastName]         = useState('')
   const [ncEmail, setNcEmail]               = useState('')
   const [ncPhone, setNcPhone]               = useState('')
+  const [ncPlan, setNcPlan]                 = useState('')
   const [ncSaving, setNcSaving]             = useState(false)
   const [ncError, setNcError]               = useState('')
   const [ncTempPass, setNcTempPass]         = useState('')
+  const [ncPayLink,       setNcPayLink]       = useState('')
+  const [ncClientSecret,  setNcClientSecret]  = useState('')
+  const [ncPayLoading,    setNcPayLoading]    = useState(false)
 
   async function createClient() {
     if (!ncFirstName.trim() || !ncEmail.trim()) { setNcError('First name and email are required'); return }
@@ -155,7 +160,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName: ncFirstName.trim(), lastName: ncLastName.trim(), email: ncEmail.trim().toLowerCase(), phone: ncPhone.trim(), suburb: '', password: tempPass }),
+      body: JSON.stringify({ firstName: ncFirstName.trim(), lastName: ncLastName.trim(), email: ncEmail.trim().toLowerCase(), phone: ncPhone.trim(), suburb: '', password: tempPass, plan: ncPlan || undefined }),
     })
     const data = await res.json()
     if (!res.ok) { setNcError(data.error ?? 'Failed to create client'); setNcSaving(false); return }
@@ -163,8 +168,20 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
     setNcSaving(false)
   }
 
+  async function generatePayLink() {
+    setNcPayLoading(true)
+    const res = await fetch('/api/admin/create-setup-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: ncEmail.trim().toLowerCase() }),
+    })
+    const data = await res.json()
+    setNcPayLoading(false)
+    if (res.ok && data.clientSecret) setNcClientSecret(data.clientSecret)
+  }
+
   function resetNewClient() {
-    setShowNewClient(false); setNcFirstName(''); setNcLastName(''); setNcEmail(''); setNcPhone(''); setNcError(''); setNcTempPass('')
+    setShowNewClient(false); setNcFirstName(''); setNcLastName(''); setNcEmail(''); setNcPhone(''); setNcPlan(''); setNcError(''); setNcTempPass(''); setNcPayLink(''); setNcClientSecret(''); setNcPayLoading(false)
   }
 
   const colsRef   = useRef<HTMLDivElement>(null)
@@ -289,8 +306,37 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
   return (
     <div className="h-full flex flex-col">
 
-      {/* ── Toolbar ── */}
-      <div className="shrink-0 px-6 py-3 border-b border-neutral-200 bg-white">
+      {/* ── Toolbar — mobile ── */}
+      <div className="md:hidden shrink-0 px-4 py-3 border-b border-neutral-200 bg-white space-y-2">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Search name or email…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="flex-1 h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+          />
+          <button
+            onClick={() => setShowNewClient(true)}
+            className="h-10 px-3 text-sm bg-black text-white rounded-lg font-medium whitespace-nowrap touch-manipulation"
+          >
+            + New
+          </button>
+        </div>
+        {filters.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {filters.map(k => (
+              <span key={k} className="flex items-center gap-1 h-7 px-2.5 text-[11.5px] bg-black text-white rounded-lg">
+                {filterLabel(k)}
+                <button onClick={() => removeFilter(k)} className="text-white/60 hover:text-white ml-0.5">×</button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Toolbar — desktop ── */}
+      <div className="hidden md:block shrink-0 px-6 py-3 border-b border-neutral-200 bg-white">
         <div className="flex items-center gap-2 flex-wrap">
 
           {/* Columns */}
@@ -383,9 +429,9 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
         </div>
       </div>
 
-      {/* ── Table header ── */}
+      {/* ── Table header — desktop only ── */}
       <div
-        className="shrink-0 grid px-6 py-2 border-b border-neutral-200 bg-neutral-50"
+        className="hidden md:grid shrink-0 px-6 py-2 border-b border-neutral-200 bg-neutral-50"
         style={{ gridTemplateColumns: gridCols }}
       >
         <input
@@ -416,71 +462,120 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
             const mems  = membershipsByContact[contact.id] ?? []
             const mem   = activeMembership(mems)
 
+            const memBadgeClass = mem
+              ? MEM_STATUS_BADGE[mem.status] ?? 'bg-neutral-100 text-neutral-500'
+              : contact.memberStatus === 'active'    ? 'bg-black text-white'
+              : contact.memberStatus === 'paused'    ? 'bg-neutral-200 text-neutral-600'
+              : contact.memberStatus === 'cancelled' ? 'bg-neutral-100 text-neutral-400'
+              : 'bg-neutral-100 text-neutral-500'
+
+            const memLabel = mem
+              ? mem.status === 'ENDED' ? 'Expired' : mem.status === 'CANCELED' ? 'Cancelled' : mem.status.charAt(0) + mem.status.slice(1).toLowerCase()
+              : contact.memberStatus
+              ? contact.memberStatus.charAt(0).toUpperCase() + contact.memberStatus.slice(1)
+              : ''
+
+            const planLabel = mem?.planName ?? contact.planOverride ?? ''
+
             return (
-              <div
-                key={contact.id}
-                className={`grid items-center px-6 py-3 border-b border-neutral-100 hover:bg-neutral-50 transition-colors cursor-pointer ${selectedIds.has(contact.id) ? 'bg-neutral-50' : ''}`}
-                style={{ gridTemplateColumns: gridCols }}
-                onClick={() => setSelected(contact)}
-              >
-                {/* Checkbox */}
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(contact.id)}
-                  onChange={() => toggleSelect(contact.id)}
-                  onClick={e => e.stopPropagation()}
-                  className="accent-black self-center"
-                />
-                {/* Name */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-neutral-900 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
+              <div key={contact.id} className="border-b border-neutral-100">
+
+                {/* ── Mobile card ── */}
+                <div
+                  className="md:hidden flex items-center gap-3 px-4 py-3.5 hover:bg-neutral-50 cursor-pointer transition-colors"
+                  onClick={() => setSelected(contact)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-neutral-900 text-white text-[12px] font-semibold flex items-center justify-center shrink-0">
                     {initials(contact.firstName, contact.lastName)}
                   </div>
-                  <span className="text-[13px] font-medium text-neutral-900 truncate">
-                    {contact.firstName} {contact.lastName}
-                  </span>
-                  {fresh && (
-                    <span className="text-[10px] font-semibold bg-black text-white px-1.5 py-0.5 rounded-full shrink-0">New</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[13px] font-medium text-neutral-900 truncate">
+                        {contact.firstName} {contact.lastName}
+                      </p>
+                      {fresh && (
+                        <span className="text-[9.5px] font-semibold bg-black text-white px-1.5 py-0.5 rounded-full shrink-0">New</span>
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-neutral-400 truncate mt-0.5">{contact.email || 'No email'}</p>
+                  </div>
+                  {planLabel ? (
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      {memLabel && (
+                        <span className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded-full ${memBadgeClass}`}>
+                          {memLabel}
+                        </span>
+                      )}
+                      <p className="text-[10.5px] text-neutral-500 truncate max-w-[110px] text-right">{planLabel}</p>
+                    </div>
+                  ) : (
+                    <span className="text-[11px] text-neutral-300 shrink-0">—</span>
                   )}
                 </div>
 
-                {cols.includes('email')      && <span className="text-[12.5px] text-neutral-600 truncate pr-4">{contact.email || '—'}</span>}
-                {cols.includes('phone')      && <span className="text-[12.5px] text-neutral-600">{contact.phone || '—'}</span>}
-                {cols.includes('since')      && <span className="text-[12px] text-neutral-500">{fmtDate(contact.createdDate)}</span>}
-                {cols.includes('membership') && (
-                  mem ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[12px] text-neutral-700 truncate">{mem.planName}</span>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${MEM_STATUS_BADGE[mem.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
-                        {mem.status === 'ENDED' ? 'Expired' : mem.status === 'CANCELED' ? 'Cancelled' : mem.status.charAt(0) + mem.status.slice(1).toLowerCase()}
-                      </span>
+                {/* ── Desktop row (unchanged) ── */}
+                <div
+                  className={`hidden md:grid items-center px-6 py-3 hover:bg-neutral-50 transition-colors cursor-pointer ${selectedIds.has(contact.id) ? 'bg-neutral-50' : ''}`}
+                  style={{ gridTemplateColumns: gridCols }}
+                  onClick={() => setSelected(contact)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(contact.id)}
+                    onChange={() => toggleSelect(contact.id)}
+                    onClick={e => e.stopPropagation()}
+                    className="accent-black self-center"
+                  />
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-neutral-900 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
+                      {initials(contact.firstName, contact.lastName)}
                     </div>
-                  ) : contact.planOverride ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[12px] text-neutral-700 truncate">{contact.planOverride}</span>
-                      {contact.memberStatus && (
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
-                          contact.memberStatus === 'active'    ? 'bg-green-100 text-green-700' :
-                          contact.memberStatus === 'paused'    ? 'bg-yellow-100 text-yellow-700' :
-                          contact.memberStatus === 'cancelled' ? 'bg-red-100 text-red-600' :
-                          'bg-neutral-100 text-neutral-500'
-                        }`}>
-                          {contact.memberStatus.charAt(0).toUpperCase() + contact.memberStatus.slice(1)}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <span className="text-[12px] text-neutral-400">—</span>
-                  )
-                )}
+                    <span className="text-[13px] font-medium text-neutral-900 truncate">
+                      {contact.firstName} {contact.lastName}
+                    </span>
+                    {fresh && (
+                      <span className="text-[10px] font-semibold bg-black text-white px-1.5 py-0.5 rounded-full shrink-0">New</span>
+                    )}
+                  </div>
 
-                <RowMenu
-                  contact={contact}
-                  open={menuId === contact.id}
-                  onOpen={id => setMenuId(id)}
-                  onClose={() => setMenuId(null)}
-                  onViewProfile={() => { setSelected(contact); setMenuId(null) }}
-                />
+                  {cols.includes('email')      && <span className="text-[12.5px] text-neutral-600 truncate pr-4">{contact.email || '—'}</span>}
+                  {cols.includes('phone')      && <span className="text-[12.5px] text-neutral-600">{contact.phone || '—'}</span>}
+                  {cols.includes('since')      && <span className="text-[12px] text-neutral-500">{fmtDate(contact.createdDate)}</span>}
+                  {cols.includes('membership') && (
+                    mem ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[12px] text-neutral-700 truncate">{mem.planName}</span>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${MEM_STATUS_BADGE[mem.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
+                          {mem.status === 'ENDED' ? 'Expired' : mem.status === 'CANCELED' ? 'Cancelled' : mem.status.charAt(0) + mem.status.slice(1).toLowerCase()}
+                        </span>
+                      </div>
+                    ) : contact.planOverride ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[12px] text-neutral-700 truncate">{contact.planOverride}</span>
+                        {contact.memberStatus && (
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                            contact.memberStatus === 'active'    ? 'bg-green-100 text-green-700' :
+                            contact.memberStatus === 'paused'    ? 'bg-yellow-100 text-yellow-700' :
+                            contact.memberStatus === 'cancelled' ? 'bg-red-100 text-red-600' :
+                            'bg-neutral-100 text-neutral-500'
+                          }`}>
+                            {contact.memberStatus.charAt(0).toUpperCase() + contact.memberStatus.slice(1)}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[12px] text-neutral-400">—</span>
+                    )
+                  )}
+
+                  <RowMenu
+                    contact={contact}
+                    open={menuId === contact.id}
+                    onOpen={id => setMenuId(id)}
+                    onClose={() => setMenuId(null)}
+                    onViewProfile={() => { setSelected(contact); setMenuId(null) }}
+                  />
+                </div>
               </div>
             )
           })
@@ -489,7 +584,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
 
       {/* ── Bulk action bar ── */}
       {selectedIds.size > 0 && (
-        <div className="shrink-0 px-6 py-3 border-t border-neutral-200 bg-black flex items-center gap-3">
+        <div className="shrink-0 px-4 md:px-6 py-3 border-t border-neutral-200 bg-black flex items-center gap-3">
           <span className="text-[13px] font-medium text-white">
             {selectedIds.size} selected
           </span>
@@ -516,7 +611,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
       )}
 
       {/* ── Footer ── */}
-      <div className="px-6 py-5 border-t border-neutral-200 bg-white flex items-center gap-8">
+      <div className="px-4 md:px-6 py-4 md:py-5 border-t border-neutral-200 bg-white flex items-center gap-6 md:gap-8">
         <div>
           <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Total Clients</p>
           <p className="text-xl font-semibold text-neutral-900 mt-0.5">{contacts.length}</p>
@@ -544,9 +639,9 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
 
       {/* New client modal */}
       {showNewClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/30" onClick={resetNewClient} />
-          <div className="relative bg-white rounded-xl shadow-2xl w-[420px] p-6">
+          <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
             {ncTempPass ? (
               <>
                 <h2 className="text-[15px] font-semibold text-neutral-900 mb-2">Client created</h2>
@@ -554,8 +649,32 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
                 <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 space-y-2 font-mono text-sm">
                   <div><span className="text-neutral-400">Email: </span>{ncEmail}</div>
                   <div><span className="text-neutral-400">Password: </span><strong>{ncTempPass}</strong></div>
+                  {ncPlan && <div><span className="text-neutral-400">Plan: </span>{ncPlan}</div>}
                 </div>
                 <p className="text-[11.5px] text-neutral-400 mt-3">They can change their password after logging in at bodyforme.com.au/app/login</p>
+
+                {/* Payment setup */}
+                <div className="mt-4 p-3 bg-neutral-50 border border-neutral-200 rounded-lg space-y-2">
+                  <p className="text-[12px] font-medium text-neutral-900">Set up direct debit or card</p>
+                  {ncPayLink === 'done' ? (
+                    <p className="text-[11.5px] text-green-600 font-medium">Payment details saved ✓</p>
+                  ) : ncClientSecret ? (
+                    <StripeSetupForm
+                      clientSecret={ncClientSecret}
+                      onSuccess={() => setNcPayLink('done')}
+                      onCancel={() => { setNcClientSecret(''); setNcPayLink('') }}
+                    />
+                  ) : (
+                    <>
+                      <p className="text-[11.5px] text-neutral-600">Enter {ncFirstName}&apos;s BSB and account number (or card) below.</p>
+                      <button onClick={generatePayLink} disabled={ncPayLoading}
+                        className="h-7 px-3 text-[11.5px] border border-neutral-300 text-neutral-700 rounded-lg hover:border-black hover:text-black transition-colors disabled:opacity-40">
+                        {ncPayLoading ? 'Loading…' : 'Enter payment details'}
+                      </button>
+                    </>
+                  )}
+                </div>
+
                 <div className="flex justify-end mt-5">
                   <button onClick={() => { resetNewClient(); window.location.reload() }}
                     className="h-8 px-4 text-[12.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800">
@@ -588,6 +707,14 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
                     <label className="block text-[12px] font-medium text-neutral-600 mb-1">Phone</label>
                     <input type="tel" value={ncPhone} onChange={e => setNcPhone(e.target.value)}
                       className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-neutral-600 mb-1">Plan</label>
+                    <select value={ncPlan} onChange={e => setNcPlan(e.target.value)}
+                      className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
+                      <option value="">— Set later —</option>
+                      {PLAN_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                    </select>
                   </div>
                   {ncError && <p className="text-[12px] text-red-600">{ncError}</p>}
                 </div>
@@ -746,7 +873,7 @@ function ClientDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
-      <div className="relative w-[420px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
+      <div className="relative w-full md:w-[420px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
 
         {/* Header */}
         <div className="px-6 py-5 border-b border-neutral-200">
@@ -997,6 +1124,25 @@ const QUICK_PRESETS = [
   { label: 'Casual',         plan: 'casual',        credits: 1  },
 ]
 
+// Plans that are class packs / drop-ins (not recurring memberships)
+const PACK_KEYWORDS = ['casual', 'drop-in', 'class pack', 'class pass', 'free trial', 'intro', '5-class', '10-class', '20-class', '50-class', '5 class', '10 class', '20 class', '50 class']
+function isPack(plan: string): boolean {
+  if (!plan) return false
+  const p = plan.toLowerCase()
+  return PACK_KEYWORDS.some(k => p.includes(k))
+}
+
+// Derive the original pack size from the plan name
+function packSize(plan: string): number | null {
+  const p = plan.toLowerCase()
+  if (p.includes('50')) return 50
+  if (p.includes('20')) return 20
+  if (p.includes('10')) return 10
+  if (p.includes('5'))  return 5
+  if (p.includes('casual') || p.includes('drop-in') || p.includes('free trial') || p.includes('intro')) return 1
+  return null
+}
+
 function MembershipsTab({ contact, memberships, member, memberLoading, onMemberUpdate }: {
   contact:        WixContact
   memberships:    WixMembership[]
@@ -1009,6 +1155,25 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   const [saved, setSaved]     = useState(false)
   const [editing, setEditing] = useState(false)
   const [adjSaving, setAdjSaving] = useState(false)
+  const [payOpen,         setPayOpen]         = useState(false)
+  const [payClientSecret, setPayClientSecret] = useState('')
+  const [payLoading,      setPayLoading]      = useState(false)
+  const [payError,        setPayError]        = useState('')
+  const [payDone,         setPayDone]         = useState(false)
+
+  async function openPaymentSetup() {
+    if (!contact.email) return
+    setPayOpen(true); setPayLoading(true); setPayError(''); setPayClientSecret(''); setPayDone(false)
+    const res = await fetch('/api/admin/create-setup-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: contact.email }),
+    })
+    const data = await res.json()
+    setPayLoading(false)
+    if (!res.ok) { setPayError(data.error ?? 'Failed to start payment setup'); return }
+    setPayClientSecret(data.clientSecret)
+  }
 
   useEffect(() => {
     if (member) setForm({
@@ -1067,20 +1232,29 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     ? `https://dashboard.stripe.com/customers/${member.stripeCustomerId}`
     : null
 
+  // Only show true recurring memberships in history (filter out packs/casual)
+  const recurringMems = memberships.filter(m => !isPack(m.planName))
+
+  // Pack usage helpers — safe when member is null/undefined
+  const currentIsPack = isPack(member?.planOverride ?? '')
+  const size          = currentIsPack ? packSize(member?.planOverride ?? '') : null
+  const used          = size !== null ? Math.max(0, size - (member?.creditBalance ?? 0)) : null
+  const remaining     = member?.creditBalance ?? 0
+
   return (
     <div>
-      {/* Membership history */}
-      {memberships.length > 0 && (
+      {/* Recurring membership history */}
+      {recurringMems.length > 0 && (
         <div className="border-b border-neutral-100">
           <p className="px-6 pt-4 pb-2 text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Membership history</p>
-          {memberships
+          {recurringMems
             .sort((a, b) => b.startDate.localeCompare(a.startDate))
             .map((m, i) => (
-              <div key={m.id} className={`flex items-start justify-between px-6 py-3.5 ${i < memberships.length - 1 ? 'border-b border-neutral-100' : ''}`}>
+              <div key={m.id} className={`flex items-start justify-between px-6 py-3.5 ${i < recurringMems.length - 1 ? 'border-b border-neutral-100' : ''}`}>
                 <div>
                   <p className="text-[13px] font-semibold text-neutral-900">{m.planName || '—'}</p>
                   <p className="text-[11.5px] text-neutral-400 mt-0.5">
-                    Started {fmtDate(m.startDate)}{m.endDate ? ` · Ends ${fmtDate(m.endDate)}` : ''}
+                    {m.startDate ? `Started ${fmtDate(m.startDate)}` : ''}{m.endDate ? ` · Ends ${fmtDate(m.endDate)}` : ''}
                   </p>
                 </div>
                 <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${MEM_STATUS_BADGE[m.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
@@ -1102,11 +1276,15 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
 
         {!memberLoading && member && (
           <>
+  const currentIsPack = isPack(member.planOverride)
+  const size          = currentIsPack ? packSize(member.planOverride) : null
             {/* Summary strip */}
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3 space-y-2">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] text-neutral-400 uppercase tracking-wider mb-0.5">Current plan</p>
+                  <p className="text-[11px] text-neutral-400 uppercase tracking-wider mb-0.5">
+                    {currentIsPack ? 'Class pack' : 'Current plan'}
+                  </p>
                   <p className="text-[13.5px] font-semibold text-neutral-900">{member.planOverride || '—'}</p>
                 </div>
                 <span className={`text-[10.5px] font-semibold px-2.5 py-1 rounded-full ${
@@ -1118,12 +1296,31 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                   {member.status?.charAt(0).toUpperCase()}{member.status?.slice(1)}
                 </span>
               </div>
+
+              {/* Pack usage bar — shown only for credit-based plans */}
+              {currentIsPack && size !== null && (
+                <div>
+                  <div className="flex items-center justify-between text-[12px] mb-1">
+                    <span className="text-neutral-500">Pack usage</span>
+                    <span className="font-semibold text-neutral-900">
+                      {used} of {size} used · <span className={remaining <= 2 && remaining > 0 ? 'text-amber-600' : remaining === 0 ? 'text-red-600' : 'text-neutral-700'}>{remaining} remaining</span>
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${remaining === 0 ? 'bg-red-500' : remaining <= 2 ? 'bg-amber-400' : 'bg-black'}`}
+                      style={{ width: `${Math.min(100, (used! / size) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between text-[12px]">
                 <span className="text-neutral-500">Classes remaining</span>
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => adjustCredits(-1)} disabled={adjSaving || (member.creditBalance ?? 0) <= 0}
+                  <button onClick={() => adjustCredits(-1)} disabled={adjSaving || remaining <= 0}
                     className="w-6 h-6 rounded border border-neutral-200 text-neutral-600 hover:border-neutral-400 flex items-center justify-center text-sm font-bold disabled:opacity-30">−</button>
-                  <span className="font-semibold text-neutral-900 w-8 text-center">{member.creditBalance ?? 0}</span>
+                  <span className={`font-semibold w-8 text-center ${remaining === 0 ? 'text-red-600' : remaining <= 2 ? 'text-amber-600' : 'text-neutral-900'}`}>{remaining}</span>
                   <button onClick={() => adjustCredits(1)} disabled={adjSaving}
                     className="w-6 h-6 rounded border border-neutral-200 text-neutral-600 hover:border-neutral-400 flex items-center justify-center text-sm font-bold disabled:opacity-30">+</button>
                   <button onClick={() => adjustCredits(5)} disabled={adjSaving}
@@ -1143,6 +1340,58 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                   className="flex items-center gap-1 text-[11.5px] text-indigo-600 hover:text-indigo-800 font-medium pt-1">
                   Open in Stripe ↗
                 </a>
+              )}
+              {/* Payment setup */}
+              {contact.email && (
+                <div className="pt-1 border-t border-neutral-200 mt-1">
+                  <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">Direct debit / card</p>
+                  {payDone ? (
+                    <p className="text-[11.5px] text-green-600 font-medium">Payment details saved ✓</p>
+                  ) : (
+                    <button onClick={openPaymentSetup} disabled={payLoading}
+                      className="h-7 px-3 text-[11.5px] border border-neutral-200 text-neutral-700 rounded-lg hover:border-black hover:text-black transition-colors disabled:opacity-40">
+                      {payLoading ? 'Loading…' : 'Enter direct debit / card details'}
+                    </button>
+                  )}
+                  {payError && <p className="text-[11px] text-red-500 mt-1">{payError}</p>}
+                </div>
+              )}
+
+              {/* Payment setup modal */}
+              {payOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/40" onClick={() => !payDone && setPayOpen(false)} />
+                  <div className="relative bg-white rounded-xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-auto p-6">
+                    {payDone ? (
+                      <div className="text-center py-4 space-y-3">
+                        <p className="text-2xl font-semibold text-neutral-900">Payment details saved</p>
+                        <p className="text-[13px] text-neutral-500">Direct debit is set up and ready. Stripe will use these details for recurring billing.</p>
+                        <button onClick={() => { setPayOpen(false); setPayDone(true) }}
+                          className="h-9 px-6 text-sm font-medium bg-black text-white rounded-lg hover:bg-neutral-800">
+                          Done
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-[15px] font-semibold text-neutral-900">Set up direct debit / card</h3>
+                          <button onClick={() => setPayOpen(false)} className="text-neutral-400 hover:text-neutral-700 text-xl">×</button>
+                        </div>
+                        <p className="text-[12px] text-neutral-500 mb-4">
+                          For {contact.firstName} {contact.lastName}. Enter BSB and account number (or card) below. Processed securely by Stripe.
+                        </p>
+                        {payLoading && <p className="text-sm text-neutral-400">Loading…</p>}
+                        {payClientSecret && (
+                          <StripeSetupForm
+                            clientSecret={payClientSecret}
+                            onSuccess={() => setPayDone(true)}
+                            onCancel={() => setPayOpen(false)}
+                          />
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
