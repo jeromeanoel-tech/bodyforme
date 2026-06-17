@@ -4,20 +4,22 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 
-const NAV: ({ href: string; label: string; exact?: boolean } | null)[] = [
-  { href: '/admin',             label: 'Dashboard', exact: true },
+type NavItem = { href: string; label: string; exact?: boolean; adminOnly?: boolean }
+
+const NAV: (NavItem | null)[] = [
+  { href: '/admin',             label: 'Dashboard',   exact: true },
   { href: '/admin/schedule',    label: 'Schedule' },
-  { href: '/admin/classes',     label: 'Classes' },
   { href: '/admin/checkin',     label: 'Check In' },
-  { href: '/admin/pos',         label: 'POS' },
+  { href: '/admin/classes',     label: 'Classes',     adminOnly: true },
+  { href: '/admin/pos',         label: 'POS',         adminOnly: true },
   null,
   { href: '/admin/clients',     label: 'Clients' },
   { href: '/admin/memberships', label: 'Memberships' },
-  { href: '/admin/insights',    label: 'Insights' },
-  { href: '/admin/marketing',   label: 'Marketing' },
+  { href: '/admin/insights',    label: 'Insights',    adminOnly: true },
+  { href: '/admin/marketing',   label: 'Marketing',   adminOnly: true },
   null,
-  { href: '/admin/staff',       label: 'Staff' },
-  { href: '/admin/settings',    label: 'Settings' },
+  { href: '/admin/staff',       label: 'Staff',       adminOnly: true },
+  { href: '/admin/settings',    label: 'Settings',    adminOnly: true },
 ]
 
 export default function AdminSidebar({
@@ -29,6 +31,7 @@ export default function AdminSidebar({
   role:      string
   onClose?:  () => void
 }) {
+  const isAdmin = role === 'admin'
   const path   = usePathname()
   const router = useRouter()
 
@@ -57,10 +60,13 @@ export default function AdminSidebar({
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-        {NAV.map((item, i) =>
-          item === null ? (
-            <div key={i} className="my-2 border-t border-neutral-800" />
-          ) : (
+        {NAV.map((item, i) => {
+          if (item === null) {
+            // Skip dividers that would end up adjacent due to filtered items
+            return <div key={i} className="my-2 border-t border-neutral-800" />
+          }
+          if (item.adminOnly && !isAdmin) return null
+          return (
             <Link
               key={item.href}
               href={item.href}
@@ -74,7 +80,7 @@ export default function AdminSidebar({
               {item.label}
             </Link>
           )
-        )}
+        })}
       </nav>
 
       {/* User + logout */}

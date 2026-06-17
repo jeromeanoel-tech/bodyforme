@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation'
+import { getAdminSession } from '@/lib/adminSession'
 import { createClient } from '@supabase/supabase-js'
 import ClassesClient from './ClassesClient'
 
@@ -9,6 +11,9 @@ const supabase = createClient(
 )
 
 export default async function AdminClassesPage() {
+  const session = await getAdminSession()
+  if (session?.role !== 'admin') redirect('/admin')
+
   const { data: services } = await supabase
     .from('services')
     .select('id, name, description, duration, capacity')

@@ -1,9 +1,13 @@
+import { redirect } from 'next/navigation'
+import { getAdminSession } from '@/lib/adminSession'
 import { getContacts, getMemberships, getSessions, getServices, getFreeTrialCount } from '@/lib/db'
 import InsightsClient from './InsightsClient'
 
 export const revalidate = 60
 
 export default async function AdminInsightsPage() {
+  const session = await getAdminSession()
+  if (session?.role !== 'admin') redirect('/admin')
   // Fetch 90 days of sessions for trend data
   const now = new Date()
   const from = new Date(now); from.setDate(now.getDate() - 90)

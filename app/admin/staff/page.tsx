@@ -1,9 +1,13 @@
+import { redirect } from 'next/navigation'
+import { getAdminSession } from '@/lib/adminSession'
 import { getStaff, getServices, getSessions } from '@/lib/db'
 import StaffClient from './StaffClient'
 
 export const revalidate = 300
 
 export default async function AdminStaffPage() {
+  const session = await getAdminSession()
+  if (session?.role !== 'admin') redirect('/admin')
   const now  = new Date()
   const mon  = new Date(now)
   mon.setDate(now.getDate() - ((now.getDay() + 6) % 7))
