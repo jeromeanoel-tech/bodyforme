@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { markAttendance } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
+import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,29 +10,42 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   const session = await getAdminSession()
-  if (!session || session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { memberId, sessionId } = await req.json()
   if (!memberId || !sessionId) {
     return NextResponse.json({ error: 'memberId and sessionId required' }, { status: 400 })
   }
 
-  // Upsert booking (idempotent — safe to call if they're already booked)
-  const { data: booking, error } = await supabase
+  // Check if booking already exists (avoids relying on a named unique constraint)
+  const { data: existing } = await supabase
     .from('bookings')
-    .upsert(
-      { member_id: memberId, session_id: sessionId, status: 'CONFIRMED' },
-      { onConflict: 'member_id,session_id' },
-    )
     .select('id')
+    .eq('member_id', memberId)
+    .eq('session_id', sessionId)
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  let bookingId: string
+
+  if (existing?.id) {
+    bookingId = existing.id
+  } else {
+    const { data: inserted, error } = await supabase
+      .from('bookings')
+      .insert({ member_id: memberId, session_id: sessionId, status: 'CONFIRMED' })
+      .select('id')
+      .single()
+
+    if (error || !inserted) {
+      return NextResponse.json({ error: error?.message ?? 'Failed to create booking' }, { status: 500 })
+    }
+    bookingId = inserted.id
+  }
 
   // Mark as attended immediately
-  await markAttendance(booking.id, true)
+  await markAttendance(bookingId, true)
 
-  // Return the booking in the same shape CheckInClient expects
+  // Return the booking in the shape CheckInClient expects
   const { data: member } = await supabase
     .from('members')
     .select('id, first_name, last_name, email, plan_override, credit_balance, status')
@@ -41,8 +54,9 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     booking: {
-      id:     booking.id,
+      id:     bookingId,
       status: 'CONFIRMED',
+      attended: true,
       contactDetails: {
         firstName: member?.first_name ?? '',
         lastName:  member?.last_name  ?? '',
