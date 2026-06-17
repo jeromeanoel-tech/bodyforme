@@ -34,7 +34,7 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? 'Login failed'); setLoading(false); return }
-      window.location.href = '/app/schedule'
+      window.location.href = data.redirect ?? '/app/schedule'
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)

@@ -20,7 +20,15 @@ const NAV: ({ href: string; label: string; exact?: boolean } | null)[] = [
   { href: '/admin/settings',    label: 'Settings' },
 ]
 
-export default function AdminSidebar({ name, role }: { name: string; role: string }) {
+export default function AdminSidebar({
+  name,
+  role,
+  onClose,
+}: {
+  name:      string
+  role:      string
+  onClose?:  () => void
+}) {
   const path   = usePathname()
   const router = useRouter()
 
@@ -32,7 +40,7 @@ export default function AdminSidebar({ name, role }: { name: string; role: strin
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
 
   return (
-    <aside className="w-[220px] shrink-0 bg-black flex flex-col border-r border-neutral-800">
+    <aside className="h-full bg-black flex flex-col border-r border-neutral-800">
       {/* Logo */}
       <div className="px-5 py-4 border-b border-neutral-800 flex justify-center">
         <div className="bg-white rounded-xl px-3 py-2.5 flex items-center justify-center">
@@ -56,7 +64,8 @@ export default function AdminSidebar({ name, role }: { name: string; role: strin
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center px-3 py-2 rounded-lg text-[17.5px] transition-colors ${
+              onClick={onClose}
+              className={`flex items-center px-3 py-3 rounded-lg text-[16px] transition-colors min-h-[44px] ${
                 (item.exact ? path === item.href : path.startsWith(item.href))
                   ? 'bg-white text-black font-medium'
                   : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
@@ -71,17 +80,17 @@ export default function AdminSidebar({ name, role }: { name: string; role: strin
       {/* User + logout */}
       <div className="px-4 py-4 border-t border-neutral-800 space-y-2">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-full bg-neutral-700 text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-full bg-neutral-700 text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="text-white text-[17px] font-medium truncate">{name}</p>
-            <p className="text-neutral-500 text-[15.5px] capitalize">{role}</p>
+            <p className="text-white text-[15px] font-medium truncate">{name}</p>
+            <p className="text-neutral-500 text-[13px] capitalize">{role}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full text-left text-[16.5px] text-neutral-500 hover:text-red-400 transition-colors px-1"
+          className="w-full text-left text-[15px] text-neutral-500 hover:text-red-400 transition-colors px-1 min-h-[44px] flex items-center"
         >
           Sign out
         </button>

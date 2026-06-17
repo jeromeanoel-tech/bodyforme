@@ -32,7 +32,6 @@ export default function CheckInClient({ sessions, services }: Props) {
   const [loading, setLoading]   = useState(false)
   const [attended, setAttended] = useState<AttendeeState>({})
 
-  // Main search — filters booked list AND searches all members in DB
   const [search, setSearch]               = useState('')
   const [dbResults, setDbResults]         = useState<MemberResult[]>([])
   const [dbLoading, setDbLoading]         = useState(false)
@@ -40,7 +39,6 @@ export default function CheckInClient({ sessions, services }: Props) {
   const [addError, setAddError]           = useState('')
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Separate casual walk-in panel
   const [walkInOpen, setWalkInOpen]       = useState(false)
   const [walkInQuery, setWalkInQuery]     = useState('')
   const [walkInResults, setWalkInResults] = useState<MemberResult[]>([])
@@ -51,7 +49,6 @@ export default function CheckInClient({ sessions, services }: Props) {
 
   const selectedSessionRef = useRef<WixSession | null>(null)
 
-  // Auto-refresh every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (selectedSessionRef.current) loadBookings(selectedSessionRef.current.id)
@@ -59,7 +56,6 @@ export default function CheckInClient({ sessions, services }: Props) {
     return () => clearInterval(interval)
   }, [])
 
-  // Main search — query DB for all members matching input
   useEffect(() => {
     if (searchDebounce.current) clearTimeout(searchDebounce.current)
     if (search.length < 2) { setDbResults([]); return }
@@ -72,7 +68,6 @@ export default function CheckInClient({ sessions, services }: Props) {
     }, 250)
   }, [search])
 
-  // Walk-in panel search
   useEffect(() => {
     if (walkInDebounce.current) clearTimeout(walkInDebounce.current)
     if (walkInQuery.length < 2) { setWalkInResults([]); return }
@@ -175,7 +170,6 @@ export default function CheckInClient({ sessions, services }: Props) {
 
   const bookedIds = new Set((bookings ?? []).map(b => b.memberId))
 
-  // Booked attendees matching the search
   const filteredBookings = (bookings ?? []).filter(b => {
     if (!search) return true
     const q = search.toLowerCase()
@@ -186,16 +180,51 @@ export default function CheckInClient({ sessions, services }: Props) {
     )
   })
 
-  // Members from DB not already booked — shown as "Add" suggestions
   const unbookedSuggestions = dbResults.filter(m => !bookedIds.has(m.id))
-
   const checkedInCount = Object.values(attended).filter(v => v === 'present').length
 
   return (
-    <div className="h-full flex overflow-hidden">
+    <div className="h-full flex flex-col md:flex-row overflow-hidden">
 
-      {/* ── Session list ── */}
-      <div className="w-72 shrink-0 border-r border-neutral-200 flex flex-col bg-white">
+      {/* ── Mobile: horizontal session strip ── */}
+      <div className="md:hidden shrink-0 bg-white border-b border-neutral-200">
+        <div className="px-3 py-2 text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">
+          Today&apos;s classes · {sessions.length} session{sessions.length !== 1 ? 's' : ''}
+        </div>
+        {sessions.length === 0 ? (
+          <p className="px-4 pb-3 text-sm text-neutral-400">No classes today.</p>
+        ) : (
+          <div className="flex gap-2 px-3 pb-3 overflow-x-auto">
+            {sessions.map(s => {
+              const name   = scheduleToName[s.scheduleId] ?? s.title
+              const active = selectedSession?.id === s.id
+              const past   = new Date(s.end) < new Date()
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => selectSession(s)}
+                  className={`flex-none text-left px-3 py-2.5 rounded-xl border min-w-[150px] transition-colors touch-manipulation ${
+                    active
+                      ? 'bg-black text-white border-black'
+                      : 'bg-white border-neutral-200 text-neutral-800'
+                  }`}
+                >
+                  <p className={`text-[12.5px] font-semibold truncate ${active ? 'text-white' : 'text-neutral-900'}`}>
+                    {name}
+                  </p>
+                  <p className={`text-[11px] mt-0.5 ${active ? 'text-white/70' : 'text-neutral-400'}`}>
+                    {fmt12(s.start)} · {s.bookedCount}/{s.capacity}
+                    {past && <span className="ml-1 opacity-60">· Done</span>}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Desktop: vertical session list ── */}
+      <div className="hidden md:flex w-72 shrink-0 border-r border-neutral-200 flex-col bg-white">
         <div className="px-4 py-4 border-b border-neutral-100">
           <h2 className="text-[13px] font-semibold text-neutral-900">Today&apos;s classes</h2>
           <p className="text-[11.5px] text-neutral-400 mt-0.5">{sessions.length} session{sessions.length !== 1 ? 's' : ''}</p>
@@ -249,23 +278,23 @@ export default function CheckInClient({ sessions, services }: Props) {
       </div>
 
       {/* ── Attendee panel ── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {selectedSession ? (
           <>
             {/* Header */}
-            <div className="shrink-0 px-6 py-4 border-b border-neutral-200 bg-white">
+            <div className="shrink-0 px-4 md:px-6 py-3 md:py-4 border-b border-neutral-200 bg-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-[15px] font-semibold text-neutral-900">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] md:text-[15px] font-semibold text-neutral-900 truncate">
                     {scheduleToName[selectedSession.scheduleId] ?? selectedSession.title}
                   </h2>
-                  <p className="text-[12px] text-neutral-400 mt-0.5">
+                  <p className="text-[11.5px] text-neutral-400 mt-0.5">
                     {fmt12(selectedSession.start)} – {fmt12(selectedSession.end)} · {selectedSession.bookedCount}/{selectedSession.capacity} booked
                   </p>
                 </div>
                 {checkedInCount > 0 && (
-                  <div className="text-right">
-                    <p className="text-[10.5px] text-neutral-400 uppercase tracking-wider">Checked in</p>
+                  <div className="text-right shrink-0 ml-3">
+                    <p className="text-[10px] text-neutral-400 uppercase tracking-wider">In</p>
                     <p className="text-2xl font-semibold text-neutral-900">{checkedInCount}</p>
                   </div>
                 )}
@@ -279,24 +308,23 @@ export default function CheckInClient({ sessions, services }: Props) {
                     placeholder="Search by name or email…"
                     value={search}
                     onChange={e => { setSearch(e.target.value); setAddError('') }}
-                    className="w-full h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                    className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                   />
-                  {/* Unbooked suggestions drop-down */}
                   {unbookedSuggestions.length > 0 && (
                     <div className="absolute left-0 right-0 top-full mt-1 border border-neutral-200 rounded-lg bg-white shadow-md z-10 overflow-hidden">
                       <p className="px-3 py-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider bg-neutral-50 border-b border-neutral-100">
-                        Not booked yet — tap to add
+                        Not booked — tap to add
                       </p>
                       {unbookedSuggestions.map((m, i) => (
-                        <div key={m.id} className={`flex items-center justify-between px-3 py-2.5 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
-                          <div>
+                        <div key={m.id} className={`flex items-center justify-between px-3 py-3 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
+                          <div className="min-w-0 mr-2">
                             <p className="text-[13px] font-medium text-neutral-900">{m.firstName} {m.lastName}</p>
-                            <p className="text-[11px] text-neutral-400">{m.email}</p>
+                            <p className="text-[11px] text-neutral-400 truncate">{m.email}</p>
                           </div>
                           <button
                             onClick={() => addToSession(m)}
                             disabled={addingId === m.id}
-                            className="h-7 px-3 text-[11.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 transition-colors shrink-0"
+                            className="h-9 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 transition-colors shrink-0 touch-manipulation"
                           >
                             {addingId === m.id ? '…' : 'Add'}
                           </button>
@@ -307,7 +335,7 @@ export default function CheckInClient({ sessions, services }: Props) {
                 </div>
                 <button
                   onClick={() => { setWalkInOpen(true); setWalkInQuery(''); setWalkInResults([]); setWalkInError('') }}
-                  className="h-8 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors shrink-0"
+                  className="h-10 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors shrink-0 touch-manipulation"
                 >
                   + Casual
                 </button>
@@ -320,10 +348,10 @@ export default function CheckInClient({ sessions, services }: Props) {
 
             {/* Casual walk-in panel */}
             {walkInOpen && (
-              <div className="shrink-0 border-b border-neutral-200 bg-amber-50 px-6 py-4">
+              <div className="shrink-0 border-b border-neutral-200 bg-amber-50 px-4 md:px-6 py-4">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[13px] font-semibold text-neutral-900">Add casual walk-in</p>
-                  <button onClick={() => setWalkInOpen(false)} className="text-neutral-400 hover:text-neutral-700 text-lg leading-none">✕</button>
+                  <button onClick={() => setWalkInOpen(false)} className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 text-lg touch-manipulation">✕</button>
                 </div>
                 <input
                   type="text"
@@ -331,7 +359,7 @@ export default function CheckInClient({ sessions, services }: Props) {
                   value={walkInQuery}
                   onChange={e => setWalkInQuery(e.target.value)}
                   autoFocus
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white"
+                  className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white"
                 />
                 {walkInError && <p className="text-[12px] text-red-600 mt-2">{walkInError}</p>}
                 {walkInLoading && <p className="text-[12px] text-neutral-400 mt-2">Searching…</p>}
@@ -340,18 +368,18 @@ export default function CheckInClient({ sessions, services }: Props) {
                     {walkInResults.map((m, i) => {
                       const alreadyIn = (bookings ?? []).some(b => b.memberId === m.id)
                       return (
-                        <div key={m.id} className={`flex items-center justify-between px-3 py-2.5 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
-                          <div>
+                        <div key={m.id} className={`flex items-center justify-between px-3 py-3 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
+                          <div className="min-w-0 mr-2">
                             <p className="text-[13px] font-medium text-neutral-900">{m.firstName} {m.lastName}</p>
-                            <p className="text-[11px] text-neutral-400">{m.email}</p>
+                            <p className="text-[11px] text-neutral-400 truncate">{m.email}</p>
                           </div>
                           {alreadyIn ? (
-                            <span className="text-[11px] text-neutral-400 italic">Already booked</span>
+                            <span className="text-[11px] text-neutral-400 italic shrink-0">Already booked</span>
                           ) : (
                             <button
                               onClick={() => addToSession(m, true)}
                               disabled={walkInAdding}
-                              className="h-7 px-3 text-[11.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40"
+                              className="h-9 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation shrink-0"
                             >
                               {walkInAdding ? '…' : 'Add & check in'}
                             </button>
@@ -370,10 +398,10 @@ export default function CheckInClient({ sessions, services }: Props) {
             {/* Attendee list */}
             <div className="flex-1 overflow-y-auto">
               {loading && (
-                <p className="px-6 py-8 text-sm text-neutral-400">Loading attendees…</p>
+                <p className="px-4 py-8 text-sm text-neutral-400">Loading attendees…</p>
               )}
               {!loading && filteredBookings.length === 0 && (
-                <p className="px-6 py-8 text-sm text-neutral-400">
+                <p className="px-4 py-8 text-sm text-neutral-400">
                   {search ? 'No booked attendees match your search.' : 'No bookings for this session yet.'}
                 </p>
               )}
@@ -414,58 +442,60 @@ export default function CheckInClient({ sessions, services }: Props) {
                 return (
                   <div
                     key={b.id}
-                    className={`flex items-center gap-4 px-6 py-3.5 ${
+                    className={`px-4 md:px-6 py-3 md:py-3.5 ${
                       i < filteredBookings.length - 1 ? 'border-b border-neutral-100' : ''
                     } ${isIn ? 'bg-neutral-50' : ''}`}
                   >
-                    <div className={`w-9 h-9 rounded-full text-[11px] font-semibold flex items-center justify-center shrink-0 ${
-                      isIn ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-600'
-                    }`}>
-                      {initials}
+                    {/* Mobile layout: stacked */}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full text-[11px] font-semibold flex items-center justify-center shrink-0 ${
+                        isIn ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-600'
+                      }`}>
+                        {initials}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium text-neutral-900">{name}</p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <p className={`text-[11.5px] font-semibold ${classesColour}`}>{classesLabel}</p>
+                          {hasPlan && !isExpired && (
+                            <p className="text-[10.5px] text-neutral-400 truncate">{b.planOverride.split(' –')[0]}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => toggleAttendance(b.id, state)}
+                        disabled={isLoading}
+                        className={`h-10 px-3 text-[12px] font-medium rounded-lg border transition-colors shrink-0 disabled:opacity-40 touch-manipulation ${
+                          isIn
+                            ? 'bg-black text-white border-black hover:bg-neutral-800'
+                            : 'bg-white text-neutral-600 border-neutral-200 hover:border-black hover:text-black'
+                        }`}
+                      >
+                        {isLoading ? '…' : isIn ? '✓ In' : 'Check in'}
+                      </button>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-medium text-neutral-900">{name}</p>
-                      <p className="text-[11.5px] text-neutral-400 truncate">{b.contactDetails.email}</p>
-                    </div>
-
-                    <div className="w-24 shrink-0 text-right">
-                      <p className={`text-[12px] font-semibold ${classesColour}`}>{classesLabel}</p>
-                      {hasPlan && !isExpired && (
-                        <p className="text-[10.5px] text-neutral-400 truncate">{b.planOverride.split(' –')[0]}</p>
-                      )}
-                    </div>
-
+                    {/* Sell buttons row */}
                     {showSell && (
-                      <div className="flex gap-1.5 shrink-0">
+                      <div className="flex gap-2 mt-2 ml-12">
                         <a
                           href={`/admin/pos?client=${encodeURIComponent(b.contactDetails.email)}&product=casual`}
-                          className="h-7 px-2.5 text-[11px] font-medium rounded border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex items-center"
+                          className="h-8 px-3 text-[11px] font-medium rounded border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex items-center touch-manipulation"
                         >
                           Sell casual
                         </a>
                         {(isExpired || hasPlan) && (
                           <a
                             href={`/admin/pos?client=${encodeURIComponent(b.contactDetails.email)}&product=renew`}
-                            className="h-7 px-2.5 text-[11px] font-medium rounded border border-neutral-200 bg-white text-neutral-600 hover:border-black hover:text-black transition-colors flex items-center"
+                            className="h-8 px-3 text-[11px] font-medium rounded border border-neutral-200 bg-white text-neutral-600 hover:border-black hover:text-black transition-colors flex items-center touch-manipulation"
                           >
                             Renew
                           </a>
                         )}
                       </div>
                     )}
-
-                    <button
-                      onClick={() => toggleAttendance(b.id, state)}
-                      disabled={isLoading}
-                      className={`h-8 px-4 text-[12.5px] font-medium rounded-lg border transition-colors shrink-0 disabled:opacity-40 ${
-                        isIn
-                          ? 'bg-black text-white border-black hover:bg-neutral-800'
-                          : 'bg-white text-neutral-600 border-neutral-200 hover:border-black hover:text-black'
-                      }`}
-                    >
-                      {isLoading ? '…' : isIn ? '✓ Checked in' : 'Check in'}
-                    </button>
                   </div>
                 )
               })}
