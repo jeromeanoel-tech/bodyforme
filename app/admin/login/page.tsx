@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              placeholder="firstname.lastname"
+              placeholder="username"
               autoComplete="username"
               required
               className="w-full h-11 px-3 bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg outline-none focus:border-white transition-colors placeholder:text-neutral-600"
