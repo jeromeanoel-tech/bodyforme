@@ -9,6 +9,7 @@ type Props = {
 }
 
 type AttendeeState = Record<string, 'present' | 'absent' | 'loading'>
+type MemberResult  = { id: string; firstName: string; lastName: string; email: string }
 
 function fmt12(iso: string) {
   if (!iso) return ''
@@ -27,31 +28,51 @@ export default function CheckInClient({ sessions, services }: Props) {
   const [selectedSession, setSelectedSession] = useState<WixSession | null>(
     sessions.length > 0 ? sessions[0] : null
   )
-  const [bookings, setBookings]   = useState<WixBooking[] | null>(null)
-  const [loading, setLoading]     = useState(false)
-  const [search, setSearch]       = useState('')
-  const [attended, setAttended]   = useState<AttendeeState>({})
+  const [bookings, setBookings] = useState<WixBooking[] | null>(null)
+  const [loading, setLoading]   = useState(false)
+  const [attended, setAttended] = useState<AttendeeState>({})
 
-  // Casual state
-  const [walkInOpen, setWalkInOpen]         = useState(false)
-  const [walkInQuery, setWalkInQuery]       = useState('')
-  const [walkInResults, setWalkInResults]   = useState<{ id: string; firstName: string; lastName: string; email: string }[]>([])
-  const [walkInLoading, setWalkInLoading]   = useState(false)
-  const [walkInAdding, setWalkInAdding]     = useState(false)
-  const [walkInError, setWalkInError]       = useState('')
-  const walkInDebounce    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Main search — filters booked list AND searches all members in DB
+  const [search, setSearch]               = useState('')
+  const [dbResults, setDbResults]         = useState<MemberResult[]>([])
+  const [dbLoading, setDbLoading]         = useState(false)
+  const [addingId, setAddingId]           = useState<string | null>(null)
+  const [addError, setAddError]           = useState('')
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Separate casual walk-in panel
+  const [walkInOpen, setWalkInOpen]       = useState(false)
+  const [walkInQuery, setWalkInQuery]     = useState('')
+  const [walkInResults, setWalkInResults] = useState<MemberResult[]>([])
+  const [walkInLoading, setWalkInLoading] = useState(false)
+  const [walkInAdding, setWalkInAdding]   = useState(false)
+  const [walkInError, setWalkInError]     = useState('')
+  const walkInDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const selectedSessionRef = useRef<WixSession | null>(null)
 
-  // Auto-refresh bookings every 60 seconds so new online bookings appear without a manual reload
+  // Auto-refresh every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      if (selectedSessionRef.current) {
-        loadBookings(selectedSessionRef.current.id)
-      }
+      if (selectedSessionRef.current) loadBookings(selectedSessionRef.current.id)
     }, 60_000)
     return () => clearInterval(interval)
   }, [])
 
+  // Main search — query DB for all members matching input
+  useEffect(() => {
+    if (searchDebounce.current) clearTimeout(searchDebounce.current)
+    if (search.length < 2) { setDbResults([]); return }
+    searchDebounce.current = setTimeout(() => {
+      setDbLoading(true)
+      fetch(`/api/admin/search-members?q=${encodeURIComponent(search)}`)
+        .then(r => r.json())
+        .then(d => { setDbResults(d.members ?? []); setDbLoading(false) })
+        .catch(() => setDbLoading(false))
+    }, 250)
+  }, [search])
+
+  // Walk-in panel search
   useEffect(() => {
     if (walkInDebounce.current) clearTimeout(walkInDebounce.current)
     if (walkInQuery.length < 2) { setWalkInResults([]); return }
@@ -64,29 +85,44 @@ export default function CheckInClient({ sessions, services }: Props) {
     }, 250)
   }, [walkInQuery])
 
-  async function addWalkIn(member: { id: string; firstName: string; lastName: string; email: string }) {
+  async function addToSession(member: MemberResult, fromWalkIn = false) {
     if (!selectedSession) return
-    setWalkInAdding(true)
+    if (fromWalkIn) setWalkInAdding(true)
+    else setAddingId(member.id)
+    setAddError('')
     setWalkInError('')
+
     const res = await fetch('/api/admin/book-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ memberId: member.id, sessionId: selectedSession.id }),
     })
     const data = await res.json()
-    if (!res.ok) { setWalkInError(data.error ?? 'Failed to add casual'); setWalkInAdding(false); return }
 
-    // Add to bookings list and mark as present
+    if (!res.ok) {
+      const msg = data.error ?? 'Failed to add'
+      if (fromWalkIn) { setWalkInError(msg); setWalkInAdding(false) }
+      else { setAddError(msg); setAddingId(null) }
+      return
+    }
+
     setBookings(prev => {
-      const existing = (prev ?? []).find(b => b.memberId === member.id)
-      if (existing) return prev
+      const exists = (prev ?? []).find(b => b.memberId === member.id)
+      if (exists) return prev
       return [...(prev ?? []), data.booking]
     })
     setAttended(a => ({ ...a, [data.booking.id]: 'present' }))
-    setWalkInAdding(false)
-    setWalkInOpen(false)
-    setWalkInQuery('')
-    setWalkInResults([])
+
+    if (fromWalkIn) {
+      setWalkInAdding(false)
+      setWalkInOpen(false)
+      setWalkInQuery('')
+      setWalkInResults([])
+    } else {
+      setSearch('')
+      setDbResults([])
+      setAddingId(null)
+    }
   }
 
   const scheduleToName = Object.fromEntries(services.map(s => [s.scheduleId, s.name]))
@@ -95,8 +131,11 @@ export default function CheckInClient({ sessions, services }: Props) {
     setSelectedSession(s)
     selectedSessionRef.current = s
     setBookings(null)
-    setAttended({})  // will be re-populated from DB when bookings load
+    setAttended({})
     setSearch('')
+    setDbResults([])
+    setAddError('')
+    setWalkInOpen(false)
     loadBookings(s.id)
   }
 
@@ -107,16 +146,14 @@ export default function CheckInClient({ sessions, services }: Props) {
       .then(d => {
         const bookings: WixBooking[] = d.bookings ?? []
         setBookings(bookings)
-        // Pre-populate attended state from DB so Suzanne sees who's already been checked in
-        const initialAttended: AttendeeState = {}
-        bookings.forEach(b => { if (b.attended) initialAttended[b.id] = 'present' })
-        setAttended(initialAttended)
+        const init: AttendeeState = {}
+        bookings.forEach(b => { if (b.attended) init[b.id] = 'present' })
+        setAttended(init)
         setLoading(false)
       })
       .catch(() => { setBookings([]); setLoading(false) })
   }
 
-  // Load bookings for first session on mount
   if (selectedSession && bookings === null && !loading) {
     loadBookings(selectedSession.id)
   }
@@ -136,6 +173,9 @@ export default function CheckInClient({ sessions, services }: Props) {
     }
   }
 
+  const bookedIds = new Set((bookings ?? []).map(b => b.memberId))
+
+  // Booked attendees matching the search
   const filteredBookings = (bookings ?? []).filter(b => {
     if (!search) return true
     const q = search.toLowerCase()
@@ -145,6 +185,9 @@ export default function CheckInClient({ sessions, services }: Props) {
       b.contactDetails.email.toLowerCase().includes(q)
     )
   })
+
+  // Members from DB not already booked — shown as "Add" suggestions
+  const unbookedSuggestions = dbResults.filter(m => !bookedIds.has(m.id))
 
   const checkedInCount = Object.values(attended).filter(v => v === 'present').length
 
@@ -162,10 +205,10 @@ export default function CheckInClient({ sessions, services }: Props) {
             <p className="px-4 py-8 text-sm text-neutral-400">No classes today.</p>
           ) : (
             sessions.map(s => {
-              const name    = scheduleToName[s.scheduleId] ?? s.title
-              const fill    = pct(s.bookedCount, s.capacity)
-              const active  = selectedSession?.id === s.id
-              const past    = new Date(s.end) < new Date()
+              const name   = scheduleToName[s.scheduleId] ?? s.title
+              const fill   = pct(s.bookedCount, s.capacity)
+              const active = selectedSession?.id === s.id
+              const past   = new Date(s.end) < new Date()
               return (
                 <button
                   key={s.id}
@@ -207,7 +250,6 @@ export default function CheckInClient({ sessions, services }: Props) {
 
       {/* ── Attendee panel ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
-
         {selectedSession ? (
           <>
             {/* Header */}
@@ -228,14 +270,41 @@ export default function CheckInClient({ sessions, services }: Props) {
                   </div>
                 )}
               </div>
+
+              {/* Search + casual button */}
               <div className="mt-3 flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Search by name or email..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="flex-1 h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                />
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name or email…"
+                    value={search}
+                    onChange={e => { setSearch(e.target.value); setAddError('') }}
+                    className="w-full h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  />
+                  {/* Unbooked suggestions drop-down */}
+                  {unbookedSuggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1 border border-neutral-200 rounded-lg bg-white shadow-md z-10 overflow-hidden">
+                      <p className="px-3 py-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider bg-neutral-50 border-b border-neutral-100">
+                        Not booked yet — tap to add
+                      </p>
+                      {unbookedSuggestions.map((m, i) => (
+                        <div key={m.id} className={`flex items-center justify-between px-3 py-2.5 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
+                          <div>
+                            <p className="text-[13px] font-medium text-neutral-900">{m.firstName} {m.lastName}</p>
+                            <p className="text-[11px] text-neutral-400">{m.email}</p>
+                          </div>
+                          <button
+                            onClick={() => addToSession(m)}
+                            disabled={addingId === m.id}
+                            className="h-7 px-3 text-[11.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 transition-colors shrink-0"
+                          >
+                            {addingId === m.id ? '…' : 'Add'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => { setWalkInOpen(true); setWalkInQuery(''); setWalkInResults([]); setWalkInError('') }}
                   className="h-8 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors shrink-0"
@@ -243,14 +312,18 @@ export default function CheckInClient({ sessions, services }: Props) {
                   + Casual
                 </button>
               </div>
+              {addError && <p className="text-[12px] text-red-500 mt-1.5">{addError}</p>}
+              {search.length >= 2 && !dbLoading && unbookedSuggestions.length === 0 && filteredBookings.length === 0 && (
+                <p className="text-[12px] text-neutral-400 mt-1.5">No members found for &quot;{search}&quot;.</p>
+              )}
             </div>
 
-            {/* Casual panel */}
+            {/* Casual walk-in panel */}
             {walkInOpen && (
               <div className="shrink-0 border-b border-neutral-200 bg-amber-50 px-6 py-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[13px] font-semibold text-neutral-900">Add casual</p>
-                  <button onClick={() => setWalkInOpen(false)} className="text-neutral-400 hover:text-neutral-700">✕</button>
+                  <p className="text-[13px] font-semibold text-neutral-900">Add casual walk-in</p>
+                  <button onClick={() => setWalkInOpen(false)} className="text-neutral-400 hover:text-neutral-700 text-lg leading-none">✕</button>
                 </div>
                 <input
                   type="text"
@@ -276,7 +349,7 @@ export default function CheckInClient({ sessions, services }: Props) {
                             <span className="text-[11px] text-neutral-400 italic">Already booked</span>
                           ) : (
                             <button
-                              onClick={() => addWalkIn(m)}
+                              onClick={() => addToSession(m, true)}
                               disabled={walkInAdding}
                               className="h-7 px-3 text-[11.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40"
                             >
@@ -289,7 +362,7 @@ export default function CheckInClient({ sessions, services }: Props) {
                   </div>
                 )}
                 {walkInQuery.length >= 2 && !walkInLoading && walkInResults.length === 0 && (
-                  <p className="text-[12px] text-neutral-400 mt-2">No members found. Check spelling or create them via Clients first.</p>
+                  <p className="text-[12px] text-neutral-400 mt-2">No members found. Check spelling or add them via Clients first.</p>
                 )}
               </div>
             )}
@@ -301,7 +374,7 @@ export default function CheckInClient({ sessions, services }: Props) {
               )}
               {!loading && filteredBookings.length === 0 && (
                 <p className="px-6 py-8 text-sm text-neutral-400">
-                  {search ? 'No attendees match your search.' : 'No bookings for this session.'}
+                  {search ? 'No booked attendees match your search.' : 'No bookings for this session yet.'}
                 </p>
               )}
               {filteredBookings.map((b, i) => {
@@ -311,10 +384,10 @@ export default function CheckInClient({ sessions, services }: Props) {
                 const name      = `${b.contactDetails.firstName} ${b.contactDetails.lastName}`.trim() || '—'
                 const initials  = `${b.contactDetails.firstName[0] ?? ''}${b.contactDetails.lastName[0] ?? ''}`.toUpperCase()
 
-                const hasPlan    = !!b.planOverride
-                const isExpired  = b.memberStatus === 'inactive' || b.memberStatus === 'expired'
-                const noClasses  = b.classesRemaining !== null && b.classesRemaining === 0
-                const showSell   = !hasPlan || isExpired || noClasses
+                const hasPlan   = !!b.planOverride
+                const isExpired = b.memberStatus === 'inactive' || b.memberStatus === 'expired'
+                const noClasses = b.classesRemaining !== null && b.classesRemaining === 0
+                const showSell  = !hasPlan || isExpired || noClasses
 
                 let classesLabel: string
                 let classesColour: string
@@ -356,7 +429,6 @@ export default function CheckInClient({ sessions, services }: Props) {
                       <p className="text-[11.5px] text-neutral-400 truncate">{b.contactDetails.email}</p>
                     </div>
 
-                    {/* Classes remaining */}
                     <div className="w-24 shrink-0 text-right">
                       <p className={`text-[12px] font-semibold ${classesColour}`}>{classesLabel}</p>
                       {hasPlan && !isExpired && (
@@ -364,7 +436,6 @@ export default function CheckInClient({ sessions, services }: Props) {
                       )}
                     </div>
 
-                    {/* Sell casual / renew button */}
                     {showSell && (
                       <div className="flex gap-1.5 shrink-0">
                         <a
