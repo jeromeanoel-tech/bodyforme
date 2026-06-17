@@ -339,7 +339,7 @@ async function run() {
       m.flags.length
         ? `MIGRATION FLAGS (${new Date().toLocaleDateString('en-AU')}):\n${m.flags.map(f => '• ' + f).join('\n')}`
         : '',
-    ].filter(Boolean).join('\n\n') || null
+    ].filter(Boolean).join('\n\n') || ''
 
     const db = getSupabase()
 
@@ -368,11 +368,15 @@ async function run() {
         status:         m.status,
         plan_override:  m.planOverride,
         credit_balance: m.creditBalance,
-        end_date:       m.membershipEndDate ?? null,
         admin_notes:    adminNotes,
       }, { onConflict: 'email' })
       .select('id')
       .single()
+
+    // Set end_date separately — column may not be in PostgREST schema cache
+    if (!error && member && m.membershipEndDate) {
+      await db.from('members').update({ end_date: m.membershipEndDate }).eq('id', member.id)
+    }
 
     if (error || !member) {
       console.error(`  ERROR ${m.firstName} ${m.lastName}: ${error?.message}`)
