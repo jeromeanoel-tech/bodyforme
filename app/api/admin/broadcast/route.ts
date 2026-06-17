@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const memberIds      = new Set(memberships.map(m => m.contactId))
 
     const recipients = contacts.filter(c => {
-      if (!c.email) return false
+      if (!c.email || c.memberStatus !== 'active') return false
       switch (segment) {
         case 'all':            return true
         case 'active-members': return activeIds.has(c.id)
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
     const memberIds     = new Set(memberships.map(m => m.contactId))
 
     const count = contacts.filter(c => {
-      if (!c.email) return false
+      if (!c.email || c.memberStatus !== 'active') return false
       switch (segment) {
         case 'all':            return true
         case 'active-members': return activeIds.has(c.id)
