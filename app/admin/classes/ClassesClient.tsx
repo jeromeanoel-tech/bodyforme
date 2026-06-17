@@ -188,6 +188,46 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
     router.refresh()
   }
 
+  // Shared action buttons (used by both mobile and desktop variants of each service row)
+  function ActionButtons({ service }: { service: Service }) {
+    return (
+      <>
+        <button
+          onClick={e => { e.stopPropagation(); openAddSession(service) }}
+          className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors touch-manipulation"
+        >
+          + Session
+        </button>
+        {deleteConfirmId === service.id ? (
+          <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+            <span className="text-[11px] text-neutral-500">Delete all?</span>
+            <button
+              onClick={() => deleteClass(service.id)}
+              disabled={deletingId === service.id}
+              className="h-6 px-2.5 text-[11px] font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-40 touch-manipulation"
+            >
+              {deletingId === service.id ? '…' : 'Yes'}
+            </button>
+            <button
+              onClick={() => setDeleteConfirmId(null)}
+              className="h-6 px-2 text-[11px] text-neutral-500 hover:text-neutral-800 touch-manipulation"
+            >
+              No
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={e => { e.stopPropagation(); setDeleteConfirmId(service.id) }}
+            className="h-7 w-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors text-sm touch-manipulation"
+            title="Delete class"
+          >
+            ✕
+          </button>
+        )}
+      </>
+    )
+  }
+
   return (
     <div className="h-full flex flex-col">
 
@@ -199,7 +239,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
         </div>
         <button
           onClick={() => setShowNewClass(true)}
-          className="h-9 px-4 text-[13px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors touch-manipulation"
+          className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors touch-manipulation"
         >
           + New class
         </button>
@@ -209,19 +249,39 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
       <div className="flex-1 overflow-y-auto">
         {services.length === 0 && (
           <div className="px-6 py-12 text-center text-sm text-neutral-400">
-            No classes yet. Tap &quot;New class&quot; to add one.
+            No classes yet. Click &quot;New class&quot; to add one.
           </div>
         )}
 
         {services.map(service => (
           <div key={service.id} className="border-b border-neutral-100">
 
-            {/* Service row */}
+            {/* ── Desktop service row (unchanged from original) ── */}
             <div
-              className="px-4 md:px-6 py-4 hover:bg-neutral-50 cursor-pointer transition-colors"
+              className="hidden md:flex items-center px-6 py-4 hover:bg-neutral-50 cursor-pointer transition-colors"
               onClick={() => toggleExpand(service)}
             >
-              {/* Top line: icon + name + expand chevron */}
+              <div className="w-5 h-5 rounded bg-black shrink-0 mr-3" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[16px] font-medium text-neutral-900">{service.name}</p>
+                <p className="text-[14.5px] text-neutral-400 mt-0.5">
+                  {service.duration} min · {service.capacity} capacity
+                  {service.description ? ` · ${service.description}` : ''}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 ml-4 shrink-0" onClick={e => e.stopPropagation()}>
+                <span className="text-[12px] text-neutral-500">{service.upcomingSessions} upcoming</span>
+                <ActionButtons service={service} />
+              </div>
+              <span className={`text-neutral-400 text-xs transition-transform ml-3 shrink-0 ${expandedId === service.id ? 'rotate-180' : ''}`}>▼</span>
+            </div>
+
+            {/* ── Mobile service row ── */}
+            <div
+              className="md:hidden px-4 py-4 hover:bg-neutral-50 cursor-pointer transition-colors"
+              onClick={() => toggleExpand(service)}
+            >
+              {/* Top line: icon + name + chevron */}
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded bg-black shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -233,44 +293,9 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                 </div>
                 <span className={`text-neutral-400 text-xs transition-transform shrink-0 ${expandedId === service.id ? 'rotate-180' : ''}`}>▼</span>
               </div>
-
-              {/* Action buttons row — shown below on mobile, inline on desktop */}
-              <div
-                className="flex items-center gap-2 mt-2 ml-8 md:mt-0 md:ml-0 md:absolute"
-                onClick={e => e.stopPropagation()}
-              >
-                <button
-                  onClick={e => { e.stopPropagation(); openAddSession(service) }}
-                  className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors touch-manipulation"
-                >
-                  + Session
-                </button>
-                {deleteConfirmId === service.id ? (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] text-neutral-500">Delete all?</span>
-                    <button
-                      onClick={() => deleteClass(service.id)}
-                      disabled={deletingId === service.id}
-                      className="h-6 px-2.5 text-[11px] font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-40 touch-manipulation"
-                    >
-                      {deletingId === service.id ? '…' : 'Yes'}
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirmId(null)}
-                      className="h-6 px-2 text-[11px] text-neutral-500 hover:text-neutral-800 touch-manipulation"
-                    >
-                      No
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={e => { e.stopPropagation(); setDeleteConfirmId(service.id) }}
-                    className="h-7 w-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors text-sm touch-manipulation"
-                    title="Delete class"
-                  >
-                    ✕
-                  </button>
-                )}
+              {/* Action buttons below */}
+              <div className="flex items-center gap-2 mt-2.5 ml-8" onClick={e => e.stopPropagation()}>
+                <ActionButtons service={service} />
               </div>
             </div>
 
@@ -278,32 +303,31 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
             {expandedId === service.id && (
               <div className="bg-neutral-50 border-t border-neutral-100">
                 {loadingId === service.id ? (
-                  <div className="px-6 py-4 text-[12px] text-neutral-400">Loading sessions…</div>
+                  <div className="px-8 py-4 text-[12px] text-neutral-400">Loading sessions…</div>
                 ) : (sessions[service.id] ?? []).length === 0 ? (
-                  <div className="px-6 py-4 text-[12px] text-neutral-400">
-                    No sessions scheduled. Tap &quot;+ Session&quot; to add one.
+                  <div className="px-8 py-4 text-[12px] text-neutral-400">
+                    No sessions scheduled. Click &quot;+ Session&quot; to add one.
                   </div>
                 ) : (
-                  /* Horizontal scroll on mobile so columns don't wrap */
+                  /* Horizontal scroll on mobile so the fixed-width grid doesn't wrap */
                   <div className="overflow-x-auto">
                     <div style={{ minWidth: 480 }}>
-                      {/* Column headers */}
-                      <div className="grid px-6 py-2 border-b border-neutral-200" style={{ gridTemplateColumns: '1fr 140px 70px 80px 36px' }}>
+                      <div className="grid px-8 py-2 border-b border-neutral-200" style={{ gridTemplateColumns: '1fr 160px 80px 80px 40px' }}>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Date & Time</span>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Instructor</span>
-                        <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Cap</span>
+                        <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Capacity</span>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Status</span>
                         <span />
                       </div>
                       {(sessions[service.id] ?? []).map(session => (
                         <div
                           key={session.id}
-                          className="grid items-center px-6 py-3 border-b border-neutral-100 last:border-0"
-                          style={{ gridTemplateColumns: '1fr 140px 70px 80px 36px' }}
+                          className="grid items-center px-8 py-3 border-b border-neutral-100 last:border-0"
+                          style={{ gridTemplateColumns: '1fr 160px 80px 80px 40px' }}
                         >
-                          <span className="text-[13px] text-neutral-700 pr-2">{fmt(session.start_time)}</span>
-                          <span className="text-[13px] text-neutral-600">{session.instructor_name || '—'}</span>
-                          <span className="text-[13px] text-neutral-600">{session.capacity}</span>
+                          <span className="text-[14.5px] text-neutral-700">{fmt(session.start_time)}</span>
+                          <span className="text-[14.5px] text-neutral-600">{session.instructor_name || '—'}</span>
+                          <span className="text-[14.5px] text-neutral-600">{session.capacity}</span>
                           <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full w-fit ${
                             session.status === 'CANCELLED'
                               ? 'bg-red-50 text-red-600'
@@ -330,7 +354,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
         ))}
       </div>
 
-      {/* New class modal */}
+      {/* New class modal — bottom sheet on mobile, centred on desktop */}
       {showNewClass && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowNewClass(false)} />
@@ -344,7 +368,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
                   placeholder="e.g. Reformer Pilates"
-                  className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                   autoFocus
                 />
               </div>
@@ -355,7 +379,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                   value={newDescription}
                   onChange={e => setNewDescription(e.target.value)}
                   placeholder="Short description"
-                  className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -366,7 +390,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                     value={newDuration}
                     onChange={e => setNewDuration(Number(e.target.value))}
                     min={15} max={180}
-                    className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                   />
                 </div>
                 <div>
@@ -376,23 +400,23 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                     value={newCapacity}
                     onChange={e => setNewCapacity(Number(e.target.value))}
                     min={1} max={100}
-                    className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                   />
                 </div>
               </div>
               {classError && <p className="text-[12px] text-red-600">{classError}</p>}
             </div>
-            <div className="flex gap-2 mt-5">
+            <div className="flex justify-end gap-2 mt-5">
               <button
                 onClick={() => { setShowNewClass(false); setClassError('') }}
-                className="flex-1 h-10 text-[13px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
               >
                 Cancel
               </button>
               <button
                 onClick={createClass}
                 disabled={savingClass}
-                className="flex-1 h-10 text-[13px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
               >
                 {savingClass ? 'Creating…' : 'Create class'}
               </button>
@@ -401,7 +425,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
         </div>
       )}
 
-      {/* Add session modal */}
+      {/* Add session modal — bottom sheet on mobile, centred on desktop */}
       {addSessionFor && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/30" onClick={() => setAddSessionFor(null)} />
@@ -415,7 +439,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                   type="date"
                   value={sessionDate}
                   onChange={e => setSessionDate(e.target.value)}
-                  className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -425,7 +449,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                     type="time"
                     value={sessionStartTime}
                     onChange={e => handleStartTimeChange(e.target.value)}
-                    className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                   />
                 </div>
                 <div>
@@ -434,7 +458,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                     type="time"
                     value={sessionEndTime}
                     onChange={e => setSessionEndTime(e.target.value)}
-                    className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                   />
                 </div>
               </div>
@@ -445,7 +469,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                   value={sessionInstructor}
                   onChange={e => setSessionInstructor(e.target.value)}
                   placeholder="e.g. Suzanne Harb"
-                  className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                 />
               </div>
               <div>
@@ -455,27 +479,27 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                   value={sessionCapacity}
                   onChange={e => setSessionCapacity(Number(e.target.value))}
                   min={1} max={100}
-                  className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                 />
               </div>
               {sessionError && <p className="text-[12px] text-red-600">{sessionError}</p>}
             </div>
-            <div className="flex gap-2 mt-5">
+            <div className="flex justify-end gap-2 mt-5">
               <button
                 onClick={() => setAddSessionFor(null)}
-                className="flex-1 h-10 text-[13px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
               >
                 Done
               </button>
               <button
                 onClick={createSession}
                 disabled={savingSession}
-                className="flex-1 h-10 text-[13px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
               >
                 {savingSession ? 'Adding…' : 'Add session'}
               </button>
             </div>
-            <p className="text-[11px] text-neutral-400 mt-2 text-center">Add multiple sessions without closing</p>
+            <p className="text-[11px] text-neutral-400 mt-2 text-right">Add multiple sessions without closing</p>
           </div>
         </div>
       )}
