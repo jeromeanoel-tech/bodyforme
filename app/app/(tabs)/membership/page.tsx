@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
+import { StripeSetupForm } from '@/components/StripeSetupForm'
 
 const T = {
   linen:  '#f4ede1',
@@ -117,6 +118,12 @@ function planSummary(ms: MemberStatus): { label: string; value: string; sub: str
   return { label: plan, value: 'Active', sub: '' }
 }
 
+function isPack(plan: string | null) {
+  if (!plan) return false
+  const p = plan.toLowerCase()
+  return PACK_PLANS.some(pk => p.includes(pk.toLowerCase())) || p.includes('pack') || p.includes('pass') || p === 'casual' || p === 'intro-offer' || p === 'free trial'
+}
+
 export default function MembershipPage() {
   const session = useSession()
   const [portalLoading, setPortalLoading] = useState(false)
@@ -154,6 +161,25 @@ export default function MembershipPage() {
   const [pauseWeeks,  setPauseWeeks]  = useState(2)
   const [pauseReason, setPauseReason] = useState('')
   const [pauseError,  setPauseError]  = useState('')
+
+  const [ddOpen,          setDdOpen]          = useState(false)
+  const [ddClientSecret,  setDdClientSecret]  = useState('')
+  const [ddLoading,       setDdLoading]       = useState(false)
+  const [ddError,         setDdError]         = useState('')
+  const [ddDone,          setDdDone]          = useState(false)
+
+  async function openDirectDebit() {
+    setDdOpen(true)
+    setDdLoading(true)
+    setDdError('')
+    setDdClientSecret('')
+    setDdDone(false)
+    const res = await fetch('/api/app/setup-intent', { method: 'POST' })
+    const data = await res.json()
+    setDdLoading(false)
+    if (!res.ok) { setDdError(data.error ?? 'Could not start payment setup. Please try again.'); return }
+    setDdClientSecret(data.clientSecret)
+  }
 
   // default start date to next Monday
   const nextMonday = (() => {
@@ -317,6 +343,56 @@ export default function MembershipPage() {
         </div>
       )}
 
+      {/* Direct debit modal */}
+      {ddOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(42,21,6,0.55)', zIndex: 50,
+          display: 'flex', alignItems: 'flex-end',
+        }}>
+          <div style={{ width: '100%', background: T.canvas, borderTop: `1px solid ${T.rule}`, padding: '24px 20px 40px', maxHeight: '85vh', overflowY: 'auto' }}>
+            {ddDone ? (
+              <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 26, fontStyle: 'italic', color: T.esp, marginBottom: 10 }}>All set</div>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 24 }}>
+                  Your payment details have been saved securely. Your direct debit is ready to go.
+                </div>
+                <button onClick={() => setDdOpen(false)} style={{
+                  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 500,
+                  letterSpacing: '0.14em', textTransform: 'uppercase',
+                  background: T.esp, color: T.linen, border: 'none', padding: '12px 28px', cursor: 'pointer',
+                }}>Done</button>
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontStyle: 'italic', color: T.esp }}>
+                    Set up direct debit
+                  </div>
+                  <button onClick={() => setDdOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.muted, fontSize: 20, lineHeight: 1 }} aria-label="Close">×</button>
+                </div>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: T.mid, marginBottom: 20, lineHeight: 1.7 }}>
+                  Enter your BSB and account number below. Your details are processed securely by Stripe — BodyForme never sees your account number.
+                </div>
+                {ddLoading && (
+                  <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.muted }}>Loading…</p>
+                )}
+                {ddError && (
+                  <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: '#c0392b', lineHeight: 1.5 }}>{ddError}</p>
+                )}
+                {ddClientSecret && (
+                  <StripeSetupForm
+                    clientSecret={ddClientSecret}
+                    onSuccess={() => setDdDone(true)}
+                    onCancel={() => setDdOpen(false)}
+                    dark
+                  />
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{
         height: 56, padding: '0 20px', borderBottom: `1px solid ${T.rule}`,
@@ -351,7 +427,7 @@ export default function MembershipPage() {
                   <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.4)', marginBottom: 6 }}>
-                        {memberStatus.nextBillingDate ? 'Next payment' : memberStatus.membershipEndDate ? 'Expires' : memberStatus.plan ? 'Classes remaining' : 'Membership status'}
+                        {memberStatus.nextBillingDate ? 'Next payment' : memberStatus.membershipEndDate ? 'Expires' : (() => { const p = (memberStatus.plan ?? '').toLowerCase(); return (p.includes('unlimited') || p.includes('per week') || p.includes('weekly')) ? 'Membership' : p ? 'Classes remaining' : 'Status' })()}
                       </div>
                       <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 26, fontWeight: 600, color: T.linen, lineHeight: 1 }}>
                         {s.value}
@@ -378,27 +454,36 @@ export default function MembershipPage() {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500,
             letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 10,
           }}>Plan</div>
-          <div style={{ background: T.canvas, border: `1px solid ${T.rule}` }}>
-            <ActionRow
-              icon={<><path d="M3 8h10M9 4l4 4-4 4" stroke={T.esp} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></>}
-              label="Change plan"
-              sub="Upgrade, downgrade, or switch billing"
-              onClick={openPortal}
-            />
-            <ActionRow
-              icon={<><rect x="4" y="3" width="2" height="10" fill={T.esp}/><rect x="10" y="3" width="2" height="10" fill={T.esp}/></>}
-              label="Pause membership"
-              sub="Hold your billing for 1–4 weeks"
-              onClick={openPause}
-            />
-            <ActionRow
-              icon={<><path d="M4 4l8 8M12 4l-8 8" stroke={T.rust} strokeWidth="1.4" strokeLinecap="round"/></>}
-              label="Cancel membership"
-              danger
-              onClick={openPortal}
-              last
-            />
-          </div>
+          {isPack(memberStatus?.plan ?? null) ? (
+            <div style={{ background: T.canvas, border: `1px solid ${T.rule}`, padding: '16px 20px' }}>
+              <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.esp }}>Class pack</div>
+              <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 4, lineHeight: 1.5 }}>
+                To buy more classes or switch to a membership, contact the studio at <a href="mailto:info@bodyforme.com.au" style={{ color: T.brown, textDecoration: 'none' }}>info@bodyforme.com.au</a> or speak to us at the front desk.
+              </div>
+            </div>
+          ) : (
+            <div style={{ background: T.canvas, border: `1px solid ${T.rule}` }}>
+              <ActionRow
+                icon={<><path d="M3 8h10M9 4l4 4-4 4" stroke={T.esp} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></>}
+                label="Change plan"
+                sub="Upgrade, downgrade, or switch billing"
+                onClick={openPortal}
+              />
+              <ActionRow
+                icon={<><rect x="4" y="3" width="2" height="10" fill={T.esp}/><rect x="10" y="3" width="2" height="10" fill={T.esp}/></>}
+                label="Pause membership"
+                sub="Hold your billing for 1–4 weeks"
+                onClick={openPause}
+              />
+              <ActionRow
+                icon={<><path d="M4 4l8 8M12 4l-8 8" stroke={T.rust} strokeWidth="1.4" strokeLinecap="round"/></>}
+                label="Cancel membership"
+                danger
+                onClick={openPortal}
+                last
+              />
+            </div>
+          )}
         </div>
 
         {/* Billing */}
@@ -407,29 +492,49 @@ export default function MembershipPage() {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500,
             letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 10,
           }}>Billing</div>
-          <div style={{ background: T.canvas, border: `1px solid ${T.rule}` }}>
-            <ActionRow
-              icon={<><rect x="2" y="4" width="12" height="9" stroke={T.esp} strokeWidth="1.2" fill="none"/><path d="M2 7h12M5 10h2" stroke={T.esp} strokeWidth="1.2"/></>}
-              label="Payment methods"
-              sub="Update card or bank details"
-              onClick={openPortal}
-            />
-            <ActionRow
-              icon={<><rect x="3" y="3" width="10" height="10" stroke={T.esp} strokeWidth="1.2" fill="none"/><path d="M5 6h6M5 9h4" stroke={T.esp} strokeWidth="1.2"/></>}
-              label="Invoices & receipts"
-              sub="Download past invoices"
-              onClick={openPortal}
-              last
-            />
-          </div>
+          {isPack(memberStatus?.plan ?? null) ? (
+            <div style={{ background: T.canvas, border: `1px solid ${T.rule}` }}>
+              <ActionRow
+                icon={<><path d="M3 8h10M3 5h5M3 11h7" stroke={T.esp} strokeWidth="1.2" strokeLinecap="round"/></>}
+                label="Set up direct debit"
+                sub="Enter BSB and account number for future billing"
+                onClick={openDirectDebit}
+                last
+              />
+            </div>
+          ) : (
+            <div style={{ background: T.canvas, border: `1px solid ${T.rule}` }}>
+              <ActionRow
+                icon={<><path d="M3 8h10M3 5h5M3 11h7" stroke={T.esp} strokeWidth="1.2" strokeLinecap="round"/></>}
+                label="Set up direct debit"
+                sub="Enter BSB and account number for billing"
+                onClick={openDirectDebit}
+              />
+              <ActionRow
+                icon={<><rect x="2" y="4" width="12" height="9" stroke={T.esp} strokeWidth="1.2" fill="none"/><path d="M2 7h12M5 10h2" stroke={T.esp} strokeWidth="1.2"/></>}
+                label="Update card or bank details"
+                sub="Manage existing payment method"
+                onClick={openPortal}
+              />
+              <ActionRow
+                icon={<><rect x="3" y="3" width="10" height="10" stroke={T.esp} strokeWidth="1.2" fill="none"/><path d="M5 6h6M5 9h4" stroke={T.esp} strokeWidth="1.2"/></>}
+                label="Invoices & receipts"
+                sub="Download past invoices"
+                onClick={openPortal}
+                last
+              />
+            </div>
+          )}
           {billingMsg && (
             <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.rust, marginTop: 10, lineHeight: 1.6 }}>
               {billingMsg}
             </p>
           )}
-          <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 10, lineHeight: 1.6 }}>
-            Billing is managed securely via Stripe. Tap any item above to open your billing portal.
-          </p>
+          {!isPack(memberStatus?.plan ?? null) && (
+            <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 10, lineHeight: 1.6 }}>
+              Billing is managed securely via Stripe. Tap any item above to open your billing portal.
+            </p>
+          )}
         </div>
 
 

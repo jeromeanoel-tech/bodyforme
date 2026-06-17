@@ -57,6 +57,7 @@ export type WixContactBooking = {
   status: string
   title: string
   start: string
+  attended: boolean
 }
 
 export type WixBooking = {
@@ -363,17 +364,18 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
 export async function getContactBookings(memberId: string): Promise<WixContactBooking[]> {
   const { data } = await supabase
     .from('bookings')
-    .select('id, status, sessions(title, start_time)')
+    .select('id, status, attended, sessions(title, start_time)')
     .eq('member_id', memberId)
     .order('created_at', { ascending: false })
     .limit(50)
 
   // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
-    id:     r.id,
-    status: r.status,
-    title:  r.sessions?.title ?? '',
-    start:  r.sessions?.start_time ? isoSlice(r.sessions.start_time) : '',
+    id:       r.id,
+    status:   r.status,
+    attended: r.attended ?? false,
+    title:    r.sessions?.title ?? '',
+    start:    r.sessions?.start_time ? isoSlice(r.sessions.start_time) : '',
   }))
 }
 
@@ -533,6 +535,21 @@ export async function markAttendance(bookingId: string, attended: boolean): Prom
       .update({ credit_balance: next })
       .eq('id', prev.member_id)
   }
+}
+
+// ── Credit reservation check ─────────────────────────────────────────────────
+
+// Returns the number of upcoming CONFIRMED bookings not yet attended.
+// Used to prevent a member from booking more classes than their credit balance.
+export async function countPendingBookings(memberId: string): Promise<number> {
+  const { count } = await supabase
+    .from('bookings')
+    .select('sessions!inner(start_time)', { count: 'exact', head: true })
+    .eq('member_id', memberId)
+    .eq('status', 'CONFIRMED')
+    .neq('attended', true)
+    .gt('sessions.start_time', new Date().toISOString())
+  return count ?? 0
 }
 
 // ── Create / cancel booking ───────────────────────────────────────────────────

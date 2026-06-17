@@ -252,7 +252,9 @@ export default function SchedulePage() {
     .filter(s => s.start.startsWith(selectedISO) && s.status !== 'CANCELLED')
     .sort((a, b) => a.start.localeCompare(b.start))
 
-  const weekLabel = new Intl.DateTimeFormat('en-AU', { month: 'long' }).format(weekDays[0].date)
+  const startMonth = new Intl.DateTimeFormat('en-AU', { month: 'long' }).format(weekDays[0].date)
+  const endMonth   = new Intl.DateTimeFormat('en-AU', { month: 'short' }).format(weekDays[6].date)
+  const crossMonth = weekDays[0].date.getMonth() !== weekDays[6].date.getMonth()
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.linen, overflow: 'hidden' }}>
@@ -286,8 +288,8 @@ export default function SchedulePage() {
         <div>
           <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>Week of</div>
           <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 24, fontWeight: 400, color: T.esp, marginTop: 2 }}>
-            <em style={{ color: T.brown }}>{weekLabel}</em>{' '}
-            {weekDays[0].date.getDate()}–{weekDays[6].date.getDate()}
+            <em style={{ color: T.brown }}>{startMonth}</em>{' '}
+            {weekDays[0].date.getDate()}–{crossMonth ? `${weekDays[6].date.getDate()} ${endMonth}` : weekDays[6].date.getDate()}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 4 }}>

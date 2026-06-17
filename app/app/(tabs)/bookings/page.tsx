@@ -123,6 +123,16 @@ export default function BookingsPage() {
 
         {shown.map(b => {
           const isPast = new Date(b.start) < now || b.status === 'CANCELED'
+          const statusLabel = b.status === 'CANCELED'
+            ? 'Cancelled'
+            : isPast
+              ? b.attended ? '✓ Attended' : 'Not attended'
+              : 'Booked'
+          const statusColor = b.status === 'CANCELED'
+            ? T.muted
+            : isPast
+              ? b.attended ? T.sage : T.muted
+              : T.brown
           return (
             <div key={b.id} style={{
               background: isPast ? 'transparent' : T.canvas,
@@ -153,8 +163,8 @@ export default function BookingsPage() {
               {/* Class */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 18, fontStyle: 'italic', color: T.esp }}>{b.title}</div>
-                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: b.status === 'CANCELED' ? T.muted : isPast ? T.sage : T.brown, marginTop: 8 }}>
-                  {b.status === 'CANCELED' ? 'Cancelled' : isPast ? '✓ Attended' : 'Booked'}
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: statusColor, marginTop: 8 }}>
+                  {statusLabel}
                 </div>
               </div>
             </div>
