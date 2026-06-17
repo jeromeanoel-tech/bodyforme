@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import AdminSidebar from './AdminSidebar'
 import LiveClock from './LiveClock'
 
@@ -14,47 +14,11 @@ export default function AdminShell({
   name:     string
   role:     string
 }) {
-  const [open,      setOpen]      = useState(false)
-  const [portrait,  setPortrait]  = useState(false)
-
+  const [open, setOpen] = useState(false)
   const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
-
-  useEffect(() => {
-    function check() {
-      // Only show the overlay on narrow screens (phones in portrait)
-      setPortrait(window.innerWidth < 768 && window.innerHeight > window.innerWidth)
-    }
-    check()
-    window.addEventListener('resize', check)
-    window.addEventListener('orientationchange', check)
-    return () => {
-      window.removeEventListener('resize', check)
-      window.removeEventListener('orientationchange', check)
-    }
-  }, [])
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
-
-      {/* Portrait-mode lock overlay — shown only on phones in portrait */}
-      {portrait && (
-        <div className="fixed inset-0 z-[999] bg-black flex flex-col items-center justify-center text-white px-10 text-center">
-          <svg
-            width="56" height="56" viewBox="0 0 56 56" fill="none"
-            className="mb-6 opacity-60"
-            aria-hidden="true"
-          >
-            {/* Phone rotating to landscape */}
-            <rect x="14" y="4" width="28" height="48" rx="4" stroke="white" strokeWidth="2" fill="none"/>
-            <path d="M36 30 L42 36 L48 30" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            <path d="M42 36 C42 24 34 18 28 18" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none"/>
-          </svg>
-          <p className="text-[18px] font-semibold mb-2">Rotate your device</p>
-          <p className="text-[14px] text-white/60 leading-relaxed">
-            The admin dashboard works best in landscape mode. Turn your phone sideways to continue.
-          </p>
-        </div>
-      )}
 
       {/* Mobile backdrop */}
       {open && (
@@ -64,7 +28,7 @@ export default function AdminShell({
         />
       )}
 
-      {/* Sidebar — drawer on mobile landscape, static on md+ */}
+      {/* Sidebar — drawer on mobile, static on md+ */}
       <div className={[
         'fixed inset-y-0 left-0 z-50 w-[260px]',
         'transition-transform duration-300 ease-in-out',
@@ -78,7 +42,7 @@ export default function AdminShell({
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
         <header className="h-[52px] shrink-0 relative flex items-center justify-between px-4 border-b border-neutral-200 bg-white">
-          {/* Hamburger — shows on narrow landscape screens (< md) */}
+          {/* Hamburger — mobile only */}
           <button
             onClick={() => setOpen(true)}
             className="md:hidden w-11 h-11 -ml-1 flex items-center justify-center text-neutral-700 touch-manipulation"

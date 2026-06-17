@@ -5,15 +5,14 @@ import type { WixSession, WixService, WixStaff, WixBooking } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
 type Props = {
-  initialSessions: WixSession[]
+  initialSessions:   WixSession[]
   scheduleToService: Record<string, WixService>
-  resourceToStaff: Record<string, WixStaff>
+  resourceToStaff:   Record<string, WixStaff>
   initialWeekOffset: number
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-// Use local date string to avoid UTC midnight shifting the date in Australian timezones
 function localDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
@@ -33,7 +32,7 @@ function fmt12(iso: string) {
   const [, time] = iso.split('T')
   const [h, m] = time.split(':').map(Number)
   const ampm = h < 12 ? 'am' : 'pm'
-  const h12 = h % 12 || 12
+  const h12  = h % 12 || 12
   return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`
 }
 
@@ -41,20 +40,25 @@ function dayLabel(date: Date) {
   return date.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })
 }
 
+function dayLabelShort(date: Date) {
+  return date.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
 function isToday(date: Date, now: Date) {
   return date.toDateString() === now.toDateString()
 }
 
 export default function ScheduleClient({ initialSessions, scheduleToService, resourceToStaff, initialWeekOffset }: Props) {
-  const [weekOffset,      setWeekOffset]      = useState(initialWeekOffset)
-  const [sessions,        setSessions]        = useState(initialSessions)
-  const [loadingSessions, setLoadingSessions] = useState(false)
-  const [selectedSession, setSelectedSession] = useState<WixSession | null>(null)
+  const [weekOffset,       setWeekOffset]      = useState(initialWeekOffset)
+  const [sessions,         setSessions]        = useState(initialSessions)
+  const [loadingSessions,  setLoadingSessions] = useState(false)
+  const [selectedSession,  setSelectedSession] = useState<WixSession | null>(null)
   const [autoConfirmCancel, setAutoConfirmCancel] = useState(false)
-  const [search,          setSearch]          = useState('')
-  const [cancelledIds,    setCancelledIds]    = useState<Set<string>>(new Set())
-  const [now,             setNow]             = useState(() => new Date())
-  const [menuOpenId,      setMenuOpenId]      = useState<string | null>(null)
+  const [search,           setSearch]          = useState('')
+  const [cancelledIds,     setCancelledIds]    = useState<Set<string>>(new Set())
+  const [now,              setNow]             = useState(() => new Date())
+  const [menuOpenId,       setMenuOpenId]      = useState<string | null>(null)
+  const [showSearch,       setShowSearch]      = useState(false)
 
   const { settings } = useSettings()
 
@@ -64,7 +68,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
       const res  = await fetch(`/api/admin/schedule-sessions?from=${from}&to=${to}`)
       const data = await res.json()
       setSessions(data.sessions ?? [])
-    } catch { /* silent refresh */ }
+    } catch { /* silent */ }
   }
 
   async function goToWeek(offset: number) {
@@ -82,14 +86,12 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
     }
   }
 
-  // Auto-refresh sessions every 60 s without a full page reload
   useEffect(() => {
     const id = setInterval(() => fetchSessions(weekOffset), 60_000)
     return () => clearInterval(id)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weekOffset])
 
-  // Tick "now" every 30 s
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000)
     return () => clearInterval(id)
@@ -102,9 +104,9 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
   const { monday } = weekRange(weekOffset)
 
   const days = DAYS.map((_, i) => {
-    const date    = new Date(monday)
+    const date     = new Date(monday)
     date.setDate(monday.getDate() + i)
-    const dateStr = localDate(date)
+    const dateStr  = localDate(date)
     const daySessions = sessions
       .filter(s => s.start.startsWith(dateStr))
       .filter(s => settings.showCancelledClasses || (s.status !== 'CANCELLED' && !cancelledIds.has(s.id)))
@@ -125,71 +127,119 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
   const totalBooked   = sessions.reduce((n, s) => n + s.bookedCount, 0)
   const totalCap      = sessions.reduce((n, s) => n + s.capacity, 0)
 
+  const weekStart = monday.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+  const weekEnd   = new Date(monday.getTime() + 6 * 86400000).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+
   return (
     <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="shrink-0 flex items-center gap-3 px-6 py-3 border-b border-neutral-200 bg-white">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => goToWeek(weekOffset - 1)}
-            className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm"
-          >‹</button>
-          <span className="text-sm font-medium text-neutral-700 px-2">
-            {monday.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
-            {' – '}
-            {new Date(monday.getTime() + 6 * 86400000).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
-          <button
-            onClick={() => goToWeek(weekOffset + 1)}
-            className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm"
-          >›</button>
-          {weekOffset !== 0 && (
+
+      {/* ── Toolbar ── */}
+      <div className="shrink-0 border-b border-neutral-200 bg-white">
+        <div className="flex items-center gap-2 px-4 md:px-6 py-3">
+          {/* Week nav */}
+          <div className="flex items-center gap-1">
             <button
-              onClick={() => goToWeek(0)}
-              className="h-8 px-3 text-xs rounded-lg border border-neutral-200 text-neutral-500 hover:border-neutral-400 hover:text-black transition-colors ml-1"
+              onClick={() => goToWeek(weekOffset - 1)}
+              className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm touch-manipulation"
+            >‹</button>
+            <span className="text-[12px] md:text-sm font-medium text-neutral-700 px-2 whitespace-nowrap">
+              {weekStart} – {weekEnd}
+            </span>
+            <button
+              onClick={() => goToWeek(weekOffset + 1)}
+              className="h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-neutral-400 hover:text-black transition-colors text-sm touch-manipulation"
+            >›</button>
+            {weekOffset !== 0 && (
+              <button
+                onClick={() => goToWeek(0)}
+                className="h-8 px-3 text-xs rounded-lg border border-neutral-200 text-neutral-500 hover:border-neutral-400 hover:text-black transition-colors ml-1 touch-manipulation"
+              >
+                Today
+              </button>
+            )}
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            {loadingSessions && <span className="text-xs text-neutral-400 animate-pulse">Loading…</span>}
+
+            {/* Search toggle — mobile only */}
+            <button
+              onClick={() => setShowSearch(v => !v)}
+              className="md:hidden h-8 w-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-500 hover:border-neutral-400 touch-manipulation"
+              aria-label="Search"
             >
-              Today
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.4"/>
+                <path d="M10 10l2.5 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
             </button>
-          )}
+
+            {/* Search input — always visible on desktop */}
+            <input
+              type="text"
+              placeholder="Filter by class or instructor..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="hidden md:block h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black w-56"
+            />
+            <span className="hidden md:flex h-8 px-3 text-sm rounded-lg border bg-black text-white border-black items-center">Week</span>
+          </div>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          {loadingSessions && (
-            <span className="text-xs text-neutral-400 animate-pulse">Loading…</span>
-          )}
-          <input
-            type="text"
-            placeholder="Filter by class or instructor..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="h-8 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black w-56"
-          />
-          <span className="h-8 px-3 text-sm rounded-lg border bg-black text-white border-black flex items-center">Week</span>
-        </div>
+
+        {/* Mobile search row */}
+        {showSearch && (
+          <div className="md:hidden px-4 pb-3">
+            <input
+              type="text"
+              placeholder="Filter by class or instructor..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              autoFocus
+              className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Schedule */}
+      {/* ── Schedule ── */}
       <div className={`flex-1 overflow-y-auto transition-opacity duration-150 ${loadingSessions ? 'opacity-40' : 'opacity-100'}`}>
         {days.map(({ date, daySessions }) => (
           <section key={date.toISOString()}>
-            <div className={`sticky top-0 z-10 grid border-b border-neutral-200 px-6 py-2 ${
+
+            {/* Day header */}
+            <div className={`sticky top-0 z-10 border-b border-neutral-200 ${
               isToday(date, now) ? 'bg-neutral-100' : 'bg-neutral-50'
-            }`}
-              style={{ gridTemplateColumns: '160px 1fr 200px 160px 48px' }}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-neutral-800">{dayLabel(date)}</span>
+            }`}>
+              {/* Mobile day header — simple label */}
+              <div className="flex items-center gap-2 md:hidden px-4 py-2.5">
+                <span className="text-[13px] font-semibold text-neutral-800">{dayLabelShort(date)}</span>
                 {isToday(date, now) && (
                   <span className="text-[10px] font-semibold bg-black text-white px-2 py-0.5 rounded-full">TODAY</span>
                 )}
+                {daySessions.length > 0 && (
+                  <span className="text-[11px] text-neutral-400 ml-auto">{daySessions.length} class{daySessions.length !== 1 ? 'es' : ''}</span>
+                )}
               </div>
-              <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider self-center">Class</span>
-              <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider self-center">Instructor</span>
-              <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider self-center">Sign In</span>
-              <span />
+              {/* Desktop day header — grid with column labels */}
+              <div
+                className="hidden md:grid px-6 py-2"
+                style={{ gridTemplateColumns: '160px 1fr 200px 160px 48px' }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-semibold text-neutral-800">{dayLabel(date)}</span>
+                  {isToday(date, now) && (
+                    <span className="text-[10px] font-semibold bg-black text-white px-2 py-0.5 rounded-full">TODAY</span>
+                  )}
+                </div>
+                <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider self-center">Class</span>
+                <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider self-center">Instructor</span>
+                <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider self-center">Sign In</span>
+                <span />
+              </div>
             </div>
 
             {daySessions.length === 0 ? (
-              <div className="px-6 py-4 text-sm text-neutral-400 border-b border-neutral-100">No classes scheduled</div>
+              <div className="px-4 md:px-6 py-4 text-sm text-neutral-400 border-b border-neutral-100">No classes scheduled</div>
             ) : (
               daySessions.map(session => {
                 const svc       = scheduleToService[session.scheduleId]
@@ -199,79 +249,142 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
                 const full      = pct >= 1
 
                 return (
-                  <div
-                    key={session.id}
-                    className={`grid items-center px-6 py-3 border-b border-neutral-100 transition-colors ${
-                      cancelled ? 'opacity-50' : 'hover:bg-neutral-50 cursor-pointer'
-                    }`}
-                    style={{ gridTemplateColumns: '160px 1fr 200px 160px 48px' }}
-                    onClick={() => !cancelled && setSelectedSession(session)}
-                  >
-                    <span className={`text-[12px] ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-500'}`}>
-                      {fmt12(session.start)} – {fmt12(session.end)}
-                    </span>
+                  <div key={session.id} className={cancelled ? 'opacity-50' : ''}>
 
-                    <div className="flex items-center gap-2">
-                      <div className={`w-5 h-5 rounded shrink-0 ${cancelled ? 'bg-neutral-300' : 'bg-black'}`} />
-                      <span className={`text-[12.5px] font-medium ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-800'}`}>
-                        {svc?.name ?? session.title}
-                      </span>
-                      {cancelled && (
-                        <span className="text-[10px] font-semibold bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                          Cancelled
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="w-[14px] h-[14px] rounded border border-neutral-300 shrink-0" />
-                      <span className="text-[12.5px] text-neutral-700">{staff?.name ?? '—'}</span>
-                    </div>
-
-                    {cancelled ? (
-                      <span />
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <div className="w-20 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${full ? 'bg-red-500' : 'bg-black'}`}
-                            style={{ width: `${Math.min(pct * 100, 100)}%` }}
-                          />
+                    {/* ── Mobile session row ── */}
+                    <div
+                      className={`md:hidden flex items-center gap-3 px-4 py-3 border-b border-neutral-100 ${
+                        !cancelled ? 'hover:bg-neutral-50 active:bg-neutral-50 cursor-pointer' : ''
+                      }`}
+                      onClick={() => !cancelled && setSelectedSession(session)}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="text-[11.5px] text-neutral-400 shrink-0">{fmt12(session.start)}</span>
+                          <span className={`text-[13px] font-medium truncate ${cancelled ? 'line-through text-neutral-400' : 'text-neutral-800'}`}>
+                            {svc?.name ?? session.title}
+                          </span>
+                          {cancelled && (
+                            <span className="text-[10px] font-semibold bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide shrink-0">
+                              Cancelled
+                            </span>
+                          )}
                         </div>
-                        <span className={`text-[12px] font-semibold ${full ? 'text-red-500' : 'text-neutral-800'}`}>
-                          {session.bookedCount}/{session.capacity}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="relative" onClick={e => e.stopPropagation()}>
-                      <button
-                        className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
-                        onClick={() => setMenuOpenId(menuOpenId === session.id ? null : session.id)}
-                      >
-                        ⋯
-                      </button>
-                      {menuOpenId === session.id && (
-                        <>
-                          <div className="fixed inset-0 z-10" onClick={() => setMenuOpenId(null)} />
-                          <div className="absolute right-0 top-8 z-20 w-40 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
-                            <button
-                              className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-neutral-700"
-                              onClick={() => { setMenuOpenId(null); setSelectedSession(session) }}
-                            >
-                              View attendees
-                            </button>
-                            {!cancelled && (
-                              <button
-                                className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-red-600"
-                                onClick={() => { setMenuOpenId(null); setAutoConfirmCancel(true); setSelectedSession(session) }}
-                              >
-                                Cancel class
-                              </button>
-                            )}
+                        {!cancelled && (
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11.5px] text-neutral-400">{staff?.name ?? '—'}</span>
+                            <span className={`text-[11.5px] font-semibold ${full ? 'text-red-500' : 'text-neutral-600'}`}>
+                              · {session.bookedCount}/{session.capacity}
+                            </span>
                           </div>
-                        </>
+                        )}
+                      </div>
+
+                      <div className="relative shrink-0" onClick={e => e.stopPropagation()}>
+                        <button
+                          className="w-8 h-8 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors touch-manipulation"
+                          onClick={() => setMenuOpenId(menuOpenId === session.id ? null : session.id)}
+                        >
+                          ⋯
+                        </button>
+                        {menuOpenId === session.id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setMenuOpenId(null)} />
+                            <div className="absolute right-0 top-9 z-20 w-40 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
+                              <button
+                                className="w-full text-left px-3 py-2.5 hover:bg-neutral-50 text-neutral-700"
+                                onClick={() => { setMenuOpenId(null); setSelectedSession(session) }}
+                              >
+                                View attendees
+                              </button>
+                              {!cancelled && (
+                                <button
+                                  className="w-full text-left px-3 py-2.5 hover:bg-neutral-50 text-red-600"
+                                  onClick={() => { setMenuOpenId(null); setAutoConfirmCancel(true); setSelectedSession(session) }}
+                                >
+                                  Cancel class
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* ── Desktop session row ── */}
+                    <div
+                      className={`hidden md:grid items-center px-6 py-3 border-b border-neutral-100 transition-colors ${
+                        cancelled ? '' : 'hover:bg-neutral-50 cursor-pointer'
+                      }`}
+                      style={{ gridTemplateColumns: '160px 1fr 200px 160px 48px' }}
+                      onClick={() => !cancelled && setSelectedSession(session)}
+                    >
+                      <span className={`text-[12px] ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-500'}`}>
+                        {fmt12(session.start)} – {fmt12(session.end)}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <div className={`w-5 h-5 rounded shrink-0 ${cancelled ? 'bg-neutral-300' : 'bg-black'}`} />
+                        <span className={`text-[12.5px] font-medium ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-800'}`}>
+                          {svc?.name ?? session.title}
+                        </span>
+                        {cancelled && (
+                          <span className="text-[10px] font-semibold bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                            Cancelled
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="w-[14px] h-[14px] rounded border border-neutral-300 shrink-0" />
+                        <span className="text-[12.5px] text-neutral-700">{staff?.name ?? '—'}</span>
+                      </div>
+
+                      {cancelled ? (
+                        <span />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${full ? 'bg-red-500' : 'bg-black'}`}
+                              style={{ width: `${Math.min(pct * 100, 100)}%` }}
+                            />
+                          </div>
+                          <span className={`text-[12px] font-semibold ${full ? 'text-red-500' : 'text-neutral-800'}`}>
+                            {session.bookedCount}/{session.capacity}
+                          </span>
+                        </div>
                       )}
+
+                      <div className="relative" onClick={e => e.stopPropagation()}>
+                        <button
+                          className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
+                          onClick={() => setMenuOpenId(menuOpenId === session.id ? null : session.id)}
+                        >
+                          ⋯
+                        </button>
+                        {menuOpenId === session.id && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setMenuOpenId(null)} />
+                            <div className="absolute right-0 top-8 z-20 w-40 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
+                              <button
+                                className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-neutral-700"
+                                onClick={() => { setMenuOpenId(null); setSelectedSession(session) }}
+                              >
+                                View attendees
+                              </button>
+                              {!cancelled && (
+                                <button
+                                  className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-red-600"
+                                  onClick={() => { setMenuOpenId(null); setAutoConfirmCancel(true); setSelectedSession(session) }}
+                                >
+                                  Cancel class
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
@@ -280,17 +393,18 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
           </section>
         ))}
 
-        <div className="px-6 py-5 border-t border-neutral-200 bg-white flex items-center gap-8">
+        {/* Weekly totals */}
+        <div className="px-4 md:px-6 py-5 border-t border-neutral-200 bg-white flex items-center gap-6 md:gap-8">
           <div>
             <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Sessions</p>
             <p className="text-xl font-semibold text-neutral-900 mt-0.5">{totalSessions}</p>
           </div>
           <div>
-            <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Total Booked</p>
+            <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Booked</p>
             <p className="text-xl font-semibold text-neutral-900 mt-0.5">{totalBooked}</p>
           </div>
           <div>
-            <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Avg Fill Rate</p>
+            <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Avg Fill</p>
             <p className="text-xl font-semibold text-neutral-900 mt-0.5">
               {totalCap > 0 ? Math.round((totalBooked / totalCap) * 100) : 0}%
             </p>
@@ -317,16 +431,16 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
 function AttendeeDrawer({
   session, serviceName, staffName, onClose, onCancelled, initialConfirmCancel,
 }: {
-  session: WixSession
-  serviceName: string
-  staffName?: string
-  onClose: () => void
-  onCancelled: (id: string) => void
+  session:              WixSession
+  serviceName:          string
+  staffName?:           string
+  onClose:              () => void
+  onCancelled:          (id: string) => void
   initialConfirmCancel?: boolean
 }) {
-  const [bookings,      setBookings]     = useState<WixBooking[] | null>(null)
-  const [loading,       setLoading]      = useState(true)
-  const [cancelling,    setCancelling]   = useState(false)
+  const [bookings,      setBookings]      = useState<WixBooking[] | null>(null)
+  const [loading,       setLoading]       = useState(true)
+  const [cancelling,    setCancelling]    = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(initialConfirmCancel ?? false)
 
   useEffect(() => {
@@ -341,9 +455,9 @@ function AttendeeDrawer({
   async function cancelSession() {
     setCancelling(true)
     await fetch('/api/admin/cancel-session', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: session.id }),
+      body:    JSON.stringify({ sessionId: session.id }),
     })
     setCancelling(false)
     onCancelled(session.id)
@@ -353,8 +467,9 @@ function AttendeeDrawer({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
-      <div className="relative w-[380px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
-        <div className="px-6 py-5 border-b border-neutral-200 flex items-start justify-between">
+      {/* Full-width on mobile, 380px panel on md+ */}
+      <div className="relative w-full md:w-[380px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
+        <div className="px-5 py-5 border-b border-neutral-200 flex items-start justify-between">
           <div className="flex-1 pr-4">
             <h2 className="font-semibold text-neutral-900">{serviceName}</h2>
             <p className="text-sm text-neutral-500 mt-0.5">
@@ -363,7 +478,7 @@ function AttendeeDrawer({
             {!confirmCancel ? (
               <button
                 onClick={() => setConfirmCancel(true)}
-                className="mt-3 text-[11px] font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors"
+                className="mt-3 text-[11px] font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors touch-manipulation"
               >
                 Cancel class
               </button>
@@ -373,47 +488,39 @@ function AttendeeDrawer({
                 <button
                   onClick={cancelSession}
                   disabled={cancelling}
-                  className="text-[11px] font-semibold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-md disabled:opacity-40"
+                  className="text-[11px] font-semibold text-white bg-red-600 hover:bg-red-700 px-2.5 py-1 rounded-md disabled:opacity-40 touch-manipulation"
                 >
                   {cancelling ? '…' : 'Yes, cancel'}
                 </button>
                 <button
                   onClick={() => setConfirmCancel(false)}
-                  className="text-[11px] text-neutral-500 hover:text-neutral-800"
+                  className="text-[11px] text-neutral-500 hover:text-neutral-800 touch-manipulation"
                 >
                   No
                 </button>
               </div>
             )}
           </div>
-          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl mt-0.5">×</button>
+          <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl mt-0.5 w-8 h-8 flex items-center justify-center touch-manipulation">×</button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {loading && (
-            <div className="px-6 py-8 text-sm text-neutral-400">Loading attendees…</div>
-          )}
-          {!loading && bookings?.length === 0 && (
-            <div className="px-6 py-8 text-sm text-neutral-400">No bookings yet.</div>
-          )}
+          {loading && <div className="px-5 py-8 text-sm text-neutral-400">Loading attendees…</div>}
+          {!loading && bookings?.length === 0 && <div className="px-5 py-8 text-sm text-neutral-400">No bookings yet.</div>}
           {bookings?.map((b, i) => (
-            <div key={b.id} className={`flex items-center justify-between px-6 py-3.5 ${i < bookings.length - 1 ? 'border-b border-neutral-100' : ''}`}>
+            <div key={b.id} className={`flex items-center justify-between px-5 py-3.5 ${i < bookings.length - 1 ? 'border-b border-neutral-100' : ''}`}>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-[11px] font-semibold text-neutral-600">
+                <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-[11px] font-semibold text-neutral-600 shrink-0">
                   {b.contactDetails.firstName?.[0]}{b.contactDetails.lastName?.[0]}
                 </div>
-                <div>
-                  <p className="text-[13px] font-medium text-neutral-900">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-medium text-neutral-900 truncate">
                     {b.contactDetails.firstName} {b.contactDetails.lastName}
                   </p>
-                  <p className="text-[11.5px] text-neutral-400">{b.contactDetails.email}</p>
+                  <p className="text-[11.5px] text-neutral-400 truncate">{b.contactDetails.email}</p>
                 </div>
               </div>
-              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                b.status === 'CONFIRMED'
-                  ? 'bg-neutral-100 text-neutral-600'
-                  : 'bg-neutral-100 text-neutral-500'
-              }`}>
+              <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 shrink-0 ml-2">
                 {b.status}
               </span>
             </div>
