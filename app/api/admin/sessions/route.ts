@@ -54,6 +54,26 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ id: data.id })
 }
 
+export async function PATCH(req: NextRequest) {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const { id, instructorName } = await req.json()
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  const { error } = await supabase
+    .from('sessions')
+    .update({ instructor_name: instructorName ?? '' })
+    .eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  revalidatePath('/admin/schedule')
+  revalidatePath('/admin/classes')
+  revalidatePath('/admin/checkin')
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function DELETE(req: NextRequest) {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

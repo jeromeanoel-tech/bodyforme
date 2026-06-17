@@ -188,11 +188,11 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
     <div className="h-full flex flex-col">
 
       {/* ── Stats + plan breakdown ── */}
-      <div className="shrink-0 px-6 py-5 border-b border-neutral-200 bg-neutral-50 space-y-4">
+      <div className="shrink-0 px-4 md:px-6 py-4 md:py-5 border-b border-neutral-200 bg-neutral-50 space-y-3 md:space-y-4">
         {/* Top-line stats */}
-        <div className="flex items-stretch gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           <StatCard label="Active memberships" value={String(activeCount)} />
-          <StatCard label={`Expiring within ${expiringDays} days`} value={String(expiringCount)} warn={expiringCount > 0} />
+          <StatCard label={`Expiring in ${expiringDays}d`} value={String(expiringCount)} warn={expiringCount > 0} />
           <StatCard label="Paused" value={String(pausedCount)} />
           <StatCard label="Total orders" value={String(rows.length)} />
         </div>
@@ -221,9 +221,35 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
         )}
       </div>
 
-      {/* ── Toolbar ── */}
-      <div className="shrink-0 px-6 py-3 border-b border-neutral-200 bg-white flex items-center gap-3 flex-wrap">
-        {/* Status tabs */}
+      {/* ── Toolbar — mobile ── */}
+      <div className="md:hidden shrink-0 px-4 py-3 border-b border-neutral-200 bg-white space-y-2">
+        <input
+          type="text"
+          placeholder="Search client or plan…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+        />
+        <div className="flex gap-1 overflow-x-auto pb-0.5">
+          {TABS.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`h-8 px-3 text-[13px] rounded-lg border transition-colors whitespace-nowrap flex items-center gap-1.5 shrink-0 touch-manipulation ${
+                tab === t.key
+                  ? 'bg-black text-white border-black'
+                  : 'bg-white text-neutral-600 border-neutral-200'
+              }`}
+            >
+              {t.label}
+              {t.count > 0 && <span className={`text-[10px] font-semibold ${tab === t.key ? 'text-white/70' : 'text-neutral-400'}`}>{t.count}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Toolbar — desktop ── */}
+      <div className="hidden md:flex shrink-0 px-6 py-3 border-b border-neutral-200 bg-white items-center gap-3 flex-wrap">
         <div className="flex items-center gap-1">
           {TABS.map(t => (
             <button
@@ -246,7 +272,6 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
             </button>
           ))}
         </div>
-
         <div className="ml-auto flex items-center gap-2">
           <select
             value={sort}
@@ -270,9 +295,9 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
         </div>
       </div>
 
-      {/* ── Table header ── */}
+      {/* ── Table header — desktop only ── */}
       <div
-        className="shrink-0 grid px-6 py-2 border-b border-neutral-200 bg-neutral-50"
+        className="hidden md:grid shrink-0 px-6 py-2 border-b border-neutral-200 bg-neutral-50"
         style={{ gridTemplateColumns: '2fr 2fr 120px 130px 130px 48px' }}
       >
         {['Client', 'Plan', 'Status', 'Started', 'Expires / renews', ''].map(h => (
@@ -283,7 +308,7 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
       {/* ── Rows ── */}
       <div className="flex-1 overflow-y-auto">
         {filtered.length === 0 ? (
-          <div className="px-6 py-12 text-sm text-neutral-400 text-center">
+          <div className="px-4 md:px-6 py-12 text-sm text-neutral-400 text-center">
             No memberships match your filters.
           </div>
         ) : (
@@ -292,49 +317,66 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
             const days = daysUntil(row.endDate)
 
             return (
-              <div
-                key={row.id}
-                className="grid items-center px-6 py-3 border-b border-neutral-100 hover:bg-neutral-50 transition-colors cursor-pointer"
-                style={{ gridTemplateColumns: '2fr 2fr 120px 130px 130px 48px' }}
-                onClick={() => setSelected(row)}
-              >
-                {/* Client */}
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-neutral-900 text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+              <div key={row.id} className="border-b border-neutral-100">
+
+                {/* ── Mobile card ── */}
+                <div
+                  className="md:hidden flex items-center gap-3 px-4 py-3.5 hover:bg-neutral-50 cursor-pointer transition-colors"
+                  onClick={() => setSelected(row)}
+                >
+                  <div className="w-9 h-9 rounded-full bg-neutral-900 text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
                     {initials(row.clientName)}
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-[13px] font-medium text-neutral-900 truncate">{row.clientName}</p>
-                    {row.email && <p className="text-[11px] text-neutral-400 truncate">{row.email}</p>}
+                    <p className="text-[11.5px] text-neutral-500 truncate mt-0.5">{row.planName || '—'}</p>
+                    {row.endDate && (
+                      <p className="text-[11px] text-neutral-400 mt-0.5">
+                        {soon && days !== null
+                          ? <span className="text-amber-600 font-medium">{days === 0 ? 'Expires today' : `${days}d left`}</span>
+                          : `Expires ${fmtDate(row.endDate)}`
+                        }
+                      </p>
+                    )}
                   </div>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${STATUS_BADGE[row.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
+                    {statusLabel(row.status)}
+                  </span>
                 </div>
 
-                {/* Plan */}
-                <span className="text-[12.5px] text-neutral-700 truncate pr-4">{row.planName || '—'}</span>
-
-                {/* Status */}
-                <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full w-fit ${STATUS_BADGE[row.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
-                  {statusLabel(row.status)}
-                </span>
-
-                {/* Started */}
-                <span className="text-[12px] text-neutral-500">{fmtDate(row.startDate)}</span>
-
-                {/* Expires */}
-                <div>
-                  <span className="text-[12px] text-neutral-500">{fmtDate(row.endDate)}</span>
-                  {soon && days !== null && (
-                    <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
-                      {days === 0 ? 'Today' : `${days}d left`}
-                    </p>
-                  )}
+                {/* ── Desktop row (unchanged) ── */}
+                <div
+                  className="hidden md:grid items-center px-6 py-3 hover:bg-neutral-50 transition-colors cursor-pointer"
+                  style={{ gridTemplateColumns: '2fr 2fr 120px 130px 130px 48px' }}
+                  onClick={() => setSelected(row)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full bg-neutral-900 text-white text-[10px] font-semibold flex items-center justify-center shrink-0">
+                      {initials(row.clientName)}
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-medium text-neutral-900 truncate">{row.clientName}</p>
+                      {row.email && <p className="text-[11px] text-neutral-400 truncate">{row.email}</p>}
+                    </div>
+                  </div>
+                  <span className="text-[12.5px] text-neutral-700 truncate pr-4">{row.planName || '—'}</span>
+                  <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full w-fit ${STATUS_BADGE[row.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
+                    {statusLabel(row.status)}
+                  </span>
+                  <span className="text-[12px] text-neutral-500">{fmtDate(row.startDate)}</span>
+                  <div>
+                    <span className="text-[12px] text-neutral-500">{fmtDate(row.endDate)}</span>
+                    {soon && days !== null && (
+                      <p className="text-[11px] text-neutral-500 font-medium mt-0.5">
+                        {days === 0 ? 'Today' : `${days}d left`}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
+                    onClick={e => { e.stopPropagation(); setSelected(row) }}
+                  >⋯</button>
                 </div>
-
-                {/* Actions */}
-                <button
-                  className="w-7 h-7 rounded-lg border border-neutral-200 flex items-center justify-center text-neutral-400 hover:border-neutral-400 hover:text-neutral-700 transition-colors text-base"
-                  onClick={e => { e.stopPropagation(); setSelected(row) }}
-                >⋯</button>
               </div>
             )
           })
@@ -342,7 +384,7 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
       </div>
 
       {/* ── Footer ── */}
-      <div className="px-6 py-5 border-t border-neutral-200 bg-white flex items-center gap-8">
+      <div className="px-4 md:px-6 py-4 md:py-5 border-t border-neutral-200 bg-white flex items-center gap-6 md:gap-8">
         <div>
           <p className="text-[11px] text-neutral-400 uppercase tracking-wider">Showing</p>
           <p className="text-xl font-semibold text-neutral-900 mt-0.5">{filtered.length}</p>
@@ -369,9 +411,9 @@ export default function MembershipsClient({ rows: initialRows }: Props) {
 
       {/* ── Bulk send modal ── */}
       {bulkState !== 'idle' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/30" onClick={() => bulkState !== 'sending' && setBulkState('idle')} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-[480px] max-h-[80vh] flex flex-col overflow-hidden">
+          <div className="relative bg-white rounded-t-2xl md:rounded-2xl shadow-2xl w-full md:w-[480px] max-h-[80vh] flex flex-col overflow-hidden">
 
             <div className="px-6 py-5 border-b border-neutral-200">
               <h2 className="font-semibold text-neutral-900">
@@ -491,7 +533,7 @@ function MembershipDrawer({ row, expiringDays, onClose, onStatusChange }: {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
-      <div className="relative w-[380px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
+      <div className="relative w-full md:w-[380px] bg-white h-full shadow-2xl flex flex-col border-l border-neutral-200">
 
         {/* Header */}
         <div className="px-6 py-5 border-b border-neutral-200">

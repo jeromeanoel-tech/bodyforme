@@ -5,6 +5,13 @@ import ClassesClient from './ClassesClient'
 
 export const revalidate = 30
 
+function getInstructors(): string[] {
+  try {
+    const all = JSON.parse(process.env.ADMIN_CREDENTIALS ?? '[]') as { name: string }[]
+    return all.map(u => u.name).filter(Boolean).sort()
+  } catch { return [] }
+}
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SECRET_KEY!,
@@ -36,5 +43,5 @@ export default async function AdminClassesPage() {
     upcomingSessions: countMap[s.id] ?? 0,
   }))
 
-  return <ClassesClient initialServices={servicesWithCounts} />
+  return <ClassesClient initialServices={servicesWithCounts} instructors={getInstructors()} />
 }

@@ -27,7 +27,7 @@ function fmt(iso: string) {
   return d.toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
-export default function ClassesClient({ initialServices }: { initialServices: Service[] }) {
+export default function ClassesClient({ initialServices, instructors }: { initialServices: Service[]; instructors: string[] }) {
   const router = useRouter()
   const [services,   setServices]   = useState<Service[]>(initialServices)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -54,7 +54,10 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
   const [savingSession,    setSavingSession]    = useState(false)
   const [sessionError,     setSessionError]     = useState('')
 
-  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
+  const [deletingSessionId,   setDeletingSessionId]   = useState<string | null>(null)
+  const [editInstructorId,    setEditInstructorId]    = useState<string | null>(null)
+  const [editInstructorVal,   setEditInstructorVal]   = useState('')
+  const [savingInstructor,    setSavingInstructor]    = useState(false)
 
   async function loadSessions(serviceId: string) {
     setLoadingId(serviceId)
@@ -173,6 +176,23 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
     setSessionEndTime('')
     setSavingSession(false)
     router.refresh()
+  }
+
+  async function saveInstructor(serviceId: string, sessionId: string) {
+    setSavingInstructor(true)
+    await fetch('/api/admin/sessions', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id: sessionId, instructorName: editInstructorVal }),
+    })
+    setSessions(prev => ({
+      ...prev,
+      [serviceId]: (prev[serviceId] ?? []).map(s =>
+        s.id === sessionId ? { ...s, instructor_name: editInstructorVal } : s
+      ),
+    }))
+    setEditInstructorId(null)
+    setSavingInstructor(false)
   }
 
   async function deleteSession(serviceId: string, sessionId: string) {
@@ -313,29 +333,63 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                     {/* ── Mobile: session cards ── */}
                     <div className="md:hidden divide-y divide-neutral-100">
                       {(sessions[service.id] ?? []).map(session => (
-                        <div key={session.id} className="px-4 py-3 flex items-start gap-3">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-medium text-neutral-800 leading-snug">{fmt(session.start_time)}</p>
-                            <p className="text-[11.5px] text-neutral-500 mt-1">
-                              {session.instructor_name || 'No instructor'} · Cap {session.capacity}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0 mt-0.5">
-                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                              session.status === 'CANCELLED'
-                                ? 'bg-red-50 text-red-600'
-                                : 'bg-neutral-100 text-neutral-600'
-                            }`}>
-                              {session.status === 'CANCELLED' ? 'Cancelled' : 'Active'}
-                            </span>
-                            <button
-                              onClick={() => deleteSession(service.id, session.id)}
-                              disabled={deletingSessionId === session.id}
-                              className="w-7 h-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors disabled:opacity-40 touch-manipulation"
-                              title="Delete session"
-                            >
-                              {deletingSessionId === session.id ? '…' : '✕'}
-                            </button>
+                        <div key={session.id} className="px-4 py-3">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[13px] font-medium text-neutral-800 leading-snug">{fmt(session.start_time)}</p>
+                              {/* Instructor inline edit */}
+                              {editInstructorId === session.id ? (
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <select
+                                    value={editInstructorVal}
+                                    onChange={e => setEditInstructorVal(e.target.value)}
+                                    className="flex-1 h-8 px-2 text-[12px] border border-neutral-300 rounded-lg outline-none focus:border-black bg-white"
+                                    autoFocus
+                                  >
+                                    <option value="">— Unassigned —</option>
+                                    {instructors.map(n => <option key={n} value={n}>{n}</option>)}
+                                  </select>
+                                  <button
+                                    onClick={() => saveInstructor(service.id, session.id)}
+                                    disabled={savingInstructor}
+                                    className="h-8 px-2.5 text-[12px] font-medium bg-black text-white rounded-lg disabled:opacity-40 touch-manipulation"
+                                  >
+                                    {savingInstructor ? '…' : '✓'}
+                                  </button>
+                                  <button
+                                    onClick={() => setEditInstructorId(null)}
+                                    className="h-8 px-2 text-[12px] text-neutral-400 touch-manipulation"
+                                  >✕</button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => { setEditInstructorId(session.id); setEditInstructorVal(session.instructor_name || '') }}
+                                  className="flex items-center gap-1 mt-1 touch-manipulation"
+                                >
+                                  <span className="text-[11.5px] text-neutral-500">
+                                    {session.instructor_name || 'Unassigned'} · Cap {session.capacity}
+                                  </span>
+                                  <span className="text-[10px] text-neutral-300">✏</span>
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 mt-0.5">
+                              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                                session.status === 'CANCELLED'
+                                  ? 'bg-red-50 text-red-600'
+                                  : 'bg-neutral-100 text-neutral-600'
+                              }`}>
+                                {session.status === 'CANCELLED' ? 'Cancelled' : 'Active'}
+                              </span>
+                              <button
+                                onClick={() => deleteSession(service.id, session.id)}
+                                disabled={deletingSessionId === session.id}
+                                className="w-7 h-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors disabled:opacity-40 touch-manipulation"
+                                title="Delete session"
+                              >
+                                {deletingSessionId === session.id ? '…' : '✕'}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -343,7 +397,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
 
                     {/* ── Desktop: original grid table ── */}
                     <div className="hidden md:block">
-                      <div className="grid px-8 py-2 border-b border-neutral-200" style={{ gridTemplateColumns: '1fr 160px 80px 80px 40px' }}>
+                      <div className="grid px-8 py-2 border-b border-neutral-200" style={{ gridTemplateColumns: '1fr 200px 80px 80px 40px' }}>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Date & Time</span>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Instructor</span>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Capacity</span>
@@ -354,10 +408,42 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                         <div
                           key={session.id}
                           className="grid items-center px-8 py-3 border-b border-neutral-100 last:border-0"
-                          style={{ gridTemplateColumns: '1fr 160px 80px 80px 40px' }}
+                          style={{ gridTemplateColumns: '1fr 200px 80px 80px 40px' }}
                         >
                           <span className="text-[14.5px] text-neutral-700">{fmt(session.start_time)}</span>
-                          <span className="text-[14.5px] text-neutral-600">{session.instructor_name || '—'}</span>
+                          {/* Instructor — click to edit */}
+                          {editInstructorId === session.id ? (
+                            <div className="flex items-center gap-1.5 pr-2">
+                              <select
+                                value={editInstructorVal}
+                                onChange={e => setEditInstructorVal(e.target.value)}
+                                className="flex-1 h-7 px-2 text-[12px] border border-neutral-300 rounded-lg outline-none focus:border-black bg-white"
+                                autoFocus
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <option value="">— Unassigned —</option>
+                                {instructors.map(n => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                              <button
+                                onClick={e => { e.stopPropagation(); saveInstructor(service.id, session.id) }}
+                                disabled={savingInstructor}
+                                className="h-7 px-2 text-[11.5px] font-medium bg-black text-white rounded-md disabled:opacity-40"
+                              >{savingInstructor ? '…' : '✓'}</button>
+                              <button
+                                onClick={e => { e.stopPropagation(); setEditInstructorId(null) }}
+                                className="h-7 px-1.5 text-[11.5px] text-neutral-400 hover:text-neutral-700"
+                              >✕</button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={e => { e.stopPropagation(); setEditInstructorId(session.id); setEditInstructorVal(session.instructor_name || '') }}
+                              className="flex items-center gap-1.5 group text-left"
+                              title="Edit instructor"
+                            >
+                              <span className="text-[13px] text-neutral-600">{session.instructor_name || '—'}</span>
+                              <span className="text-[10px] text-neutral-300 group-hover:text-neutral-500 transition-colors">✏</span>
+                            </button>
+                          )}
                           <span className="text-[14.5px] text-neutral-600">{session.capacity}</span>
                           <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full w-fit ${
                             session.status === 'CANCELLED'
@@ -494,14 +580,17 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                 </div>
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor (optional)</label>
-                <input
-                  type="text"
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor</label>
+                <select
                   value={sessionInstructor}
                   onChange={e => setSessionInstructor(e.target.value)}
-                  placeholder="e.g. Suzanne Harb"
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                />
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white"
+                >
+                  <option value="">— Unassigned —</option>
+                  {instructors.map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-[12px] font-medium text-neutral-600 mb-1">Capacity</label>

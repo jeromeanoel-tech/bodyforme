@@ -36,9 +36,9 @@ function pct(n: number, d: number) {
 export default function DashboardClient({ sessions, memberships, contacts, services }: Props) {
   const scheduleToName = Object.fromEntries(services.map(s => [s.scheduleId, s.name]))
 
-  const todayStr      = new Date().toISOString().slice(0, 10)
+  // Sessions are already filtered to today (Melbourne) by the server — just exclude cancelled
   const todaySessions = sessions
-    .filter(s => s.start.startsWith(todayStr) && s.status !== 'CANCELLED')
+    .filter(s => s.status !== 'CANCELLED')
     .sort((a, b) => a.start.localeCompare(b.start))
 
   const activeMembers  = memberships.filter(m => m.status === 'ACTIVE')
