@@ -79,23 +79,6 @@ function Input({ label, value, onChange, type = 'text', placeholder }: {
   )
 }
 
-function Toggle({ label, sub, on, onChange }: { label: string; sub?: string; on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.rule}`, display: 'flex', alignItems: 'center', gap: 14 }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.esp }}>{label}</div>
-        {sub && <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 3 }}>{sub}</div>}
-      </div>
-      <button
-        onClick={() => onChange(!on)}
-        style={{ width: 44, height: 26, borderRadius: 13, background: on ? T.esp : T.rule, border: 'none', cursor: 'pointer', position: 'relative', flexShrink: 0, transition: 'background 0.2s' }}
-      >
-        <span style={{ position: 'absolute', top: 3, left: on ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
-      </button>
-    </div>
-  )
-}
-
 type Stats = { completed: number; upcoming: number; favourite: string | null }
 
 export default function ProfilePage() {
@@ -114,13 +97,6 @@ export default function ProfilePage() {
   const [detailSaving, setDetailSaving] = useState(false)
   const [detailError,  setDetailError]  = useState('')
   const [detailSaved,  setDetailSaved]  = useState(false)
-
-  // Notifications sheet
-  const [showNotifs,   setShowNotifs]   = useState(false)
-  const [notifReminders, setNotifReminders] = useState(true)
-  const [notifBilling,   setNotifBilling]   = useState(true)
-  const [notifPromos,    setNotifPromos]    = useState(false)
-  const [notifSaved,     setNotifSaved]     = useState(false)
 
   useEffect(() => {
     fetch('/api/app/stats').then(r => r.json()).then(setStats).catch(() => {})
@@ -151,11 +127,6 @@ export default function ProfilePage() {
     }
   }
 
-  function saveNotifs() {
-    setNotifSaved(true)
-    setTimeout(() => { setNotifSaved(false); setShowNotifs(false) }, 1200)
-  }
-
   async function handleSignOut() {
     await fetch('/api/auth/logout', { method: 'POST' })
     router.push('/app/login')
@@ -182,28 +153,6 @@ export default function ProfilePage() {
               style={{ width: '100%', padding: '14px 0', background: detailSaved ? T.sage : T.esp, color: T.linen, border: 'none', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer', opacity: detailSaving ? 0.6 : 1, transition: 'background 0.3s' }}
             >
               {detailSaved ? '✓ Saved' : detailSaving ? 'Saving…' : 'Save changes'}
-            </button>
-          </div>
-        </Sheet>
-      )}
-
-      {/* Notifications sheet */}
-      {showNotifs && (
-        <Sheet title="Notifications" onClose={() => setShowNotifs(false)}>
-          <div style={{ paddingBottom: 8 }}>
-            <Toggle label="Class reminders"  sub="Email 1 hour before your class"  on={notifReminders} onChange={setNotifReminders} />
-            <Toggle label="Billing alerts"   sub="Payment confirmations and failures" on={notifBilling}   onChange={setNotifBilling} />
-            <Toggle label="Promotions"       sub="News, offers and special events"  on={notifPromos}    onChange={setNotifPromos} />
-          </div>
-          <div style={{ padding: '0 20px 8px' }}>
-            <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginBottom: 20, lineHeight: 1.5 }}>
-              Notifications are sent to <strong>{session.email}</strong>
-            </p>
-            <button
-              onClick={saveNotifs}
-              style={{ width: '100%', padding: '14px 0', background: notifSaved ? T.sage : T.esp, color: T.linen, border: 'none', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', cursor: 'pointer', transition: 'background 0.3s' }}
-            >
-              {notifSaved ? '✓ Saved' : 'Save preferences'}
             </button>
           </div>
         </Sheet>
@@ -243,8 +192,7 @@ export default function ProfilePage() {
         <div style={{ paddingTop: 24 }}>
           <div style={{ padding: '0 24px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 10 }}>Account</div>
           <div style={{ background: T.canvas, borderTop: `1px solid ${T.rule}`, borderBottom: `1px solid ${T.rule}` }}>
-            <NavRow label="Personal details" sub="Name, email, phone" onClick={() => setShowDetails(true)} />
-            <NavRow label="Notifications"    sub="Class reminders, billing alerts" onClick={() => setShowNotifs(true)} last />
+            <NavRow label="Personal details" sub="Name, email, phone" onClick={() => setShowDetails(true)} last />
           </div>
         </div>
 

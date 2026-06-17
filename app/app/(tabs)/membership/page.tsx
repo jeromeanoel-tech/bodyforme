@@ -404,7 +404,41 @@ export default function MembershipPage() {
 
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 20 }}>
 
-        {/* Dark plan card */}
+        {/* Inactive/pending banner */}
+        {memberStatus && (memberStatus.status === 'inactive' || memberStatus.status === 'pending') && (
+          <div style={{ margin: '20px 20px 0', background: '#f5ede3', border: `1px solid ${T.rule}`, padding: '24px 24px 20px' }}>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.brown, marginBottom: 8 }}>
+              {memberStatus.status === 'pending' ? 'Account pending' : 'Membership inactive'}
+            </div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontStyle: 'italic', color: T.esp, lineHeight: 1.2, marginBottom: 12 }}>
+              {memberStatus.status === 'pending'
+                ? 'Your account is being set up.'
+                : 'Your membership has lapsed.'}
+            </div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 20 }}>
+              {memberStatus.status === 'pending'
+                ? 'Contact the studio and we\'ll get you sorted straight away.'
+                : 'To get back on the mat, choose a new plan below or contact the studio.'}
+            </div>
+            {memberStatus.status === 'inactive' && (
+              <a
+                href="/sign-up"
+                style={{
+                  display: 'inline-block', padding: '13px 28px',
+                  background: T.esp, color: T.linen,
+                  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                  fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  textDecoration: 'none',
+                }}
+              >
+                View plans &amp; renew
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Dark plan card + actions — active members only */}
+        {(!memberStatus || (memberStatus.status !== 'inactive' && memberStatus.status !== 'pending')) && (<>
         <div style={{ margin: '20px 20px 0', background: T.esp, padding: '28px 24px 24px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'repeating-linear-gradient(45deg, #fff 0 1px, transparent 1px 6px)' }} />
           <div style={{ position: 'relative' }}>
@@ -537,6 +571,7 @@ export default function MembershipPage() {
           )}
         </div>
 
+        </>)} {/* end active-member-only section */}
 
       </div>
     </div>
