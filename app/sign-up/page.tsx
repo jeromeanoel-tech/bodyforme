@@ -43,7 +43,7 @@ const STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
 
 function SignUpForm() {
   const params  = useSearchParams()
-  const planKey = params.get('plan') ?? 'free-trial'
+  const planKey = params.get('plan') ?? 'existing'
   const plan    = signupPlans[planKey] ?? signupPlans['free-trial']
 
   const [form,     setForm]    = useState<FormData>(EMPTY_FORM)
