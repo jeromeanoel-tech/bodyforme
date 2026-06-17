@@ -158,7 +158,7 @@ export async function createService(data: {
 }): Promise<string> {
   const { data: row, error } = await supabase
     .from('services')
-    .insert({ name: data.name, description: data.description ?? '', duration: data.duration ?? 60, capacity: data.capacity ?? 10 })
+    .insert({ name: data.name, description: data.description ?? '', duration: data.duration ?? 60, capacity: data.capacity ?? 25 })
     .select('id')
     .single()
   if (error) throw error
@@ -557,13 +557,20 @@ export async function cancelBooking(bookingId: string, memberId: string): Promis
 
 // ── Session lookup ────────────────────────────────────────────────────────────
 
-export async function getSessionById(id: string): Promise<{ title: string; start_time: string; instructor_name: string; status: string } | null> {
+export async function getSessionById(id: string): Promise<{ title: string; start_time: string; instructor_name: string; status: string; capacity: number; bookedCount: number } | null> {
   const { data } = await supabase
     .from('sessions')
-    .select('title, start_time, instructor_name, status')
+    .select('title, start_time, instructor_name, status, capacity')
     .eq('id', id)
     .single()
-  return data ?? null
+  if (!data) return null
+  const { count } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('session_id', id)
+    .eq('status', 'CONFIRMED')
+  // eslint-disable-next-line
+  return { ...(data as any), bookedCount: count ?? 0 }
 }
 
 // ── Booking with session details (for cancel flow) ────────────────────────────
@@ -686,6 +693,62 @@ export async function updateMemberPassword(memberId: string, passwordHash: strin
   await supabase.from('members').update({ password_hash: passwordHash }).eq('id', memberId)
 }
 
+// ── Free trial stats ──────────────────────────────────────────────────────────
+
+export async function getFreeTrialCount(): Promise<number> {
+  const { count } = await supabase
+    .from('members')
+    .select('*', { count: 'exact', head: true })
+    .eq('plan_override', 'Free Trial')
+  return count ?? 0
+}
+
+// ── Admin password reset ──────────────────────────────────────────────────────
+
+export async function createAdminPasswordResetToken(username: string): Promise<string> {
+  const token = crypto.randomUUID() + '-' + crypto.randomUUID()
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  const { error } = await supabase
+    .from('admin_password_resets')
+    .insert({ username, token, expires_at: expiresAt })
+  if (error) throw error
+  return token
+}
+
+export async function getAdminPasswordResetToken(token: string): Promise<{
+  username: string; expiresAt: string; usedAt: string | null
+} | null> {
+  const { data } = await supabase
+    .from('admin_password_resets')
+    .select('username, expires_at, used_at')
+    .eq('token', token)
+    .single()
+  if (!data) return null
+  return { username: data.username, expiresAt: data.expires_at, usedAt: data.used_at }
+}
+
+export async function markAdminTokenUsed(token: string): Promise<void> {
+  await supabase
+    .from('admin_password_resets')
+    .update({ used_at: new Date().toISOString() })
+    .eq('token', token)
+}
+
+export async function setAdminPasswordOverride(username: string, passwordHash: string): Promise<void> {
+  await supabase
+    .from('admin_password_overrides')
+    .upsert({ username, password_hash: passwordHash, updated_at: new Date().toISOString() })
+}
+
+export async function getAdminPasswordOverride(username: string): Promise<string | null> {
+  const { data } = await supabase
+    .from('admin_password_overrides')
+    .select('password_hash')
+    .eq('username', username)
+    .single()
+  return data?.password_hash ?? null
+}
+
 // ── Schema (run once via /api/migrate) ───────────────────────────────────────
 // If the API route doesn't work, paste this into Supabase SQL Editor instead.
 
@@ -753,6 +816,19 @@ export async function runMigrations(): Promise<void> {
       UNIQUE(member_id, session_id)
     )`,
     `CREATE INDEX IF NOT EXISTS waitlist_session_created ON waitlist (session_id, created_at)`,
+    `CREATE TABLE IF NOT EXISTS admin_password_resets (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      username   TEXT NOT NULL,
+      token      TEXT UNIQUE NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at    TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`,
+    `CREATE TABLE IF NOT EXISTS admin_password_overrides (
+      username      TEXT PRIMARY KEY,
+      password_hash TEXT NOT NULL,
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`,
   ]
 
   for (const sql of statements) {

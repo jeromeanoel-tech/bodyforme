@@ -12,7 +12,8 @@ const HEADER = `
 const FOOTER = `
   <div style="padding:28px 48px 36px;border-top:1px solid #d8ccba;background:#fdfaf6">
     <p style="font-size:12px;line-height:1.6;color:#a08568;margin:0 0 14px">
-      <strong style="color:#2a1506;font-weight:600">BodyForme Pilates</strong> — 132 Ayr Street, Doncaster VIC 3108
+      <strong style="color:#2a1506;font-weight:600">BodyForme Pilates</strong> — 132 Ayr Street, Doncaster VIC 3108<br>
+      (03) 9850 2221 · <a href="mailto:info@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">info@bodyforme.com.au</a>
     </p>
     <table cellpadding="0" cellspacing="0" border="0"><tr>
       <td style="padding-right:18px"><a href="${BASE}/app/schedule" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7a4a2a;text-decoration:none">Timetable</a></td>
@@ -126,6 +127,21 @@ export async function emailBookingCancelled(opts: {
     cta('Browse the schedule', `${BASE}/app/schedule`) +
     RULE +
     p('Changed your mind? Rebook anytime — your spot is yours when you\'re ready.', true)
+  ))
+}
+
+export async function emailAdminPasswordReset(opts: {
+  username: string; name: string; resetUrl: string
+}) {
+  const { username, name, resetUrl } = opts
+  await sendEmail('info@bodyforme.com.au', `Admin password reset — ${username}`, wrap(
+    eyebrow('Admin access') +
+    heading('Password reset<br><em style="font-style:italic">requested</em>') +
+    p(`Hi ${name},`) +
+    p(`A password reset was requested for the admin account <strong>${username}</strong>. Click below to set a new password — the link is valid for 1 hour.`) +
+    cta('Reset password', resetUrl) +
+    RULE +
+    p('If you didn\'t request this, you can safely ignore this email — your password won\'t change.', true)
   ))
 }
 

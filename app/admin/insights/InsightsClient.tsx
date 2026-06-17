@@ -8,9 +8,10 @@ type ContactSlim  = { id: string; createdDate: string }
 type SessionSlim  = { id: string; start: string; bookedCount: number; capacity: number; name: string }
 
 type Props = {
-  contacts:    ContactSlim[]
-  memberships: WixMembership[]
-  sessions:    SessionSlim[]
+  contacts:       ContactSlim[]
+  memberships:    WixMembership[]
+  sessions:       SessionSlim[]
+  freeTrialCount: number
 }
 
 type Range = '30d' | '90d' | 'all'
@@ -62,7 +63,7 @@ function pct(num: number, den: number) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function InsightsClient({ contacts, memberships, sessions }: Props) {
+export default function InsightsClient({ contacts, memberships, sessions, freeTrialCount }: Props) {
   const [range, setRange] = useState<Range>(loadInitialRange)
   const fillWarning = loadFillWarning()
 
@@ -204,6 +205,42 @@ export default function InsightsClient({ contacts, memberships, sessions }: Prop
                 ))}
               </div>
               {/* Funnel bar */}
+              <div className="px-5 pb-4 pt-1">
+                <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-black rounded-full" style={{ width: `${rate}%` }} />
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* ── Free trial conversion ── */}
+        {(() => {
+          const memberedIds = new Set(memberships.map(m => m.contactId))
+          const converted   = contacts.filter(c => memberedIds.has(c.id)).length
+          const rate        = pct(converted, freeTrialCount + converted)
+          return (
+            <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-[13px] font-semibold text-neutral-900">Free trial → paid conversion</h3>
+                  <p className="text-[11.5px] text-neutral-400 mt-0.5">Members who signed up for a free trial and then purchased a plan</p>
+                </div>
+                <span className="text-[22px] font-semibold text-neutral-900">{rate}%</span>
+              </div>
+              <div className="grid grid-cols-3 divide-x divide-neutral-100">
+                {[
+                  { label: 'Currently on free trial', value: freeTrialCount,  sub: 'yet to purchase' },
+                  { label: 'Converted to paid',        value: converted,       sub: 'have a membership' },
+                  { label: 'Conversion rate',          value: `${rate}%`,      sub: 'trial → paid' },
+                ].map(s => (
+                  <div key={s.label} className="px-5 py-4">
+                    <p className="text-[22px] font-semibold text-neutral-900 leading-none">{s.value}</p>
+                    <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mt-1.5">{s.label}</p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">{s.sub}</p>
+                  </div>
+                ))}
+              </div>
               <div className="px-5 pb-4 pt-1">
                 <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
                   <div className="h-full bg-black rounded-full" style={{ width: `${rate}%` }} />

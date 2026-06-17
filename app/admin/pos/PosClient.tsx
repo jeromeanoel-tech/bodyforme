@@ -49,8 +49,7 @@ export default function PosClient() {
   const [terminalStatus, setTerminalStatus] = useState<TerminalStatus>('idle')
   const [terminalError, setTerminalError]   = useState<string | null>(null)
   const [readerName, setReaderName]         = useState<string | null>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const terminalRef = useRef<any>(null)
+  const terminalRef = useRef<any>(null) // Stripe Terminal SDK type is complex; using any is intentional
 
   const searchRef   = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)

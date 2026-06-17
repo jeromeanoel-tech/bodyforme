@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   }
 
   const RESEND_KEY    = process.env.RESEND_API_KEY
-  const STUDIO_EMAIL  = process.env.STUDIO_EMAIL ?? 'hello@bodyforme.com.au'
+  const STUDIO_EMAIL  = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
   const fullAddress   = [address, suburb, state, postcode].filter(Boolean).join(', ')
 
   if (!RESEND_KEY) {

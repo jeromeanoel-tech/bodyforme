@@ -16,6 +16,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Your membership is not active. Please contact the studio.' }, { status: 403 })
   }
 
+  // Block members with no active plan
+  if (!member.planOverride) {
+    return NextResponse.json({ error: 'You don\'t have an active membership. Please contact the studio to get started.' }, { status: 403 })
+  }
+
   // Block if prepaid plan has expired
   if (member.membershipEndDate) {
     const today   = new Date(); today.setHours(0, 0, 0, 0)
@@ -32,13 +37,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'You have no classes remaining. Please purchase a new pack to continue booking.' }, { status: 403 })
   }
 
-  // Verify session exists and hasn't been cancelled
+  // Verify session exists, not cancelled, and not full
   const sess = await getSessionById(sessionId)
   if (!sess) {
     return NextResponse.json({ error: 'Class not found.' }, { status: 404 })
   }
   if (sess.status === 'CANCELLED') {
     return NextResponse.json({ error: 'This class has been cancelled.' }, { status: 409 })
+  }
+  if (sess.bookedCount >= sess.capacity) {
+    return NextResponse.json({ error: 'This class is now full. Join the waitlist to be notified if a spot opens.' }, { status: 409 })
   }
 
   try {

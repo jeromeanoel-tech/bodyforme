@@ -13,16 +13,19 @@ type Props = {
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
+// Use local date string to avoid UTC midnight shifting the date in Australian timezones
+function localDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function weekRange(offset: number) {
   const now = new Date()
   const mon = new Date(now)
   mon.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7)
-  mon.setHours(0, 0, 0, 0)
+  mon.setHours(12, 0, 0, 0)
   const sun = new Date(mon)
   sun.setDate(mon.getDate() + 6)
-  sun.setHours(23, 59, 59, 0)
-  const pad = (d: Date) => d.toISOString().slice(0, 10)
-  return { from: `${pad(mon)}T00:00:00`, to: `${pad(sun)}T23:59:59`, monday: mon }
+  return { from: `${localDate(mon)}T00:00:00`, to: `${localDate(sun)}T23:59:59`, monday: mon }
 }
 
 function fmt12(iso: string) {
@@ -101,7 +104,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
   const days = DAYS.map((_, i) => {
     const date    = new Date(monday)
     date.setDate(monday.getDate() + i)
-    const dateStr = date.toISOString().slice(0, 10)
+    const dateStr = localDate(date)
     const daySessions = sessions
       .filter(s => s.start.startsWith(dateStr))
       .filter(s => settings.showCancelledClasses || (s.status !== 'CANCELLED' && !cancelledIds.has(s.id)))

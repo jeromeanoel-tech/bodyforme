@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { signAdminSession, ADMIN_COOKIE, ADMIN_MAX_AGE } from '@/lib/adminSession'
+import { getAdminPasswordOverride } from '@/lib/db'
 
 type StaffRecord = { username: string; passwordHash: string; role: 'admin' | 'staff'; name: string }
 
@@ -21,8 +22,13 @@ export async function POST(req: NextRequest) {
 
   const staff = getStaff()
   const user  = staff.find(s => s.username === username.toLowerCase().trim())
+  if (!user) return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
 
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+  // Check for a password override (set via forgot-password flow) before falling back to env var hash
+  const overrideHash = await getAdminPasswordOverride(user.username).catch(() => null)
+  const hashToCheck  = overrideHash ?? user.passwordHash
+
+  if (!(await bcrypt.compare(password, hashToCheck))) {
     return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 })
   }
 

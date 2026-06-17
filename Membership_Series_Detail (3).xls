@@ -1,0 +1,284 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+                                    <table width="100%" cellpadding="2" cellspacing="0" class="mainText" style="margin: 0 auto;">
+                                        
+						<tr class="mainText" id="Tr1" >
+							<td colspan="9" align="left" class="mainText">
+							<b><span style="color:#5C5C60;">Weekly Direct Debit&nbsp;Members</span></b>&nbsp;
+							
+							<br />
+							</td>
+						</tr>
+			            <tr> <td colspan="9"><table width="100%" cellpadding="2" cellspacing="0" style="margin: 0 auto;" class="sortable" id='sortable_table11'>
+			            <tr style="background-color:#5C5C60;" id="Tr2" >
+				            <td width="8%" class="whiteHeader"><b>ID</b></td>
+				            <td width="12%" class="whiteHeader"><b>Name</b></td>
+				            <td width="13%" class="whiteHeader"><b>Membership&nbsp;Type</b></td>
+				            <td width="8%" class="whiteHeader"><b>Status</b></td>
+				            <td width="12%" class="whiteHeader">
+								<b>
+								
+									Member&nbsp;From</b>
+							</td>
+							
+								<td width="10%" nowrap class="whiteHeader">
+									
+									<b>Member&nbsp;To</b>
+								</td>
+							
+				            <td width="9%" class="whiteHeader"> <b>Last&nbsp;Arrival </b></td>
+				            <td width="9%" class="whiteHeader"> <b>YTD&nbsp;Arrival </b></td>
+				            
+			            </tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773323</td>
+                                <td width="10%"nowrap>Dirchalidis,&nbsp;Felysia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">23/11/2017</td>
+								
+									<td width="10%">
+										8/04/2018
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773323</td>
+                                <td width="10%"nowrap>Dirchalidis,&nbsp;Felysia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">8/04/2018</td>
+								
+									<td width="10%">
+										1/07/2018
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773323</td>
+                                <td width="10%"nowrap>Dirchalidis,&nbsp;Felysia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">1/07/2018</td>
+								
+									<td width="10%">
+										23/09/2018
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773323</td>
+                                <td width="10%"nowrap>Dirchalidis,&nbsp;Felysia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">23/09/2018</td>
+								
+									<td width="10%">
+										15/02/2019
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773323</td>
+                                <td width="10%"nowrap>Dirchalidis,&nbsp;Felysia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">15/02/2019</td>
+								
+									<td width="10%">
+										10/05/2019
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773323</td>
+                                <td width="10%"nowrap>Dirchalidis,&nbsp;Felysia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">10/05/2019</td>
+								
+									<td width="10%">
+										2/08/2019
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773323</td>
+                                <td width="10%"nowrap>Dirchalidis,&nbsp;Felysia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">2/08/2019</td>
+								
+									<td width="10%">
+										25/10/2019
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774896</td>
+                                <td width="10%"nowrap>Goh,&nbsp;Ling</td>
+								<td nowrap width="15%">Direct debit membership unlimited classes </td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">10/04/2025</td>
+								
+									<td width="10%">
+										16/07/2025
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774896</td>
+                                <td width="10%"nowrap>Goh,&nbsp;Ling</td>
+								<td nowrap width="15%">Direct debit membership unlimited classes </td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">30/12/2025</td>
+								
+									<td width="10%">
+										14/05/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774896</td>
+                                <td width="10%"nowrap>Goh,&nbsp;Ling</td>
+								<td nowrap width="15%">Direct debit membership unlimited classes </td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">16/07/2025</td>
+								
+									<td width="10%">
+										17/02/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773799</td>
+                                <td width="10%"nowrap>Tripos,&nbsp;Georgia</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">11/09/2018</td>
+								
+									<td width="10%">
+										11/09/2019
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774078</td>
+                                <td width="10%"nowrap>Truong,&nbsp;Thi</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">25/01/2019</td>
+								
+									<td width="10%">
+										19/04/2019
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774078</td>
+                                <td width="10%"nowrap>Truong,&nbsp;Thi</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Expired</td>
+								<td width="12%">19/04/2019</td>
+								
+									<td width="10%">
+										12/07/2019
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr height="1">
+                                <td colspan="11" style="background-color: #666666; height: 1px; line-height: 1px; font-size: 1px;"></td>
+                            </tr>
+                            <tr class="mainText" id="Tr4">
+                                <td colspan="11" class="mainText right">
+                                    <b><span style="color: #5C5C60;">Total&nbsp;Members</span></b>&nbsp;
+                            4
+
+                                    <br />
+                                </td>
+
+                            </tr>
+
+                            
+                        </table>
+                    </td>
+                </tr>
+
+
+
+
+                <tr height="1">
+                    <td colspan="11" style="background-color: #666666; height: 1px; line-height: 1px; font-size: 1px;"></td>
+                </tr>
+
+                
+            </table>
+        </td>
+    </tr>
+</table>
+</td>
+    </tr>
+    
+        </table>
+    </td>
+    </tr>
+        </table>
+        

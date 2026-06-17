@@ -1,28 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Stripe from 'stripe'
 import { signupPlans } from '@/lib/content'
 import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership } from '@/lib/db'
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
-
-// Verify Stripe webhook signature without the Stripe SDK
-async function verifyStripeSignature(payload: string, signature: string, secret: string): Promise<boolean> {
-  const parts    = Object.fromEntries(signature.split(',').map(p => p.split('=')))
-  const timestamp = parts['t']
-  const sigHex   = parts['v1']
-  if (!timestamp || !sigHex) return false
-
-  const signedPayload = `${timestamp}.${payload}`
-  const key = await crypto.subtle.importKey(
-    'raw',
-    new TextEncoder().encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  )
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedPayload))
-  const computed = Buffer.from(sig).toString('hex')
-  return computed === sigHex
-}
 
 async function sendEmail(to: string, template: string, vars: Record<string, string>) {
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
@@ -40,21 +22,16 @@ export async function POST(req: NextRequest) {
   const payload   = await req.text()
   const signature = req.headers.get('stripe-signature') ?? ''
 
-  if (STRIPE_WEBHOOK_SECRET) {
-    const valid = await verifyStripeSignature(payload, signature, STRIPE_WEBHOOK_SECRET)
-    if (!valid) return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-  }
-
-  let event: { type: string; data: { object: Record<string, unknown> } }
+  let event: Stripe.Event
   try {
-    event = JSON.parse(payload)
+    event = stripe.webhooks.constructEvent(payload, signature, STRIPE_WEBHOOK_SECRET)
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  const obj = event.data.object
+  const obj = event.data.object as Record<string, unknown>
 
-  const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'hello@bodyforme.com.au'
+  const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
   const BASE_URL     = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
 
   switch (event.type) {

@@ -39,7 +39,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [newDuration, setNewDuration] = useState(60)
-  const [newCapacity, setNewCapacity] = useState(10)
+  const [newCapacity, setNewCapacity] = useState(25)
   const [savingClass, setSavingClass] = useState(false)
   const [classError, setClassError] = useState('')
 
@@ -53,7 +53,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
   const [sessionStartTime, setSessionStartTime] = useState('')
   const [sessionEndTime, setSessionEndTime] = useState('')
   const [sessionInstructor, setSessionInstructor] = useState('')
-  const [sessionCapacity, setSessionCapacity] = useState(10)
+  const [sessionCapacity, setSessionCapacity] = useState(25)
   const [savingSession, setSavingSession] = useState(false)
   const [sessionError, setSessionError] = useState('')
 
@@ -204,7 +204,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
         </div>
         <button
           onClick={() => setShowNewClass(true)}
-          className="h-8 px-4 text-[12.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors"
+          className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors"
         >
           + New class
         </button>
@@ -227,8 +227,8 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
             >
               <div className="w-5 h-5 rounded bg-black shrink-0 mr-3" />
               <div className="flex-1 min-w-0">
-                <p className="text-[13.5px] font-medium text-neutral-900">{service.name}</p>
-                <p className="text-[12px] text-neutral-400 mt-0.5">
+                <p className="text-[16px] font-medium text-neutral-900">{service.name}</p>
+                <p className="text-[14.5px] text-neutral-400 mt-0.5">
                   {service.duration} min · {service.capacity} capacity
                   {service.description ? ` · ${service.description}` : ''}
                 </p>
@@ -300,9 +300,9 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                         className="grid items-center px-8 py-3 border-b border-neutral-100 last:border-0"
                         style={{ gridTemplateColumns: '1fr 160px 80px 80px 40px' }}
                       >
-                        <span className="text-[12.5px] text-neutral-700">{fmt(session.start_time)}</span>
-                        <span className="text-[12.5px] text-neutral-600">{session.instructor_name || '—'}</span>
-                        <span className="text-[12.5px] text-neutral-600">{session.capacity}</span>
+                        <span className="text-[14.5px] text-neutral-700">{fmt(session.start_time)}</span>
+                        <span className="text-[14.5px] text-neutral-600">{session.instructor_name || '—'}</span>
+                        <span className="text-[14.5px] text-neutral-600">{session.capacity}</span>
                         <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full w-fit ${
                           session.status === 'CANCELLED'
                             ? 'bg-red-50 text-red-600'
@@ -385,14 +385,14 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
             <div className="flex justify-end gap-2 mt-5">
               <button
                 onClick={() => { setShowNewClass(false); setClassError('') }}
-                className="h-8 px-4 text-[12.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400"
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400"
               >
                 Cancel
               </button>
               <button
                 onClick={createClass}
                 disabled={savingClass}
-                className="h-8 px-4 text-[12.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40"
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40"
               >
                 {savingClass ? 'Creating…' : 'Create class'}
               </button>
@@ -464,14 +464,14 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
             <div className="flex justify-end gap-2 mt-5">
               <button
                 onClick={() => setAddSessionFor(null)}
-                className="h-8 px-4 text-[12.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400"
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400"
               >
                 Done
               </button>
               <button
                 onClick={createSession}
                 disabled={savingSession}
-                className="h-8 px-4 text-[12.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40"
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40"
               >
                 {savingSession ? 'Adding…' : 'Add session'}
               </button>

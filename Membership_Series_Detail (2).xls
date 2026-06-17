@@ -1,0 +1,440 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+                                    <table width="100%" cellpadding="2" cellspacing="0" class="mainText" style="margin: 0 auto;">
+                                        
+						<tr class="mainText" id="Tr1" >
+							<td colspan="9" align="left" class="mainText">
+							<b><span style="color:#5C5C60;">Monthly Studio Membership&nbsp;Members</span></b>&nbsp;
+							
+							<br />
+							</td>
+						</tr>
+			            <tr> <td colspan="9"><table width="100%" cellpadding="2" cellspacing="0" style="margin: 0 auto;" class="sortable" id='sortable_table12'>
+			            <tr style="background-color:#5C5C60;" id="Tr2" >
+				            <td width="8%" class="whiteHeader"><b>ID</b></td>
+				            <td width="12%" class="whiteHeader"><b>Name</b></td>
+				            <td width="13%" class="whiteHeader"><b>Membership&nbsp;Type</b></td>
+				            <td width="8%" class="whiteHeader"><b>Status</b></td>
+				            <td width="12%" class="whiteHeader">
+								<b>
+								
+									Member&nbsp;From</b>
+							</td>
+							
+								<td width="10%" nowrap class="whiteHeader">
+									
+									<b>Member&nbsp;To</b>
+								</td>
+							
+				            <td width="9%" class="whiteHeader"> <b>Last&nbsp;Arrival </b></td>
+				            <td width="9%" class="whiteHeader"> <b>YTD&nbsp;Arrival </b></td>
+				            
+			            </tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258775985</td>
+                                <td width="10%"nowrap>Monardo,&nbsp;Stephanie</td>
+								<td nowrap width="15%">Monthly Studio Membership</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">2/06/2026</td>
+								
+									<td width="10%">
+										2/10/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258775979</td>
+                                <td width="10%"nowrap>Sovolos,&nbsp;Jim</td>
+								<td nowrap width="15%">Monthly Studio Membership</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">17/05/2026</td>
+								
+									<td width="10%">
+										17/11/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774899</td>
+                                <td width="10%"nowrap>Upton,&nbsp;Robert</td>
+								<td nowrap width="15%">Monthly Studio Membership</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">29/05/2026</td>
+								
+									<td width="10%">
+										29/04/2027
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100012036</td>
+                                <td width="10%"nowrap>Yau,&nbsp;Karen</td>
+								<td nowrap width="15%">Monthly Studio Membership</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">4/06/2026</td>
+								
+									<td width="10%">
+										4/11/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+                   </table></td></tr>
+						<tr height="1">
+				              <td colspan="11"   style="background-color:#666666;height:1px;line-height:1px;font-size:1px;"></td>
+			            </tr>
+						<tr class="mainText" id="Tr3" >
+							<td colspan="11" class="mainText right">
+								<b>
+								<span style="color:#5C5C60;">
+									Total&nbsp;
+									Members
+								</span></b>&nbsp;
+								4<br />
+							</td>
+						</tr>
+			          
+						<tr class="mainText" id="Tr1" >
+							<td colspan="9" align="left" class="mainText">
+							<b><span style="color:#5C5C60;">Weekly Direct Debit&nbsp;Members</span></b>&nbsp;
+							
+							<br />
+							</td>
+						</tr>
+			            <tr> <td colspan="9"><table width="100%" cellpadding="2" cellspacing="0" style="margin: 0 auto;" class="sortable" id='sortable_table11'>
+			            <tr style="background-color:#5C5C60;" id="Tr2" >
+				            <td width="8%" class="whiteHeader"><b>ID</b></td>
+				            <td width="12%" class="whiteHeader"><b>Name</b></td>
+				            <td width="13%" class="whiteHeader"><b>Membership&nbsp;Type</b></td>
+				            <td width="8%" class="whiteHeader"><b>Status</b></td>
+				            <td width="12%" class="whiteHeader">
+								<b>
+								
+									Member&nbsp;From</b>
+							</td>
+							
+								<td width="10%" nowrap class="whiteHeader">
+									
+									<b>Member&nbsp;To</b>
+								</td>
+							
+				            <td width="9%" class="whiteHeader"> <b>Last&nbsp;Arrival </b></td>
+				            <td width="9%" class="whiteHeader"> <b>YTD&nbsp;Arrival </b></td>
+				            
+			            </tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258775999</td>
+                                <td width="10%"nowrap>CHAN,&nbsp;YA PING</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">6/06/2026</td>
+								
+									<td width="10%">
+										27/06/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258775132</td>
+                                <td width="10%"nowrap>Chiang,&nbsp;Linda</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">18/03/2025</td>
+								
+									<td width="10%">
+										29/06/2028
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100013504</td>
+                                <td width="10%"nowrap>Dick,&nbsp;Sarah</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">8/06/2026</td>
+								
+									<td width="10%">
+										3/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100013115</td>
+                                <td width="10%"nowrap>Edwards,&nbsp;Michelle</td>
+								<td nowrap width="15%">Direct debit membership unlimited classes </td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">8/06/2026</td>
+								
+									<td width="10%">
+										10/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100011288</td>
+                                <td width="10%"nowrap>Frey,&nbsp;Georgia</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">9/06/2026</td>
+								
+									<td width="10%">
+										23/06/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258775994</td>
+                                <td width="10%"nowrap>Kakarla,&nbsp;Raj</td>
+								<td nowrap width="15%">Direct debit membership unlimited classes </td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">8/06/2026</td>
+								
+									<td width="10%">
+										3/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100012876</td>
+                                <td width="10%"nowrap>Liang,&nbsp;Foria</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">8/06/2026</td>
+								
+									<td width="10%">
+										31/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258775957</td>
+                                <td width="10%"nowrap>Loo,&nbsp;Siew Mei</td>
+								<td nowrap width="15%">Direct debit membership unlimited classes </td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">8/06/2026</td>
+								
+									<td width="10%">
+										27/07/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258775974</td>
+                                <td width="10%"nowrap>Macfarlane,&nbsp;David</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">10/06/2026</td>
+								
+									<td width="10%">
+										7/07/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100013041</td>
+                                <td width="10%"nowrap>Malhotra,&nbsp;Akshra</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">29/05/2026</td>
+								
+									<td width="10%">
+										31/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100014010</td>
+                                <td width="10%"nowrap>Maso,&nbsp;Emma Dal</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">9/06/2026</td>
+								
+									<td width="10%">
+										25/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">2587612086</td>
+                                <td width="10%"nowrap>Miltiadou,&nbsp;Dubravka</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">10/06/2026</td>
+								
+									<td width="10%">
+										17/06/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100013916</td>
+                                <td width="10%"nowrap>Opasinis,&nbsp;Nancy</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">5/06/2026</td>
+								
+									<td width="10%">
+										31/07/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258771763</td>
+                                <td width="10%"nowrap>Thompson,&nbsp;Vanessa</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">9/06/2026</td>
+								
+									<td width="10%">
+										1/09/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258771297</td>
+                                <td width="10%"nowrap>Tsang,&nbsp;Jessica</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">8/06/2026</td>
+								
+									<td width="10%">
+										24/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">100013481</td>
+                                <td width="10%"nowrap>Yem,&nbsp;Meng Yee</td>
+								<td nowrap width="15%">Direct debit membership 3 classes per week</td>
+								<td nowrap width="8%">Active</td>
+								<td width="12%">9/06/2026</td>
+								
+									<td width="10%">
+										25/08/2026
+									</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr height="1">
+                                <td colspan="11" style="background-color: #666666; height: 1px; line-height: 1px; font-size: 1px;"></td>
+                            </tr>
+                            <tr class="mainText" id="Tr4">
+                                <td colspan="11" class="mainText right">
+                                    <b><span style="color: #5C5C60;">Total&nbsp;Members</span></b>&nbsp;
+                            16
+
+                                    <br />
+                                </td>
+
+                            </tr>
+
+                            
+                        </table>
+                    </td>
+                </tr>
+
+
+
+
+                <tr height="1">
+                    <td colspan="11" style="background-color: #666666; height: 1px; line-height: 1px; font-size: 1px;"></td>
+                </tr>
+
+                
+            </table>
+        </td>
+    </tr>
+</table>
+</td>
+    </tr>
+    
+        </table>
+    </td>
+    </tr>
+        </table>
+        

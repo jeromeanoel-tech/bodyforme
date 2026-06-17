@@ -3,7 +3,7 @@ import { getMemberByContactId } from '@/lib/db'
 import { getSession } from '@/lib/session'
 
 const RESEND_API_KEY  = process.env.RESEND_API_KEY
-const STUDIO_EMAIL    = process.env.STUDIO_EMAIL ?? 'hello@bodyforme.com.au'
+const STUDIO_EMAIL    = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
 const FROM            = 'BodyForme App <hello@bodyforme.com.au>'
 
 async function send(to: string, subject: string, html: string) {

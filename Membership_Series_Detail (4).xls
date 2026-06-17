@@ -1,0 +1,108 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+                                    <table width="100%" cellpadding="2" cellspacing="0" class="mainText" style="margin: 0 auto;">
+                                        
+						<tr class="mainText" id="Tr1" >
+							<td colspan="9" align="left" class="mainText">
+							<b><span style="color:#5C5C60;">Weekly Direct Debit&nbsp;Members</span></b>&nbsp;
+							
+							<br />
+							</td>
+						</tr>
+			            <tr> <td colspan="9"><table width="100%" cellpadding="2" cellspacing="0" style="margin: 0 auto;" class="sortable" id='sortable_table11'>
+			            <tr style="background-color:#5C5C60;" id="Tr2" >
+				            <td width="8%" class="whiteHeader"><b>ID</b></td>
+				            <td width="12%" class="whiteHeader"><b>Name</b></td>
+				            <td width="13%" class="whiteHeader"><b>Membership&nbsp;Type</b></td>
+				            <td width="8%" class="whiteHeader"><b>Status</b></td>
+				            <td width="12%" class="whiteHeader">
+								<b>
+								
+									Declined Date
+								</b>
+							</td>
+							
+				            <td width="9%" class="whiteHeader"> <b>Last&nbsp;Arrival </b></td>
+				            <td width="9%" class="whiteHeader"> <b>YTD&nbsp;Arrival </b></td>
+				            
+			            </tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774841</td>
+                                <td width="10%"nowrap>Khoo,&nbsp;Veronica</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Declined</td>
+								<td width="12%">31/03/2020</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258773623</td>
+                                <td width="10%"nowrap>Lam,&nbsp;Madeleine</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Declined</td>
+								<td width="12%">6/07/2019</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+							<tr bgcolor=#FAFAFA class="mainText">
+								<td width="10%">258774047</td>
+                                <td width="10%"nowrap>Vichaikammart,&nbsp;Khemmika</td>
+								<td nowrap width="15%">Weekly Direct Debit</td>
+								<td nowrap width="8%">Declined</td>
+								<td width="12%">23/08/2018</td>
+								
+								<td nowrap width="9%" class="center-ch">-</td>
+								<td nowrap width="9%" class="center-ch">0</td>
+								
+							</tr>
+			            
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr height="1">
+                                <td colspan="11" style="background-color: #666666; height: 1px; line-height: 1px; font-size: 1px;"></td>
+                            </tr>
+                            <tr class="mainText" id="Tr4">
+                                <td colspan="11" class="mainText right">
+                                    <b><span style="color: #5C5C60;">Total&nbsp;Members</span></b>&nbsp;
+                            3
+
+                                    <br />
+                                </td>
+
+                            </tr>
+
+                            
+                        </table>
+                    </td>
+                </tr>
+
+
+
+
+                <tr height="1">
+                    <td colspan="11" style="background-color: #666666; height: 1px; line-height: 1px; font-size: 1px;"></td>
+                </tr>
+
+                
+            </table>
+        </td>
+    </tr>
+</table>
+</td>
+    </tr>
+    
+        </table>
+    </td>
+    </tr>
+        </table>
+        

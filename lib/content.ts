@@ -479,8 +479,8 @@ export const contact = {
     desc:       'We\'d love to show you around, answer your questions, or simply have you in for a class. Drop in any time during opening hours.',
     details: [
       { label: 'Address', value: '132 Ayr Street\nDoncaster VIC 3108' },
-      { label: 'Phone',   value: '(03) 9000 0000' },           // ← update
-      { label: 'Email',   value: 'hello@bodyforme.com.au' },
+      { label: 'Phone',   value: '(03) 9850 2221' },
+      { label: 'Email',   value: 'info@bodyforme.com.au' },
       { label: 'Parking', value: 'Free street parking on Ayr Street and surrounding streets.' },
     ],
   },

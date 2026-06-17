@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   }
 
   const RESEND_KEY = process.env.RESEND_API_KEY
-  const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'hello@bodyforme.com.au'
+  const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
 
   if (!RESEND_KEY) {
     return NextResponse.json({ error: 'Email not configured' }, { status: 500 })

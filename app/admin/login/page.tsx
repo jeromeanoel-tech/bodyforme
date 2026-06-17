@@ -86,7 +86,13 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-neutral-600 text-xs mt-6">
+        <p className="text-center mt-4">
+          <a href="/admin/forgot-password" className="text-neutral-500 hover:text-neutral-300 text-xs transition-colors">
+            Forgot password?
+          </a>
+        </p>
+
+        <p className="text-center text-neutral-600 text-xs mt-4">
           BodyForme · Doncaster
         </p>
       </div>

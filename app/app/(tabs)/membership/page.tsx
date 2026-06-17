@@ -432,22 +432,6 @@ export default function MembershipPage() {
           </p>
         </div>
 
-        {/* Referral */}
-        <div style={{
-          margin: '20px 20px 0', padding: '16px 18px',
-          border: `1px dashed ${T.rule}`,
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <div style={{
-            width: 32, height: 32, border: `1px solid ${T.brown}`, color: T.brown,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 16, fontStyle: 'italic',
-          }}>%</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 500, color: T.esp }}>Refer a friend, get 2 weeks free</div>
-            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.muted, marginTop: 2 }}>Ask at the studio for your referral code</div>
-          </div>
-        </div>
 
       </div>
     </div>

@@ -19,16 +19,20 @@ const T = {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+function localDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function getWeekDays(weekOffset = 0): { date: Date; iso: string }[] {
   const today = new Date()
   const day   = today.getDay()
   const mon   = new Date(today)
   mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1) + weekOffset * 7)
-  mon.setHours(0, 0, 0, 0)
+  mon.setHours(12, 0, 0, 0)
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(mon)
     d.setDate(mon.getDate() + i)
-    return { date: d, iso: d.toISOString().slice(0, 10) }
+    return { date: d, iso: localDate(d) }
   })
 }
 
@@ -86,7 +90,7 @@ function SkeletonCard() {
 }
 
 export default function SchedulePage() {
-  const todayISO  = new Date().toISOString().slice(0, 10)
+  const todayISO  = localDate(new Date())
 
   const [weekOffset, setWeekOffset] = useState(0)
   const weekDays  = getWeekDays(weekOffset)
