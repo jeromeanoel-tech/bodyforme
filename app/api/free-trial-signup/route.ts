@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       html: `
         <p>Hi ${firstName},</p>
         <p>Thanks for registering for your free trial class at BodyForme Pilates.</p>
-        <p>We'll be in touch shortly to confirm your first session. In the meantime, if you have any questions you can reply to this email or call us on (03) 9000 0000.</p>
+        <p>We'll be in touch shortly to confirm your first session. In the meantime, if you have any questions you can reply to this email or call us on (03) 9850 2221.</p>
         <p>We look forward to welcoming you to the studio.</p>
         <br />
         <p><strong>BodyForme Pilates</strong><br />

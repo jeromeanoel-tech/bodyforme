@@ -283,7 +283,7 @@ export default function HomePage() {
               {[
                 { label: 'Address', value: '132 Ayr Street, Doncaster VIC 3108' },
                 { label: 'Hours',   value: 'Mon–Fri 6am–8pm · Sat 7am–2pm · Sun 8am–12pm' },
-                { label: 'Email',   value: 'hello@bodyforme.com.au' },
+                { label: 'Email',   value: 'info@bodyforme.com.au' },
               ].map(({ label, value }) => (
                 <div key={label} style={{ padding: '16px 0', borderTop: '1px solid var(--rule)', display: 'grid', gridTemplateColumns: '80px 1fr', gap: '16px' }}>
                   <span style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', paddingTop: '2px' }}>{label}</span>

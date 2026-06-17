@@ -19,7 +19,7 @@ export default function SetupPaymentSuccessPage() {
           Go to my account
         </a>
         <p className="mt-6 text-[11px] text-[#a08568]">
-          Questions? Email us at <a href="mailto:hello@bodyforme.com.au" className="underline">hello@bodyforme.com.au</a>
+          Questions? Email us at <a href="mailto:info@bodyforme.com.au" className="underline">info@bodyforme.com.au</a> or call (03) 9850 2221
         </p>
       </div>
     </main>

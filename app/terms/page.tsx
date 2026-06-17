@@ -137,7 +137,7 @@ export default function TermsPage() {
           ]} />
 
           <h3 style={{ fontSize: 16, fontWeight: 500, color: 'var(--esp)', margin: '24px 0 8px' }}>Your rights</h3>
-          <P>You may request access to, correction of, or deletion of your personal information at any time by emailing <a href="mailto:hello@bodyforme.com.au" style={{ color: 'var(--brown)', textDecoration: 'underline' }}>hello@bodyforme.com.au</a>. We will respond within 30 days.</P>
+          <P>You may request access to, correction of, or deletion of your personal information at any time by emailing <a href="mailto:info@bodyforme.com.au" style={{ color: 'var(--brown)', textDecoration: 'underline' }}>info@bodyforme.com.au</a>. We will respond within 30 days.</P>
 
           <h3 style={{ fontSize: 16, fontWeight: 500, color: 'var(--esp)', margin: '24px 0 8px' }}>Cookies</h3>
           <P>The website and member app use cookies and local storage to maintain your login session. No third-party advertising cookies are used.</P>
@@ -150,7 +150,7 @@ export default function TermsPage() {
         <Section title="Contact">
           <P>Questions about these terms or your privacy? Get in touch:</P>
           <Ul items={[
-            'Email: hello@bodyforme.com.au',
+            'Email: info@bodyforme.com.au',
             'Address: 132 Ayr Street, Doncaster VIC 3108',
             'Phone: (03) 9850 2221',
           ]} />

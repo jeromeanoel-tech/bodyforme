@@ -236,7 +236,7 @@ export default function InstallPage() {
           {/* Footer */}
           <div style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid #d8ccba', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'end' }}>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, lineHeight: 1.3, color: '#2a1506', maxWidth: 600 }}>
-              Stuck? Email <em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>hello@bodyforme.com.au</em><br />
+              Stuck? Email <em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>info@bodyforme.com.au</em> or call (03) 9850 2221<br />
               or ask at the front desk — we&apos;ll get you sorted in a minute.
             </div>
             <div style={{ textAlign: 'right', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568', lineHeight: 1.8 }}>

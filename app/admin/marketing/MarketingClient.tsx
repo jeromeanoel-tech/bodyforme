@@ -10,7 +10,7 @@ const QUICK_TEMPLATES = [
   {
     label:   'Migration campaign',
     subject: 'BodyForme has a new booking system — action needed',
-    body:    "We're excited to let you know that BodyForme has moved to a brand new booking and membership system. It's faster, easier to use, and works as an app right on your phone.\n\nTo keep enjoying classes without interruption, you'll need to create your new account — it only takes a couple of minutes:\n\nhttps://bodyforme.com.au/sign-up?plan=existing\n\nOnce you're registered, our team will get your membership sorted. If you have any questions, just reply to this email or give us a call.\n\nWe look forward to seeing you on the mat.\n\nBodyForme Pilates\n132 Ayr Street, Doncaster VIC 3108",
+    body:    "We're excited to let you know that BodyForme has moved to a brand new booking and membership system. It's faster, easier to use, and works as an app right on your phone.\n\nTo keep enjoying classes without interruption, you'll need to create your new account — it only takes a couple of minutes:\n\nhttps://bodyforme.com.au/sign-up?plan=existing\n\nOnce you're registered, our team will get your membership sorted. If you have any questions, just reply to this email or call us on (03) 9850 2221.\n\nWe look forward to seeing you on the mat.\n\nBodyForme Pilates\n132 Ayr Street, Doncaster VIC 3108\n(03) 9850 2221 · info@bodyforme.com.au",
     segment: 'active-members' as Segment,
   },
   {
