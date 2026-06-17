@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.6.0",
+    "@stripe/stripe-js": "^9.8.0",
     "@stripe/terminal-js": "^0.26.0",
     "@supabase/supabase-js": "^2.106.1",
     "@types/bcryptjs": "^2.4.6",
