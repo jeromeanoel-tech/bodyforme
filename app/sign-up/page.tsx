@@ -52,7 +52,8 @@ function SignUpForm() {
   const [loading,  setLoading] = useState(false)
   const [apiError, setApiError] = useState('')
 
-  const isFree = plan.mode === 'free'
+  const isFree     = plan.mode === 'free'
+  const isExisting = planKey === 'existing'
 
   function set(field: keyof FormData, value: string | boolean) {
     setForm(f => ({ ...f, [field]: value }))
@@ -92,15 +93,20 @@ function SignUpForm() {
       if (!regRes.ok) throw new Error(regData.error ?? 'Account creation failed')
 
       if (isFree) {
-        // Free trial — just register, no payment
-        const res = await fetch('/api/free-trial-signup', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ ...form, plan: planKey }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? 'Registration failed')
-        window.location.href = '/sign-up/success?type=trial'
+        if (isExisting) {
+          // Existing member creating account — no trial booking needed
+          window.location.href = '/sign-up/success?type=existing'
+        } else {
+          // Free trial — just register, no payment
+          const res = await fetch('/api/free-trial-signup', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ ...form, plan: planKey }),
+          })
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error ?? 'Registration failed')
+          window.location.href = '/sign-up/success?type=trial'
+        }
       } else {
         // Paid plan — create Stripe Checkout session
         const res = await fetch('/api/checkout', {
@@ -191,15 +197,17 @@ function SignUpForm() {
           {/* ── Right: Registration form ── */}
           <div>
             <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(32px,3.5vw,48px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '8px' }}>
-              {isFree ? 'Register for your' : 'Complete your'}
+              {isExisting ? 'Create your' : isFree ? 'Register for your' : 'Complete your'}
               {' '}<em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>
-                {isFree ? 'free trial' : 'sign-up'}
+                {isExisting ? 'account' : isFree ? 'free trial' : 'sign-up'}
               </em>
             </h1>
             <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.7, marginBottom: '40px' }}>
-              {isFree
-                ? 'Fill in your details below. No payment required — we\'ll be in touch to confirm your first class.'
-                : `Fill in your details below, then you'll be taken to our secure payment page to complete your ${plan.name.toLowerCase()}.`
+              {isExisting
+                ? 'Your membership is already with us — create your online account below to access the member app and book classes.'
+                : isFree
+                  ? 'Fill in your details below. No payment required — we\'ll be in touch to confirm your first class.'
+                  : `Fill in your details below, then you'll be taken to our secure payment page to complete your ${plan.name.toLowerCase()}.`
               }
             </p>
 
@@ -393,10 +401,10 @@ function SignUpForm() {
                 {loading ? (
                   <>
                     <span style={{ width: '14px', height: '14px', border: '2px solid rgba(244,237,225,.3)', borderTopColor: 'var(--linen)', borderRadius: '50%', animation: 'spin .8s linear infinite', display: 'inline-block' }} />
-                    {isFree ? 'Registering…' : 'Preparing checkout…'}
+                    {isExisting ? 'Creating account…' : isFree ? 'Registering…' : 'Preparing checkout…'}
                   </>
                 ) : (
-                  isFree ? 'Complete registration' : `Continue to payment — ${plan.period}`
+                  isExisting ? 'Create account' : isFree ? 'Complete registration' : `Continue to payment — ${plan.period}`
                 )}
               </button>
 

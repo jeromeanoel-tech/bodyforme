@@ -10,8 +10,8 @@ const QUICK_TEMPLATES = [
   {
     label:   'Migration campaign',
     subject: 'BodyForme has a new booking system — action needed',
-    body:    "We're excited to let you know that BodyForme has moved to a brand new booking and membership system. It's faster, easier to use, and works as an app right on your phone.\n\nTo keep enjoying classes without interruption, you'll need to create your new account — it only takes a couple of minutes:\n\nhttps://bodyforme.com.au/sign-up\n\nOnce you're registered, our team will get your membership sorted. If you have any questions, just reply to this email or give us a call.\n\nWe look forward to seeing you on the mat.\n\nBodyForme Pilates\n132 Ayr Street, Doncaster VIC 3108",
-    segment: 'all' as Segment,
+    body:    "We're excited to let you know that BodyForme has moved to a brand new booking and membership system. It's faster, easier to use, and works as an app right on your phone.\n\nTo keep enjoying classes without interruption, you'll need to create your new account — it only takes a couple of minutes:\n\nhttps://bodyforme.com.au/sign-up?plan=existing\n\nOnce you're registered, our team will get your membership sorted. If you have any questions, just reply to this email or give us a call.\n\nWe look forward to seeing you on the mat.\n\nBodyForme Pilates\n132 Ayr Street, Doncaster VIC 3108",
+    segment: 'active-members' as Segment,
   },
   {
     label:   'Membership renewal reminder',
@@ -181,6 +181,14 @@ export default function MarketingClient() {
                         </label>
                       ))}
                     </div>
+                    {segment === 'all' && (
+                      <div className="px-5 py-3 bg-amber-50 border-t border-amber-100 flex items-start gap-2">
+                        <span className="text-amber-500 text-sm shrink-0">⚠</span>
+                        <p className="text-[11.5px] text-amber-700 leading-relaxed">
+                          <strong>All contacts</strong> includes every record in the database — imported contacts, free trial sign-ups, and test accounts — not just active members. Use <strong>Active members</strong> for most campaigns.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Quick templates */}

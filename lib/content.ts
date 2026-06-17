@@ -659,4 +659,13 @@ export const signupPlans: Record<string, {
     mode:        'free',
     features:    ['Any class type', 'New members only', 'No credit card required'],
   },
+  'existing': {
+    name:        'BodyForme Member',
+    tag:         'Existing member',
+    amount:      0,
+    period:      'No payment needed',
+    description: 'Already a BodyForme member? Create your online account to access the member app, book classes and manage your membership.',
+    mode:        'free',
+    features:    ['Access the member app', 'Book classes online', 'View your membership', 'Manage your bookings'],
+  },
 }
