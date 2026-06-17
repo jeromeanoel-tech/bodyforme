@@ -141,7 +141,7 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
 
   return (
     <div className="h-full overflow-y-auto bg-neutral-50">
-      <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between">
@@ -165,7 +165,7 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
         </div>
 
         {/* ── Top-line stats ── */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <TopStat label="New clients"        value={String(recentContacts.length)}    sub={`vs ${contacts.length} total`} />
           <TopStat label="Active memberships" value={String(activeMemberships.length)} sub={`${memberships.length} total orders`} />
           <TopStat label="New memberships"    value={String(recentMemberships.length)} sub="in period" />
@@ -190,14 +190,14 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
                 </div>
                 <span className="text-[22px] font-semibold text-neutral-900">{rate}%</span>
               </div>
-              <div className="grid grid-cols-4 divide-x divide-neutral-100">
+              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-neutral-100">
                 {[
                   { label: 'Registered',   value: registered,      sub: 'all time' },
                   { label: 'Converted',    value: converted,       sub: 'have a plan' },
                   { label: 'Unconverted',  value: unconverted,     sub: 'no membership' },
                   { label: 'New in period',value: recentReg,       sub: `${recentConverted} converted` },
                 ].map(s => (
-                  <div key={s.label} className="px-5 py-4">
+                  <div key={s.label} className="px-4 md:px-5 py-4">
                     <p className="text-[22px] font-semibold text-neutral-900 leading-none">{s.value}</p>
                     <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mt-1.5">{s.label}</p>
                     <p className="text-[11px] text-neutral-400 mt-0.5">{s.sub}</p>
@@ -228,13 +228,13 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
                 </div>
                 <span className="text-[22px] font-semibold text-neutral-900">{rate}%</span>
               </div>
-              <div className="grid grid-cols-3 divide-x divide-neutral-100">
+              <div className="grid grid-cols-1 md:grid-cols-3 md:divide-x md:divide-neutral-100">
                 {[
                   { label: 'Currently on free trial', value: freeTrialCount,  sub: 'yet to purchase' },
                   { label: 'Converted to paid',        value: converted,       sub: 'have a membership' },
                   { label: 'Conversion rate',          value: `${rate}%`,      sub: 'trial → paid' },
                 ].map(s => (
-                  <div key={s.label} className="px-5 py-4">
+                  <div key={s.label} className="px-4 md:px-5 py-4 border-b border-neutral-100 last:border-0 md:border-b-0">
                     <p className="text-[22px] font-semibold text-neutral-900 leading-none">{s.value}</p>
                     <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mt-1.5">{s.label}</p>
                     <p className="text-[11px] text-neutral-400 mt-0.5">{s.sub}</p>
@@ -251,7 +251,7 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
         })()}
 
         {/* ── Charts row ── */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
 
           {/* New clients per month */}
           <ChartCard title="New clients" subtitle="by month (last 6 months)">
@@ -269,7 +269,7 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
         </div>
 
         {/* ── Plan breakdown + status ── */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
 
           {/* Active memberships by plan */}
           <ChartCard title="Active memberships by plan" subtitle={`${activeMemberships.length} active`}>
@@ -327,44 +327,48 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
 
         {/* ── Class performance table ── */}
         <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-neutral-100">
+          <div className="px-4 md:px-5 py-4 border-b border-neutral-100">
             <h3 className="text-[13px] font-semibold text-neutral-900">Class performance</h3>
             <p className="text-[11.5px] text-neutral-400 mt-0.5">{RANGE_LABEL[range]} · top 8 by session count</p>
           </div>
 
-          {/* Table header */}
-          <div className="grid px-5 py-2 bg-neutral-50 border-b border-neutral-100"
-            style={{ gridTemplateColumns: '2fr 80px 80px 80px 120px' }}>
-            {['Class', 'Sessions', 'Booked', 'Capacity', 'Avg fill rate'].map(h => (
-              <span key={h} className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">{h}</span>
-            ))}
-          </div>
-
-          {classPerfMap.length === 0 ? (
-            <p className="px-5 py-8 text-sm text-neutral-400">No session data for this period.</p>
-          ) : (
-            classPerfMap.map((row, i) => (
-              <div
-                key={row.name}
-                className={`grid items-center px-5 py-3 ${i < classPerfMap.length - 1 ? 'border-b border-neutral-100' : ''}`}
-                style={{ gridTemplateColumns: '2fr 80px 80px 80px 120px' }}
-              >
-                <span className="text-[13px] font-medium text-neutral-800">{row.name}</span>
-                <span className="text-[12.5px] text-neutral-600">{row.sessions}</span>
-                <span className="text-[12.5px] text-neutral-600">{row.booked}</span>
-                <span className="text-[12.5px] text-neutral-600">{Math.round(row.capacity / row.sessions)}</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${row.fill >= 80 ? 'bg-black' : row.fill >= fillWarning ? 'bg-neutral-500' : 'bg-neutral-300'}`}
-                      style={{ width: `${row.fill}%` }}
-                    />
-                  </div>
-                  <span className="text-[12px] font-semibold text-neutral-700 w-8 text-right">{row.fill}%</span>
-                </div>
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: 480 }}>
+              {/* Table header */}
+              <div className="grid px-5 py-2 bg-neutral-50 border-b border-neutral-100"
+                style={{ gridTemplateColumns: '2fr 80px 80px 80px 120px' }}>
+                {['Class', 'Sessions', 'Booked', 'Capacity', 'Avg fill rate'].map(h => (
+                  <span key={h} className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">{h}</span>
+                ))}
               </div>
-            ))
-          )}
+
+              {classPerfMap.length === 0 ? (
+                <p className="px-5 py-8 text-sm text-neutral-400">No session data for this period.</p>
+              ) : (
+                classPerfMap.map((row, i) => (
+                  <div
+                    key={row.name}
+                    className={`grid items-center px-5 py-3 ${i < classPerfMap.length - 1 ? 'border-b border-neutral-100' : ''}`}
+                    style={{ gridTemplateColumns: '2fr 80px 80px 80px 120px' }}
+                  >
+                    <span className="text-[13px] font-medium text-neutral-800">{row.name}</span>
+                    <span className="text-[12.5px] text-neutral-600">{row.sessions}</span>
+                    <span className="text-[12.5px] text-neutral-600">{row.booked}</span>
+                    <span className="text-[12.5px] text-neutral-600">{Math.round(row.capacity / row.sessions)}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${row.fill >= 80 ? 'bg-black' : row.fill >= fillWarning ? 'bg-neutral-500' : 'bg-neutral-300'}`}
+                          style={{ width: `${row.fill}%` }}
+                        />
+                      </div>
+                      <span className="text-[12px] font-semibold text-neutral-700 w-8 text-right">{row.fill}%</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
 
       </div>

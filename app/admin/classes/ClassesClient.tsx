@@ -309,9 +309,40 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                     No sessions scheduled. Click &quot;+ Session&quot; to add one.
                   </div>
                 ) : (
-                  /* Horizontal scroll on mobile so the fixed-width grid doesn't wrap */
-                  <div className="overflow-x-auto">
-                    <div style={{ minWidth: 480 }}>
+                  <>
+                    {/* ── Mobile: session cards ── */}
+                    <div className="md:hidden divide-y divide-neutral-100">
+                      {(sessions[service.id] ?? []).map(session => (
+                        <div key={session.id} className="px-4 py-3 flex items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-medium text-neutral-800 leading-snug">{fmt(session.start_time)}</p>
+                            <p className="text-[11.5px] text-neutral-500 mt-1">
+                              {session.instructor_name || 'No instructor'} · Cap {session.capacity}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0 mt-0.5">
+                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                              session.status === 'CANCELLED'
+                                ? 'bg-red-50 text-red-600'
+                                : 'bg-neutral-100 text-neutral-600'
+                            }`}>
+                              {session.status === 'CANCELLED' ? 'Cancelled' : 'Active'}
+                            </span>
+                            <button
+                              onClick={() => deleteSession(service.id, session.id)}
+                              disabled={deletingSessionId === session.id}
+                              className="w-7 h-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors disabled:opacity-40 touch-manipulation"
+                              title="Delete session"
+                            >
+                              {deletingSessionId === session.id ? '…' : '✕'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* ── Desktop: original grid table ── */}
+                    <div className="hidden md:block">
                       <div className="grid px-8 py-2 border-b border-neutral-200" style={{ gridTemplateColumns: '1fr 160px 80px 80px 40px' }}>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Date & Time</span>
                         <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Instructor</span>
@@ -346,7 +377,7 @@ export default function ClassesClient({ initialServices }: { initialServices: Se
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             )}
