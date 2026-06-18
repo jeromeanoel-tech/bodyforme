@@ -1182,6 +1182,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
       nextBillingDate: member.nextBillingDate || '',
       creditBalance:   member.creditBalance   ?? 0,
       adminNotes:      member.adminNotes      || '',
+      paidTerm:        member.paidTerm        || '',
     })
   }, [member])
 
@@ -1276,8 +1277,6 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
 
         {!memberLoading && member && (
           <>
-  const currentIsPack = isPack(member.planOverride)
-  const size          = currentIsPack ? packSize(member.planOverride) : null
             {/* Summary strip */}
             <div className="bg-neutral-50 border border-neutral-200 rounded-lg px-4 py-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -1329,6 +1328,12 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                     className="h-6 px-2 rounded border border-neutral-200 text-[11px] text-neutral-600 hover:border-neutral-400 disabled:opacity-30">+10</button>
                 </div>
               </div>
+              {member.paidTerm && (
+                <div className="flex items-center justify-between text-[12px]">
+                  <span className="text-neutral-500">Paid term</span>
+                  <span className="text-neutral-700">{member.paidTerm}</span>
+                </div>
+              )}
               {member.nextBillingDate && (
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-neutral-500">Next billing</span>
@@ -1445,6 +1450,18 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                     <option value="">— Select plan —</option>
                     {PLAN_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                   </select>
+                </div>
+                <div>
+                  <label className="text-[11px] text-neutral-500 font-medium block mb-1">Paid term</label>
+                  <select value={form.paidTerm || ''} onChange={e => setForm(f => ({ ...f, paidTerm: e.target.value }))}
+                    className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black">
+                    <option value="">— Not set —</option>
+                    <option value="1 month">1 month</option>
+                    <option value="3 months">3 months</option>
+                    <option value="6 months">6 months</option>
+                    <option value="12 months">12 months</option>
+                  </select>
+                  <p className="text-[10.5px] text-neutral-400 mt-1">How long the member has paid for upfront.</p>
                 </div>
                 <div>
                   <label className="text-[11px] text-neutral-500 font-medium block mb-1">Next billing / renewal date</label>

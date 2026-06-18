@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberByContactId, updateMemberCredential, upsertMembership } from '@/lib/db'
+import { getMemberByContactId, updateMemberCredential, upsertMembership, CREDIT_PLANS } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SECRET_KEY!,
+)
+
+// Plans that are class packs or casual drop-ins — not recurring memberships.
+// These should NOT create a membership row; credits tracked via creditBalance instead.
+function isPackPlan(plan: string): boolean {
+  if (!plan) return false
+  return CREDIT_PLANS.some(p => plan.toLowerCase().includes(p.toLowerCase()))
+}
 
 export async function PATCH(req: NextRequest) {
   const session = await getAdminSession()
@@ -14,6 +27,7 @@ export async function PATCH(req: NextRequest) {
     nextBillingDate?: string
     creditBalance?:   number
     adminNotes?:      string
+    paidTerm?:        string
   }
 
   const { contactId, ...patch } = body
@@ -24,17 +38,30 @@ export async function PATCH(req: NextRequest) {
 
   await updateMemberCredential(member._id, patch)
 
-  // Keep memberships table in sync when plan or status is changed manually
+  // Sync memberships table when plan or status changes
   if (patch.planOverride !== undefined || patch.status !== undefined) {
     const newPlan   = patch.planOverride ?? member.planOverride
     const newStatus = patch.status       ?? member.status
-    await upsertMembership({
-      memberId:  member._id,
-      planName:  newPlan,
-      status:    newStatus === 'active' ? 'ACTIVE' : newStatus === 'inactive' ? 'CANCELED' : 'ACTIVE',
-      startDate: '',
-      endDate:   '',
-    })
+    const today     = new Date().toISOString().slice(0, 10)
+
+    if (isPackPlan(newPlan)) {
+      // Pack / casual — mark any existing membership as ended, don't create a new row.
+      // The pack is tracked entirely via planOverride + creditBalance.
+      await supabase
+        .from('memberships')
+        .update({ status: 'ENDED', end_date: today })
+        .eq('member_id', member._id)
+        .neq('status', 'ENDED')
+    } else if (newPlan) {
+      // Recurring membership — upsert a membership row
+      await upsertMembership({
+        memberId:  member._id,
+        planName:  newPlan,
+        status:    newStatus === 'active' ? 'ACTIVE' : newStatus === 'inactive' ? 'CANCELED' : 'ACTIVE',
+        startDate: today,
+        endDate:   '',
+      })
+    }
   }
 
   return NextResponse.json({ ok: true })

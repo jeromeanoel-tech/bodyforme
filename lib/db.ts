@@ -88,6 +88,7 @@ export type MemberCredential = {
   membershipEndDate?: string  // ISO date; for prepaid plans (3/6/12 month)
   creditBalance:      number
   adminNotes:         string
+  paidTerm:           string  // '1 month' | '3 months' | '6 months' | '12 months' | ''
 }
 
 export type MemberBooking = {
@@ -124,6 +125,7 @@ function rowToCredential(r: any): MemberCredential {
     membershipEndDate: r.end_date           ?? '',
     creditBalance:     Number(r.credit_balance ?? 0),
     adminNotes:        r.admin_notes        ?? '',
+    paidTerm:          r.paid_term          ?? '',
   }
 }
 
@@ -354,6 +356,7 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
   if (patch.membershipEndDate !== undefined) update.end_date           = patch.membershipEndDate
   if (patch.creditBalance     !== undefined) update.credit_balance     = patch.creditBalance
   if (patch.adminNotes        !== undefined) update.admin_notes        = patch.adminNotes
+  if (patch.paidTerm          !== undefined) update.paid_term          = patch.paidTerm
 
   if (!Object.keys(update).length) return
   await supabase.from('members').update(update).eq('id', id)
@@ -846,6 +849,7 @@ export async function runMigrations(): Promise<void> {
       password_hash TEXT NOT NULL,
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`,
+    `ALTER TABLE members ADD COLUMN IF NOT EXISTS paid_term TEXT NOT NULL DEFAULT ''`,
   ]
 
   for (const sql of statements) {
