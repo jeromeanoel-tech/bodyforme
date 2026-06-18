@@ -1,7 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import type { WixMembership, WixContact, WixSession, WixService } from '@/lib/db'
+
+function useMelbourneClock() {
+  const [now, setNow] = useState<Date | null>(null)
+  useEffect(() => {
+    setNow(new Date())
+    const t = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(t)
+  }, [])
+  return now
+}
 
 type Props = {
   sessions:    WixSession[]
@@ -56,18 +67,29 @@ export default function DashboardClient({ sessions, memberships, contacts, servi
   const totalBookedToday = todaySessions.reduce((n, s) => n + s.bookedCount, 0)
   const totalCapToday    = todaySessions.reduce((n, s) => n + s.capacity, 0)
 
-  const now      = new Date()
-  const greeting = now.getHours() < 12 ? 'Good morning' : now.getHours() < 17 ? 'Good afternoon' : 'Good evening'
-  const dateLabel = now.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })
+  const clock     = useMelbourneClock()
+  const hour      = clock ? parseInt(clock.toLocaleTimeString('en-AU', { timeZone: 'Australia/Melbourne', hour: 'numeric', hour12: false })) : 12
+  const greeting  = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const dateLabel = clock
+    ? clock.toLocaleDateString('en-AU', { timeZone: 'Australia/Melbourne', weekday: 'long', day: 'numeric', month: 'long' })
+    : ''
+  const timeLabel = clock
+    ? clock.toLocaleTimeString('en-AU', { timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit', hour12: true })
+    : ''
 
   return (
     <div className="h-full overflow-y-auto bg-neutral-50">
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-5 md:py-6 space-y-4 md:space-y-6">
 
         {/* Header */}
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">{greeting}</h1>
-          <p className="text-sm text-neutral-400 mt-0.5">{dateLabel}</p>
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-neutral-900">{greeting}</h1>
+            <p className="text-sm text-neutral-400 mt-0.5">{dateLabel}</p>
+          </div>
+          {timeLabel && (
+            <p className="text-2xl font-semibold text-neutral-900 tabular-nums">{timeLabel}</p>
+          )}
         </div>
 
         {/* Top stats — 1 column on mobile, 2 on sm, 4 on md+ */}

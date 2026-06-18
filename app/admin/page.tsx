@@ -1,7 +1,7 @@
 import { getContacts, getMemberships, getSessions, getServices } from '@/lib/db'
 import DashboardClient from './DashboardClient'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboardPage() {
   // Use Melbourne local date — Vercel runs in UTC, so new Date() would give yesterday before 10am AEST
