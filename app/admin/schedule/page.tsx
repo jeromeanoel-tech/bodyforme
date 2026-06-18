@@ -4,7 +4,10 @@ import ScheduleClient from './ScheduleClient'
 export const revalidate = 30
 
 function weekRange(offsetWeeks = 0) {
-  const now = new Date()
+  // Use Melbourne date so the week is correct even before 10am (when UTC is still yesterday)
+  const melbStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
+  const [y, m, d] = melbStr.split('-').map(Number)
+  const now = new Date(y, m - 1, d) // midnight UTC, but date is Melbourne's current date
   const mon = new Date(now)
   mon.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offsetWeeks * 7)
   mon.setHours(0, 0, 0, 0)

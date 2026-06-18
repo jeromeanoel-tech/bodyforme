@@ -8,7 +8,9 @@ export const revalidate = 300
 export default async function AdminStaffPage() {
   const session = await getAdminSession()
   if (session?.role !== 'admin') redirect('/admin')
-  const now  = new Date()
+  const melbStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
+  const [y, mo, dy] = melbStr.split('-').map(Number)
+  const now  = new Date(y, mo - 1, dy)
   const mon  = new Date(now)
   mon.setDate(now.getDate() - ((now.getDay() + 6) % 7))
   const sun  = new Date(mon); sun.setDate(mon.getDate() + 6)

@@ -9,10 +9,12 @@ export default async function AdminInsightsPage() {
   const session = await getAdminSession()
   if (session?.role !== 'admin') redirect('/admin')
   // Fetch 90 days of sessions for trend data
-  const now = new Date()
+  const todayMelb = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
+  const [y, mo, dy] = todayMelb.split('-').map(Number)
+  const now = new Date(y, mo - 1, dy)
   const from = new Date(now); from.setDate(now.getDate() - 90)
   const fromStr = from.toISOString().slice(0, 10) + 'T00:00:00'
-  const toStr   = now.toISOString().slice(0, 10)  + 'T23:59:59'
+  const toStr   = todayMelb + 'T23:59:59'
 
   const [contacts, memberships, sessions, services, freeTrialCount] = await Promise.all([
     getContacts(),

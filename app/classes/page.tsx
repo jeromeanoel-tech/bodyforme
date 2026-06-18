@@ -55,7 +55,9 @@ function getWeekDays(date: Date): Date[] {
 }
 
 export default async function ClassesPage() {
-  const today = new Date()
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
+  const [y, mo, dy] = todayStr.split('-').map(Number)
+  const today = new Date(y, mo - 1, dy)
   const days  = getWeekDays(today)
   const pad   = (d: Date) => d.toISOString().slice(0, 10)
   const from  = `${pad(days[0])}T00:00:00`
@@ -70,7 +72,6 @@ export default async function ClassesPage() {
   }
 
   const scheduleToName = Object.fromEntries(services.map(s => [s.scheduleId, s.name]))
-  const todayStr       = today.toISOString().slice(0, 10)
 
   return (
     <div className="site-body">
