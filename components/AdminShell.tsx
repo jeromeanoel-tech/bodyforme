@@ -1,7 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import AdminSidebar from './AdminSidebar'
 import LiveClock from './LiveClock'
 
@@ -15,6 +16,17 @@ export default function AdminShell({
   role:     string
 }) {
   const [open, setOpen] = useState(false)
+  const router = useRouter()
+
+  // Poll every 5 minutes — redirect to login if admin session has expired
+  useEffect(() => {
+    const check = async () => {
+      const res = await fetch('/api/admin/memberships?limit=1', { method: 'GET' }).catch(() => null)
+      if (res && res.status === 403) router.replace('/admin/login')
+    }
+    const id = setInterval(check, 5 * 60 * 1000)
+    return () => clearInterval(id)
+  }, [router])
   const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   return (

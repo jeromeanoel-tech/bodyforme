@@ -146,6 +146,11 @@ export async function POST(req: NextRequest) {
 
       }
 
+      // Send welcome email to the new member
+      if (email && firstName) {
+        await sendEmail(email, 'welcome', { firstName }).catch(() => {})
+      }
+
       await sendEmail(STUDIO_EMAIL, 'custom', {
         subject: `New sign-up — ${fullName || email} (${planName})`,
         html: `
