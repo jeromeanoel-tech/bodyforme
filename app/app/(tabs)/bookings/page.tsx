@@ -9,7 +9,7 @@ function CalendarStrip({ memberId }: { memberId: string }) {
   const base    = typeof window !== 'undefined' ? window.location.origin : 'https://bodyforme.com.au'
   const feedUrl = `${base}/api/app/calendar/${memberId}`
   const webcal  = feedUrl.replace(/^https?/, 'webcal')
-  const googleUrl = `https://calendar.google.com/calendar/r/settings/addbyurl?url=${encodeURIComponent(feedUrl)}`
+  const googleUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}`
 
   return (
     <div style={{ margin: '12px 20px 0', flexShrink: 0 }}>
