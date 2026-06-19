@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
-import type { WixContactBooking } from '@/lib/db'
+import type { ContactBooking } from '@/lib/db'
 
 function CalendarStrip({ memberId }: { memberId: string }) {
   const [open,   setOpen]   = useState(false)
@@ -152,7 +152,7 @@ function fmtTime(iso: string) {
 
 export default function BookingsPage() {
   const session = useSession()
-  const [bookings, setBookings] = useState<WixContactBooking[]>([])
+  const [bookings, setBookings] = useState<ContactBooking[]>([])
   const [loading,  setLoading]  = useState(true)
   const [tab,      setTab]      = useState<'upcoming' | 'past'>('upcoming')
 

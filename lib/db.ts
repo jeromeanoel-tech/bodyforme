@@ -5,21 +5,21 @@ const supabase = createClient(
   process.env.SUPABASE_SECRET_KEY!,
 )
 
-// ── Types (same shapes as before — drop-in compatible) ────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-export type WixStaff = {
+export type Staff = {
   id: string
   name: string
   resourceId: string
 }
 
-export type WixService = {
+export type Service = {
   id: string
   name: string
   scheduleId: string
 }
 
-export type WixSession = {
+export type Session = {
   id: string
   title: string
   start: string
@@ -31,7 +31,7 @@ export type WixSession = {
   status: string
 }
 
-export type WixMembership = {
+export type Membership = {
   id: string
   contactId: string
   planId: string
@@ -41,18 +41,20 @@ export type WixMembership = {
   endDate: string
 }
 
-export type WixContact = {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  createdDate: string
-  planOverride?: string
-  memberStatus?: string
+export type Contact = {
+  id:              string
+  firstName:       string
+  lastName:        string
+  email:           string
+  phone:           string
+  createdDate:     string
+  planOverride?:   string
+  memberStatus?:   string
+  endDate?:        string
+  nextBillingDate?: string
 }
 
-export type WixContactBooking = {
+export type ContactBooking = {
   id: string
   status: string
   title: string
@@ -60,7 +62,7 @@ export type WixContactBooking = {
   attended: boolean
 }
 
-export type WixBooking = {
+export type Booking = {
   id: string
   status: string
   attended: boolean
@@ -81,7 +83,6 @@ export type MemberCredential = {
   phone:              string
   suburb:             string
   status:             string
-  wixContactId:       string
   stripeCustomerId:   string
   planOverride:       string
   nextBillingDate:    string
@@ -118,7 +119,6 @@ function rowToCredential(r: any): MemberCredential {
     phone:             r.phone             ?? '',
     suburb:            r.suburb            ?? '',
     status:            r.status,
-    wixContactId:      '',
     stripeCustomerId:  r.stripe_customer_id ?? '',
     planOverride:      r.plan_override      ?? '',
     nextBillingDate:   r.next_billing_date  ?? '',
@@ -131,7 +131,7 @@ function rowToCredential(r: any): MemberCredential {
 
 // ── Staff ─────────────────────────────────────────────────────────────────────
 
-export async function getStaff(): Promise<WixStaff[]> {
+export async function getStaff(): Promise<Staff[]> {
   const { data } = await supabase
     .from('sessions')
     .select('instructor_name')
@@ -144,7 +144,7 @@ export async function getStaff(): Promise<WixStaff[]> {
 
 // ── Services ──────────────────────────────────────────────────────────────────
 
-export async function getServices(): Promise<WixService[]> {
+export async function getServices(): Promise<Service[]> {
   const { data } = await supabase.from('services').select('id, name').order('name')
   return (data ?? []).map((r: { id: string; name: string }) => ({
     id:         r.id,
@@ -170,7 +170,7 @@ export async function createService(data: {
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
-export async function getSessions(from: string, to: string): Promise<WixSession[]> {
+export async function getSessions(from: string, to: string): Promise<Session[]> {
   const { data: sessions } = await supabase
     .from('sessions')
     .select('*')
@@ -247,7 +247,7 @@ export async function upsertMembership(data: {
     )
 }
 
-export async function getMemberships(): Promise<WixMembership[]> {
+export async function getMemberships(): Promise<Membership[]> {
   const { data } = await supabase
     .from('memberships')
     .select('*')
@@ -267,7 +267,7 @@ export async function getMemberships(): Promise<WixMembership[]> {
 
 // ── Contacts ──────────────────────────────────────────────────────────────────
 
-export async function getContacts(): Promise<WixContact[]> {
+export async function getContacts(): Promise<Contact[]> {
   const { data } = await supabase
     .from('members')
     .select('id, first_name, last_name, email, phone, created_at, plan_override, status, end_date, next_billing_date')
@@ -366,7 +366,7 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
 
 // ── Bookings for a member ─────────────────────────────────────────────────────
 
-export async function getContactBookings(memberId: string): Promise<WixContactBooking[]> {
+export async function getContactBookings(memberId: string): Promise<ContactBooking[]> {
   const { data } = await supabase
     .from('bookings')
     .select('id, status, attended, sessions(title, start_time)')
@@ -416,7 +416,7 @@ function weeklyAllowance(plan: string): number | null {
   return undefined as unknown as number  // not a weekly plan
 }
 
-export async function getSessionBookings(sessionId: string): Promise<WixBooking[]> {
+export async function getSessionBookings(sessionId: string): Promise<Booking[]> {
   const { data } = await supabase
     .from('bookings')
     .select('id, status, attended, members(id, first_name, last_name, email, plan_override, credit_balance, status)')

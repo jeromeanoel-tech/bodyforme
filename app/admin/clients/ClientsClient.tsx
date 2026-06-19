@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import type { WixContact, WixContactBooking, WixMembership, MemberCredential } from '@/lib/db'
+import type { Contact, ContactBooking, Membership, MemberCredential } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 import { StripeSetupForm } from '@/components/StripeSetupForm'
 
 type Props = {
-  contacts: WixContact[]
-  membershipsByContact: Record<string, WixMembership[]>
+  contacts: Contact[]
+  membershipsByContact: Record<string, Membership[]>
   planNames: string[]
 }
 
@@ -83,7 +83,7 @@ function filterLabel(key: FilterKey): string {
   return PRESET_FILTERS.find(f => f.key === key)?.label ?? key
 }
 
-function activeMembership(mems: WixMembership[]): WixMembership | undefined {
+function activeMembership(mems: Membership[]): Membership | undefined {
   return (
     mems.find(m => m.status === 'ACTIVE') ??
     mems.find(m => m.status === 'PAUSED') ??
@@ -106,7 +106,7 @@ const STATUS_STYLE: Record<string, string> = {
   WAITLISTED: 'bg-neutral-100 text-neutral-500',
 }
 
-function applyFilter(key: FilterKey, contact: WixContact, mems: WixMembership[], newMemberDays: number): boolean {
+function applyFilter(key: FilterKey, contact: Contact, mems: Membership[], newMemberDays: number): boolean {
   if (key === 'new')       return isNew(contact.createdDate, newMemberDays)
   if (key === 'has-email') return !!contact.email
   if (key === 'no-email')  return !contact.email
@@ -133,7 +133,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
   const [filters, setFilters]   = useState<FilterKey[]>([])
   const [colsOpen, setColsOpen]     = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [selected, setSelected]     = useState<WixContact | null>(null)
+  const [selected, setSelected]     = useState<Contact | null>(null)
   const [menuId, setMenuId]         = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const { settings } = useSettings()
@@ -744,7 +744,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
 function RowMenu({
   contact, open, onOpen, onClose, onViewProfile,
 }: {
-  contact: WixContact
+  contact: Contact
   open: boolean
   onOpen: (id: string) => void
   onClose: () => void
@@ -822,12 +822,12 @@ type DrawerTab = 'overview' | 'bookings' | 'memberships' | 'notes'
 function ClientDrawer({
   contact, memberships, newMemberDays, onClose,
 }: {
-  contact: WixContact
-  memberships: WixMembership[]
+  contact: Contact
+  memberships: Membership[]
   newMemberDays: number
   onClose: () => void
 }) {
-  const [bookings, setBookings]   = useState<WixContactBooking[] | null>(null)
+  const [bookings, setBookings]   = useState<ContactBooking[] | null>(null)
   const [loading, setLoading]     = useState(false)
   const [tab, setTab]             = useState<DrawerTab>('overview')
   const [note, setNote]           = useState('')
@@ -1127,7 +1127,7 @@ function ClientDrawer({
 // ── Overview tab (with editable email/phone) ─────────────────────────────────
 
 function OverviewTab({ contact, loading, totalBookings, attended, cancelled, lastVisit }: {
-  contact:       WixContact
+  contact:       Contact
   loading:       boolean
   totalBookings: number
   attended:      number
@@ -1265,8 +1265,8 @@ function packSize(plan: string): number | null {
 }
 
 function MembershipsTab({ contact, memberships, member, memberLoading, onMemberUpdate }: {
-  contact:        WixContact
-  memberships:    WixMembership[]
+  contact:        Contact
+  memberships:    Membership[]
   member:         MemberCredential | null | undefined
   memberLoading:  boolean
   onMemberUpdate: (m: MemberCredential) => void

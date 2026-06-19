@@ -6,7 +6,7 @@ import ScheduleAccordion from '@/components/ScheduleAccordion'
 import Link from 'next/link'
 import { classTypes, classesPage, studio } from '@/lib/content'
 type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
-import { getSessions, getServices, type WixSession, type WixService } from '@/lib/db'
+import { getSessions, getServices, type Session, type Service } from '@/lib/db'
 
 export const metadata = {
   title: 'Classes & Schedule | BodyForme Pilates',
@@ -63,8 +63,8 @@ export default async function ClassesPage() {
   const from  = `${pad(days[0])}T00:00:00`
   const to    = `${pad(days[6])}T23:59:59`
 
-  let sessions: WixSession[] = []
-  let services: WixService[] = []
+  let sessions: Session[] = []
+  let services: Service[] = []
   try {
     ;[sessions, services] = await Promise.all([getSessions(from, to), getServices()])
   } catch {

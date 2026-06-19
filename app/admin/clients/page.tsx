@@ -1,5 +1,5 @@
 import { getContacts, getMemberships } from '@/lib/db'
-import type { WixMembership } from '@/lib/db'
+import type { Membership } from '@/lib/db'
 import ClientsClient from './ClientsClient'
 
 export const revalidate = 60
@@ -11,7 +11,7 @@ export default async function AdminClientsPage() {
   ])
 
   // Group memberships by contactId
-  const membershipsByContact: Record<string, WixMembership[]> = {}
+  const membershipsByContact: Record<string, Membership[]> = {}
   for (const m of memberships) {
     if (!m.contactId) continue
     if (!membershipsByContact[m.contactId]) membershipsByContact[m.contactId] = []

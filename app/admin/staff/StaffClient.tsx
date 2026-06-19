@@ -1,11 +1,11 @@
 'use client'
 
-import type { WixStaff, WixService, WixSession } from '@/lib/db'
+import type { Staff, Service, Session } from '@/lib/db'
 
 type Props = {
-  staff:    WixStaff[]
-  services: WixService[]
-  sessions: WixSession[]   // this week
+  staff:    Staff[]
+  services: Service[]
+  sessions: Session[]   // this week
 }
 
 function fmt12(iso: string) {

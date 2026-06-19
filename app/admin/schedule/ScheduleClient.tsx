@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { WixSession, WixService, WixStaff, WixBooking } from '@/lib/db'
+import type { Session, Service, Staff, Booking } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
 type Props = {
-  initialSessions:   WixSession[]
-  scheduleToService: Record<string, WixService>
-  resourceToStaff:   Record<string, WixStaff>
+  initialSessions:   Session[]
+  scheduleToService: Record<string, Service>
+  resourceToStaff:   Record<string, Staff>
   initialWeekOffset: number
 }
 
@@ -52,7 +52,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
   const [weekOffset,       setWeekOffset]      = useState(initialWeekOffset)
   const [sessions,         setSessions]        = useState(initialSessions)
   const [loadingSessions,  setLoadingSessions] = useState(false)
-  const [selectedSession,  setSelectedSession] = useState<WixSession | null>(null)
+  const [selectedSession,  setSelectedSession] = useState<Session | null>(null)
   const [autoConfirmCancel, setAutoConfirmCancel] = useState(false)
   const [search,           setSearch]          = useState('')
   const [cancelledIds,     setCancelledIds]    = useState<Set<string>>(new Set())
@@ -431,14 +431,14 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
 function AttendeeDrawer({
   session, serviceName, staffName, onClose, onCancelled, initialConfirmCancel,
 }: {
-  session:              WixSession
+  session:              Session
   serviceName:          string
   staffName?:           string
   onClose:              () => void
   onCancelled:          (id: string) => void
   initialConfirmCancel?: boolean
 }) {
-  const [bookings,      setBookings]      = useState<WixBooking[] | null>(null)
+  const [bookings,      setBookings]      = useState<Booking[] | null>(null)
   const [loading,       setLoading]       = useState(true)
   const [cancelling,    setCancelling]    = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(initialConfirmCancel ?? false)

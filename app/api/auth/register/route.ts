@@ -35,12 +35,12 @@ export async function POST(req: NextRequest) {
     phone:            phone ?? '',
     suburb:           suburb ?? '',
     status:           planOverride ? 'active' : 'pending',
-    wixContactId:     '',
     stripeCustomerId: '',
     planOverride,
     nextBillingDate:  '',
     creditBalance,
     adminNotes:       '',
+    paidTerm:         '',
   })
 
   // Welcome email is sent by the Stripe webhook after checkout.session.completed

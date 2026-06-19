@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import type { WixSession, WixService, WixBooking } from '@/lib/db'
+import type { Session, Service, Booking } from '@/lib/db'
 
 type Props = {
-  sessions: WixSession[]
-  services: WixService[]
+  sessions: Session[]
+  services: Service[]
 }
 
 type AttendeeState = Record<string, 'present' | 'absent' | 'loading'>
@@ -25,10 +25,10 @@ function pct(n: number, d: number) {
 }
 
 export default function CheckInClient({ sessions, services }: Props) {
-  const [selectedSession, setSelectedSession] = useState<WixSession | null>(
+  const [selectedSession, setSelectedSession] = useState<Session | null>(
     sessions.length > 0 ? sessions[0] : null
   )
-  const [bookings, setBookings] = useState<WixBooking[] | null>(null)
+  const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [loading, setLoading]   = useState(false)
   const [attended, setAttended] = useState<AttendeeState>({})
 
@@ -47,7 +47,7 @@ export default function CheckInClient({ sessions, services }: Props) {
   const [walkInError, setWalkInError]     = useState('')
   const walkInDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const selectedSessionRef = useRef<WixSession | null>(null)
+  const selectedSessionRef = useRef<Session | null>(null)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -122,7 +122,7 @@ export default function CheckInClient({ sessions, services }: Props) {
 
   const scheduleToName = Object.fromEntries(services.map(s => [s.scheduleId, s.name]))
 
-  function selectSession(s: WixSession) {
+  function selectSession(s: Session) {
     setSelectedSession(s)
     selectedSessionRef.current = s
     setBookings(null)
@@ -139,7 +139,7 @@ export default function CheckInClient({ sessions, services }: Props) {
     fetch(`/api/admin/session-bookings?eventId=${eventId}`)
       .then(r => r.json())
       .then(d => {
-        const bookings: WixBooking[] = d.bookings ?? []
+        const bookings: Booking[] = d.bookings ?? []
         setBookings(bookings)
         const init: AttendeeState = {}
         bookings.forEach(b => { if (b.attended) init[b.id] = 'present' })

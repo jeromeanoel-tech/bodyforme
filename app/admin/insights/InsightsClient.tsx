@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import type { WixMembership } from '@/lib/db'
+import type { Membership } from '@/lib/db'
 import { DEFAULT_SETTINGS, SETTINGS_KEY } from '@/lib/settings'
 
 type ContactSlim  = { id: string; createdDate: string }
@@ -9,7 +9,7 @@ type SessionSlim  = { id: string; start: string; bookedCount: number; capacity: 
 
 type Props = {
   contacts:       ContactSlim[]
-  memberships:    WixMembership[]
+  memberships:    Membership[]
   sessions:       SessionSlim[]
   freeTrialCount: number
 }

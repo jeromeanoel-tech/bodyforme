@@ -2,10 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { WixMembership } from '@/lib/db'
+import type { Membership } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
-type MembershipRow = WixMembership & {
+type MembershipRow = Membership & {
   clientName: string
   email: string
   phone: string

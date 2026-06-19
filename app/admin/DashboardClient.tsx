@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import type { WixMembership, WixContact, WixSession, WixService } from '@/lib/db'
+import type { Membership, Contact, Session, Service } from '@/lib/db'
 
 function useMelbourneClock() {
   const [now, setNow] = useState<Date | null>(null)
@@ -15,10 +15,10 @@ function useMelbourneClock() {
 }
 
 type Props = {
-  sessions:    WixSession[]
-  memberships: WixMembership[]
-  contacts:    WixContact[]
-  services:    WixService[]
+  sessions:    Session[]
+  memberships: Membership[]
+  contacts:    Contact[]
+  services:    Service[]
 }
 
 function fmt12(iso: string) {

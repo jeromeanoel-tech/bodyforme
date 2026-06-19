@@ -8,11 +8,10 @@ const COOKIE  = 'bf_member'
 const EXPIRY  = '7d'
 
 export type SessionUser = {
-  id:           string   // MemberCredentials item _id
-  email:        string
-  firstName:    string
-  lastName:     string
-  wixContactId: string
+  id:        string
+  email:     string
+  firstName: string
+  lastName:  string
 }
 
 export async function signSession(user: SessionUser): Promise<string> {

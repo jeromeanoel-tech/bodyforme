@@ -43,11 +43,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Incorrect email or password' }, { status: 401 })
     }
     const token = await signSession({
-      id:           member._id,
-      email:        member.email,
-      firstName:    member.firstName,
-      lastName:     member.lastName,
-      wixContactId: '',
+      id:        member._id,
+      email:     member.email,
+      firstName: member.firstName,
+      lastName:  member.lastName,
     })
     if (isForm) {
       const res = NextResponse.redirect(new URL('/app/schedule', req.url))

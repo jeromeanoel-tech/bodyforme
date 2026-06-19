@@ -1,0 +1,53 @@
+BodyForme Admin — Staff Login Details
+======================================
+
+Login page: https://bodyforme.com.au/admin/login
+
+--------------------------------------
+ADMINS
+--------------------------------------
+
+Suzanne Harb
+  Username: suzanne.harb
+  (existing password)
+
+Jerome
+  Username: jerome
+  (existing password)
+
+--------------------------------------
+INSTRUCTORS
+--------------------------------------
+
+Gabe
+  Username: gabe
+  Temp password: BFGabe2026
+
+Sammy
+  Username: sammy
+  Temp password: BFSammy2026
+
+Mish Gubbels
+  Username: mish
+  Temp password: BFMish2026
+
+Jodie
+  Username: jodie
+  Temp password: BFJodie2026
+
+Steph
+  Username: steph
+  Temp password: BFSteph2026
+
+Hilory
+  Username: hilory
+  Temp password: BFHilory2026
+
+--------------------------------------
+NOTES
+--------------------------------------
+
+- Instructors can access: Dashboard, Schedule, Check In, Clients, Memberships
+- Admin-only pages (Classes, POS, Insights, Settings, Staff) are not visible to instructors
+- To change password: log in, then click "Forgot password?" on the login page and follow the email link
+- Passwords are case-sensitive

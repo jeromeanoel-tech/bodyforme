@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { WixSession, MemberBooking } from '@/lib/db'
+import type { Session, MemberBooking } from '@/lib/db'
 
 const T = {
   linen:  '#f4ede1',
@@ -97,7 +97,7 @@ export default function SchedulePage() {
   const defaultIdx = weekOffset === 0 ? (weekDays.findIndex(d => d.iso === todayISO) >= 0 ? weekDays.findIndex(d => d.iso === todayISO) : 0) : 0
 
   const [selIdx,       setSelIdx]       = useState(defaultIdx)
-  const [sessions,     setSessions]     = useState<WixSession[]>([])
+  const [sessions,     setSessions]     = useState<Session[]>([])
   const [staffMap,     setStaffMap]     = useState<Record<string, string>>({})
   const [bookedMap,    setBookedMap]    = useState<BookedMap>({})
   const [waitlistMap,  setWaitlistMap]  = useState<WaitlistMap>({})
