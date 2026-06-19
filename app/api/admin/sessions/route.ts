@@ -25,11 +25,37 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  const { serviceId, serviceName, instructorName, startTime, endTime, capacity } = await req.json()
-  if (!serviceId || !startTime || !endTime) {
-    return NextResponse.json({ error: 'serviceId, startTime and endTime required' }, { status: 400 })
+
+  const body = await req.json()
+  const { sessions: batch, serviceId, serviceName, instructorName, startTime, endTime, capacity } = body
+
+  if (!serviceId) return NextResponse.json({ error: 'serviceId required' }, { status: 400 })
+
+  // Batch insert: array of { startTime, endTime } for recurring sessions
+  if (Array.isArray(batch)) {
+    if (batch.length === 0) return NextResponse.json({ error: 'sessions array is empty' }, { status: 400 })
+    const rows = batch.map((s: { startTime: string; endTime: string }) => ({
+      service_id:      serviceId,
+      title:           serviceName ?? '',
+      instructor_name: instructorName ?? '',
+      start_time:      s.startTime,
+      end_time:        s.endTime,
+      capacity:        capacity ?? 10,
+      status:          'CONFIRMED',
+    }))
+    const { data, error } = await supabase.from('sessions').insert(rows).select('id')
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    revalidatePath('/admin/schedule')
+    revalidatePath('/admin/classes')
+    revalidatePath('/admin/checkin')
+    revalidatePath('/classes')
+    return NextResponse.json({ ids: data.map((r: { id: string }) => r.id), count: data.length })
   }
 
+  // Single session insert
+  if (!startTime || !endTime) {
+    return NextResponse.json({ error: 'startTime and endTime required' }, { status: 400 })
+  }
   const { data, error } = await supabase
     .from('sessions')
     .insert({

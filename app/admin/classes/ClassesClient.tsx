@@ -51,6 +51,8 @@ export default function ClassesClient({ initialServices, instructors }: { initia
   const [sessionEndTime,   setSessionEndTime]   = useState('')
   const [sessionInstructor, setSessionInstructor] = useState('')
   const [sessionCapacity,  setSessionCapacity]  = useState(25)
+  const [sessionRepeatWeekly, setSessionRepeatWeekly] = useState(false)
+  const [sessionRepeatWeeks,  setSessionRepeatWeeks]  = useState(52)
   const [savingSession,    setSavingSession]    = useState(false)
   const [sessionError,     setSessionError]     = useState('')
 
@@ -119,6 +121,8 @@ export default function ClassesClient({ initialServices, instructors }: { initia
     setSessionEndTime('')
     setSessionInstructor('')
     setSessionCapacity(service.capacity)
+    setSessionRepeatWeekly(false)
+    setSessionRepeatWeeks(52)
     setSessionError('')
   }
 
@@ -140,42 +144,77 @@ export default function ClassesClient({ initialServices, instructors }: { initia
     }
     setSavingSession(true)
     setSessionError('')
-    const startTime = `${sessionDate}T${sessionStartTime}:00`
-    const endTime   = `${sessionDate}T${sessionEndTime}:00`
-    const res  = await fetch('/api/admin/sessions', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        serviceId:      addSessionFor!.id,
-        serviceName:    addSessionFor!.name,
-        instructorName: sessionInstructor,
-        startTime,
-        endTime,
-        capacity:       sessionCapacity,
-      }),
-    })
-    const data = await res.json()
-    if (!res.ok) { setSessionError(data.error ?? 'Failed to add session'); setSavingSession(false); return }
 
-    const newSession: Session = {
-      id:              data.id,
-      title:           addSessionFor!.name,
-      instructor_name: sessionInstructor,
-      start_time:      startTime,
-      end_time:        endTime,
-      capacity:        sessionCapacity,
-      status:          'CONFIRMED',
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const fmtLocal = (d: Date) =>
+      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
+
+    if (sessionRepeatWeekly) {
+      const sessions = Array.from({ length: sessionRepeatWeeks }, (_, i) => {
+        const s = new Date(`${sessionDate}T${sessionStartTime}:00`)
+        const e = new Date(`${sessionDate}T${sessionEndTime}:00`)
+        s.setDate(s.getDate() + i * 7)
+        e.setDate(e.getDate() + i * 7)
+        return { startTime: fmtLocal(s), endTime: fmtLocal(e) }
+      })
+      const res = await fetch('/api/admin/sessions', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          sessions,
+          serviceId:      addSessionFor!.id,
+          serviceName:    addSessionFor!.name,
+          instructorName: sessionInstructor,
+          capacity:       sessionCapacity,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setSessionError(data.error ?? 'Failed to add sessions'); setSavingSession(false); return }
+      setServices(prev => prev.map(s => s.id === addSessionFor!.id ? { ...s, upcomingSessions: s.upcomingSessions + sessionRepeatWeeks } : s))
+      await loadSessions(addSessionFor!.id)
+      setSessionDate('')
+      setSessionStartTime('')
+      setSessionEndTime('')
+      setSessionRepeatWeekly(false)
+      setSavingSession(false)
+      router.refresh()
+    } else {
+      const startTime = fmtLocal(new Date(`${sessionDate}T${sessionStartTime}:00`))
+      const endTime   = fmtLocal(new Date(`${sessionDate}T${sessionEndTime}:00`))
+      const res = await fetch('/api/admin/sessions', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          serviceId:      addSessionFor!.id,
+          serviceName:    addSessionFor!.name,
+          instructorName: sessionInstructor,
+          startTime,
+          endTime,
+          capacity:       sessionCapacity,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setSessionError(data.error ?? 'Failed to add session'); setSavingSession(false); return }
+      const newSession: Session = {
+        id:              data.id,
+        title:           addSessionFor!.name,
+        instructor_name: sessionInstructor,
+        start_time:      startTime,
+        end_time:        endTime,
+        capacity:        sessionCapacity,
+        status:          'CONFIRMED',
+      }
+      setSessions(prev => ({
+        ...prev,
+        [addSessionFor!.id]: [...(prev[addSessionFor!.id] ?? []), newSession].sort((a, b) => a.start_time.localeCompare(b.start_time)),
+      }))
+      setServices(prev => prev.map(s => s.id === addSessionFor!.id ? { ...s, upcomingSessions: s.upcomingSessions + 1 } : s))
+      setSessionDate('')
+      setSessionStartTime('')
+      setSessionEndTime('')
+      setSavingSession(false)
+      router.refresh()
     }
-    setSessions(prev => ({
-      ...prev,
-      [addSessionFor!.id]: [...(prev[addSessionFor!.id] ?? []), newSession].sort((a, b) => a.start_time.localeCompare(b.start_time)),
-    }))
-    setServices(prev => prev.map(s => s.id === addSessionFor!.id ? { ...s, upcomingSessions: s.upcomingSessions + 1 } : s))
-    setSessionDate('')
-    setSessionStartTime('')
-    setSessionEndTime('')
-    setSavingSession(false)
-    router.refresh()
   }
 
   async function saveInstructor(serviceId: string, sessionId: string) {
@@ -551,7 +590,7 @@ export default function ClassesClient({ initialServices, instructors }: { initia
             <p className="text-[12px] text-neutral-400 mb-4">{addSessionFor.name}</p>
             <div className="space-y-3">
               <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Date</label>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start date</label>
                 <input
                   type="date"
                   value={sessionDate}
@@ -559,6 +598,40 @@ export default function ClassesClient({ initialServices, instructors }: { initia
                   className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
                 />
               </div>
+
+              {/* Repeat weekly toggle */}
+              <div className="flex items-center justify-between border border-neutral-200 rounded-lg px-3 py-2.5">
+                <div>
+                  <p className="text-[12px] font-medium text-neutral-700">Repeat weekly</p>
+                  {sessionRepeatWeekly && (
+                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                      Creates {sessionRepeatWeeks} sessions (~{Math.round(sessionRepeatWeeks / 4.33)} months)
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0 ml-3">
+                  {sessionRepeatWeekly && (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        value={sessionRepeatWeeks}
+                        onChange={e => setSessionRepeatWeeks(Math.max(1, Math.min(104, Number(e.target.value))))}
+                        min={1} max={104}
+                        className="w-14 h-7 px-2 text-[12px] text-center border border-neutral-200 rounded-lg outline-none focus:border-black"
+                      />
+                      <span className="text-[11px] text-neutral-400">weeks</span>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSessionRepeatWeekly(v => !v)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${sessionRepeatWeekly ? 'bg-black' : 'bg-neutral-200'}`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${sessionRepeatWeekly ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
@@ -616,7 +689,12 @@ export default function ClassesClient({ initialServices, instructors }: { initia
                 disabled={savingSession}
                 className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
               >
-                {savingSession ? 'Adding…' : 'Add session'}
+                {savingSession
+                  ? (sessionRepeatWeekly ? `Adding ${sessionRepeatWeeks} sessions…` : 'Adding…')
+                  : sessionRepeatWeekly
+                    ? `Add ${sessionRepeatWeeks} sessions`
+                    : 'Add session'
+                }
               </button>
             </div>
             <p className="text-[11px] text-neutral-400 mt-2 text-right">Add multiple sessions without closing</p>
