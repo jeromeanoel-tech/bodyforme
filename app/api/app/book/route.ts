@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createBooking, getMemberByContactId, getSessionById, CREDIT_PLANS } from '@/lib/db'
-import { emailBookingConfirmed } from '@/lib/email'
+import { createBooking, getMemberByContactId, getSessionById, CREDIT_PLANS, countPendingBookings } from '@/lib/db'
 import { getSession } from '@/lib/session'
 
 export async function POST(req: NextRequest) {
@@ -30,11 +29,21 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Block if on a credit-based plan with no credits remaining
-  const plan        = member.planOverride.toLowerCase()
-  const isPackPlan  = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
-  if (isPackPlan && member.creditBalance <= 0) {
-    return NextResponse.json({ error: 'You have no classes remaining. Please purchase a new pack to continue booking.' }, { status: 403 })
+  // Block if on a credit-based plan with insufficient credits.
+  // We count pending upcoming bookings (not yet attended) as "reserved" credits
+  // so a member can't book more classes than their balance.
+  const plan       = member.planOverride.toLowerCase()
+  const isPackPlan = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
+  if (isPackPlan) {
+    const pending         = await countPendingBookings(session.id)
+    const availableCredits = member.creditBalance - pending
+    if (availableCredits <= 0) {
+      return NextResponse.json({
+        error: member.creditBalance <= 0
+          ? 'You have no classes remaining. Please purchase a new pack to continue booking.'
+          : 'All your remaining classes are already booked. Cancel an upcoming class to book a different one.',
+      }, { status: 403 })
+    }
   }
 
   // Verify session exists, not cancelled, and not full
@@ -51,16 +60,6 @@ export async function POST(req: NextRequest) {
 
   try {
     const bookingId = await createBooking(session.id, sessionId)
-
-    // fire-and-forget confirmation email
-    emailBookingConfirmed({
-      to:             member.email,
-      firstName:      member.firstName,
-      className:      sess.title,
-      startTime:      sess.start_time,
-      instructorName: sess.instructor_name || undefined,
-    }).catch(() => {})
-
     return NextResponse.json({ ok: true, bookingId })
   } catch (err: unknown) {
     const code = (err as { code?: string })?.code
