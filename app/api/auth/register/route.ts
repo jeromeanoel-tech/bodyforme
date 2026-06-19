@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { createMemberCredential, getMemberByEmail } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
-  const { email, password, firstName, lastName, phone, suburb } = await req.json()
+  const { email, password, firstName, lastName, phone, suburb, plan } = await req.json()
 
   if (!email || !password || !firstName) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -21,6 +21,12 @@ export async function POST(req: NextRequest) {
 
   const passwordHash = await bcrypt.hash(password, 12)
 
+  // Free trial gets 1 credit immediately at account creation so the member
+  // can book without depending on a second API call succeeding.
+  const isFreeTrial   = plan === 'free-trial'
+  const planOverride  = isFreeTrial ? 'Free Trial' : (plan ?? '')
+  const creditBalance = isFreeTrial ? 1 : 0
+
   await createMemberCredential({
     email:            email.toLowerCase(),
     passwordHash,
@@ -28,12 +34,12 @@ export async function POST(req: NextRequest) {
     lastName:         lastName ?? '',
     phone:            phone ?? '',
     suburb:           suburb ?? '',
-    status:           'pending',
+    status:           planOverride ? 'active' : 'pending',
     wixContactId:     '',
     stripeCustomerId: '',
-    planOverride:     '',
+    planOverride,
     nextBillingDate:  '',
-    creditBalance:    0,
+    creditBalance,
     adminNotes:       '',
   })
 

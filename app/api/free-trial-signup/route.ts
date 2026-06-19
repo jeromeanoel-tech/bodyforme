@@ -9,19 +9,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  // Activate the member account with a Free Trial plan and 1 credit
+  // Confirm the member account has the Free Trial plan and 1 credit.
+  // The register route already sets this, but we re-confirm here as a safety net.
   const member = await getMemberByEmail(email.toLowerCase().trim())
-  if (member) {
-    // Don't override an existing active paid plan
-    if (member.status === 'active' && member.planOverride && member.planOverride !== 'Free Trial') {
-      return NextResponse.json({ error: 'An active account already exists for this email.' }, { status: 409 })
-    }
-    await updateMemberCredential(member._id, {
-      status:        'active',
-      planOverride:  'Free Trial',
-      creditBalance: 1,
-    })
+  if (!member) {
+    // Shouldn't happen — register is called before this — but surface it if it does
+    return NextResponse.json({ error: 'Account not found. Please try signing up again.' }, { status: 404 })
   }
+  // Block existing active paying members — free trial is for new members only
+  if (member.status === 'active' && member.planOverride && !['Free Trial', 'free-trial'].includes(member.planOverride)) {
+    return NextResponse.json({ error: 'A paid membership already exists for this email. The free trial is for new members only.' }, { status: 409 })
+  }
+  await updateMemberCredential(member._id, {
+    status:        'active',
+    planOverride:  'Free Trial',
+    creditBalance: 1,
+  })
 
   const RESEND_KEY    = process.env.RESEND_API_KEY
   const STUDIO_EMAIL  = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
