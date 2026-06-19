@@ -4,6 +4,85 @@ import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
 import type { WixContactBooking } from '@/lib/db'
 
+function CalendarStrip({ memberId }: { memberId: string }) {
+  const [open, setOpen] = useState(false)
+  const base    = typeof window !== 'undefined' ? window.location.origin : 'https://bodyforme.com.au'
+  const feedUrl = `${base}/api/app/calendar/${memberId}`
+  const webcal  = feedUrl.replace(/^https?/, 'webcal')
+  const googleUrl = `https://calendar.google.com/calendar/r/settings/addbyurl?url=${encodeURIComponent(feedUrl)}`
+
+  return (
+    <div style={{ margin: '12px 20px 0', flexShrink: 0 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', padding: '10px 14px',
+          background: 'transparent', border: `1px solid ${T.rule}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          cursor: 'pointer',
+        }}
+      >
+        <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.mid }}>
+          Add classes to your calendar
+        </span>
+        <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 16, color: T.muted, transform: open ? 'rotate(45deg)' : 'none', display: 'inline-block', transition: 'transform .2s' }}>+</span>
+      </button>
+
+      {open && (
+        <div style={{ border: `1px solid ${T.rule}`, borderTop: 'none', padding: '16px 14px', background: T.canvas, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* Apple Calendar */}
+          <a
+            href={webcal}
+            style={{
+              display: 'block', textAlign: 'center', padding: '11px',
+              background: T.esp, color: T.linen,
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+              fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+              textDecoration: 'none',
+            }}
+          >
+            Subscribe — Apple Calendar
+          </a>
+
+          {/* Google Calendar */}
+          <a
+            href={googleUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'block', textAlign: 'center', padding: '11px',
+              border: `1px solid ${T.esp}`, color: T.esp,
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+              fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+              textDecoration: 'none',
+            }}
+          >
+            Subscribe — Google Calendar
+          </a>
+
+          {/* Download one-off */}
+          <a
+            href={`${feedUrl}?download=1`}
+            style={{
+              display: 'block', textAlign: 'center', padding: '10px',
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+              fontSize: 10, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase',
+              color: T.muted, textDecoration: 'none', borderBottom: `1px solid ${T.rule}`, paddingBottom: 2,
+              alignSelf: 'center',
+            }}
+          >
+            Download .ics (one-off)
+          </a>
+
+          <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, color: T.muted, textAlign: 'center', margin: 0, lineHeight: 1.6 }}>
+            Subscribe keeps your calendar updated automatically as you book or cancel classes.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const T = {
   linen:  '#f4ede1',
   l2:     '#ede4d4',
@@ -83,6 +162,9 @@ export default function BookingsPage() {
           </div>
         ))}
       </div>
+
+      {/* Add to calendar */}
+      {session.id && <CalendarStrip memberId={session.id} />}
 
       {/* Tab toggle */}
       <div style={{ display: 'flex', padding: '16px 20px 0', gap: 24, borderBottom: `1px solid ${T.rule}`, marginTop: 16, flexShrink: 0 }}>
