@@ -229,6 +229,45 @@ export async function POST(req: NextRequest) {
       break
     }
 
+    case 'customer.subscription.updated': {
+      // Sync plan/status changes made via Stripe Portal (upgrade, downgrade, pause, resume)
+      const sub = event.data.object as {
+        customer: string
+        status: string
+        items: { data: { price: { nickname: string | null } }[] }
+        pause_collection: { behavior: string } | null
+      }
+      const updatedCustomerId = sub.customer
+      if (!updatedCustomerId) break
+
+      const member = await getMemberByStripeCustomerId(updatedCustomerId)
+      if (!member) break
+
+      const stripeStatus = sub.status // 'active', 'paused', 'canceled', 'past_due', etc.
+      const isPaused     = !!sub.pause_collection
+      const planNickname = sub.items?.data?.[0]?.price?.nickname ?? ''
+
+      let newStatus: string = member.status ?? 'active'
+      if (stripeStatus === 'active' && !isPaused) newStatus = 'active'
+      else if (isPaused)                           newStatus = 'paused'
+      else if (stripeStatus === 'past_due')        newStatus = 'past_due'
+      else if (stripeStatus === 'canceled')        newStatus = 'inactive'
+
+      await updateMemberCredential(member._id, {
+        status:      newStatus,
+        ...(planNickname ? { planOverride: planNickname } : {}),
+      })
+
+      await upsertMembership({
+        memberId:  member._id,
+        planName:  planNickname || member.planOverride || '',
+        status:    stripeStatus === 'canceled' ? 'CANCELED' : 'ACTIVE',
+        startDate: '',
+        endDate:   '',
+      })
+      break
+    }
+
     case 'customer.subscription.deleted': {
       // Weekly subscription cancelled — look up member by Stripe customer ID and deactivate
       const cancelledCustomerId = (obj.customer as string) ?? ''
