@@ -5,11 +5,19 @@ import { useSession } from '@/components/app/SessionProvider'
 import type { WixContactBooking } from '@/lib/db'
 
 function CalendarStrip({ memberId }: { memberId: string }) {
-  const [open, setOpen] = useState(false)
+  const [open,   setOpen]   = useState(false)
+  const [copied, setCopied] = useState(false)
+
   const base    = typeof window !== 'undefined' ? window.location.origin : 'https://bodyforme.com.au'
   const feedUrl = `${base}/api/app/calendar/${memberId}`
   const webcal  = feedUrl.replace(/^https?/, 'webcal')
-  const googleUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcal)}`
+
+  function copyUrl() {
+    navigator.clipboard.writeText(feedUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   return (
     <div style={{ margin: '12px 20px 0', flexShrink: 0 }}>
@@ -29,36 +37,64 @@ function CalendarStrip({ memberId }: { memberId: string }) {
       </button>
 
       {open && (
-        <div style={{ border: `1px solid ${T.rule}`, borderTop: 'none', padding: '16px 14px', background: T.canvas, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {/* Apple Calendar */}
-          <a
-            href={webcal}
-            style={{
-              display: 'block', textAlign: 'center', padding: '11px',
-              background: T.esp, color: T.linen,
-              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-              fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
-              textDecoration: 'none',
-            }}
-          >
-            Subscribe — Apple Calendar
-          </a>
+        <div style={{ border: `1px solid ${T.rule}`, borderTop: 'none', padding: '16px 14px', background: T.canvas, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* Google Calendar */}
-          <a
-            href={googleUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'block', textAlign: 'center', padding: '11px',
-              border: `1px solid ${T.esp}`, color: T.esp,
-              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-              fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
-              textDecoration: 'none',
-            }}
-          >
-            Subscribe — Google Calendar
-          </a>
+          {/* Apple Calendar — webcal:// opens the subscribe dialog directly */}
+          <div>
+            <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, margin: '0 0 6px' }}>Apple Calendar</p>
+            <a
+              href={webcal}
+              style={{
+                display: 'block', textAlign: 'center', padding: '11px',
+                background: T.esp, color: T.linen,
+                fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+                textDecoration: 'none',
+              }}
+            >
+              Subscribe — Apple Calendar
+            </a>
+          </div>
+
+          {/* Google Calendar — copy URL then open settings */}
+          <div>
+            <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, margin: '0 0 6px' }}>Google Calendar</p>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+              <div style={{
+                flex: 1, padding: '9px 10px', border: `1px solid ${T.rule}`, background: T.linen,
+                fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, color: T.mid,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {feedUrl}
+              </div>
+              <button
+                onClick={copyUrl}
+                style={{
+                  padding: '9px 14px', background: copied ? T.sage : T.esp, color: T.linen,
+                  border: 'none', cursor: 'pointer',
+                  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                  fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase',
+                  flexShrink: 0, transition: 'background .2s',
+                }}
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+            <a
+              href="https://calendar.google.com/calendar/r/settings/addbyurl"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block', textAlign: 'center', padding: '11px',
+                border: `1px solid ${T.esp}`, color: T.esp,
+                fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+                textDecoration: 'none',
+              }}
+            >
+              Open Google Calendar → paste URL
+            </a>
+          </div>
 
           {/* Download one-off */}
           <a
@@ -67,15 +103,14 @@ function CalendarStrip({ memberId }: { memberId: string }) {
               display: 'block', textAlign: 'center', padding: '10px',
               fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontSize: 10, fontWeight: 400, letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: T.muted, textDecoration: 'none', borderBottom: `1px solid ${T.rule}`, paddingBottom: 2,
-              alignSelf: 'center',
+              color: T.muted, textDecoration: 'none',
             }}
           >
-            Download .ics (one-off)
+            Download .ics (one-off import)
           </a>
 
           <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, color: T.muted, textAlign: 'center', margin: 0, lineHeight: 1.6 }}>
-            Subscribe keeps your calendar updated automatically as you book or cancel classes.
+            Subscribing keeps your calendar updated as you book or cancel.
           </p>
         </div>
       )}
