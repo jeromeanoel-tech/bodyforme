@@ -20,7 +20,7 @@ type OnboardState = 'idle' | 'confirming' | 'sending' | 'done' | 'error'
 type OnboardResult = { sent: number; failed: number; total: number; results: { email: string; ok: boolean; error?: string }[] }
 type CleanupState = 'idle' | 'confirming' | 'running' | 'done' | 'error'
 type PosSetupState = 'idle' | 'running' | 'done' | 'error'
-type PosSetupResult = { created: number; skipped: number; results: { name: string; status: string }[] }
+type PosSetupResult = { created: number; updated: number; unchanged: number; results: { name: string; status: string }[] }
 
 export default function SettingsClient() {
   const { settings, update } = useSettings()
@@ -334,28 +334,29 @@ export default function SettingsClient() {
             {/* ── POS products ── */}
             <div className="border-t border-neutral-100 pt-6 space-y-3">
               <div>
-                <p className="text-[13.5px] font-medium text-neutral-800">Set up POS products in Stripe</p>
+                <p className="text-[13.5px] font-medium text-neutral-800">Sync POS products in Stripe</p>
                 <p className="text-[12px] text-neutral-400 mt-0.5">
-                  Creates the 8 standard products in your Stripe account (Casual, class packs, prepaid unlimited)
-                  so they appear in the POS panel. Safe to run more than once — skips products that already exist.
+                  Creates or updates the 8 standard products in your Stripe account (Casual, class packs, prepaid unlimited)
+                  so they match the prices in your site config. Run this if POS prices look wrong.
                 </p>
               </div>
               {posState === 'idle' && (
                 <button onClick={setupPosProducts} className="h-9 px-4 text-[13px] bg-black text-white rounded-lg hover:bg-neutral-800">
-                  Create POS products
+                  Sync POS products
                 </button>
               )}
               {posState === 'running' && (
                 <div className="flex items-center gap-2 text-[13px] text-neutral-500">
                   <span className="animate-spin inline-block w-4 h-4 border-2 border-neutral-300 border-t-black rounded-full" />
-                  Creating products in Stripe…
+                  Syncing products in Stripe…
                 </div>
               )}
               {posState === 'done' && posResult && (
                 <div className="space-y-2">
                   <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-[13px] text-green-700 flex gap-4">
                     <span><strong>{posResult.created}</strong> created</span>
-                    {posResult.skipped > 0 && <span className="text-neutral-500"><strong>{posResult.skipped}</strong> already existed</span>}
+                    {posResult.updated > 0 && <span><strong>{posResult.updated}</strong> updated</span>}
+                    {posResult.unchanged > 0 && <span className="text-neutral-500"><strong>{posResult.unchanged}</strong> unchanged</span>}
                   </div>
                   {posResult.results.map((r, i) => (
                     <p key={i} className="text-[12px] text-neutral-500">{r.name} — {r.status}</p>

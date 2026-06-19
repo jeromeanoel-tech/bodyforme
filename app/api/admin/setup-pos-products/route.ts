@@ -39,46 +39,86 @@ export async function POST() {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  // Fetch existing POS products so we can skip duplicates
+  // Fetch all existing POS products (keyed by name for easy lookup)
   const existing = await stripeGet('products?limit=100&active=true')
-  const existingNames = new Set(
+  const existingMap = new Map(
     (existing.data ?? [])
       .filter(p => p.metadata?.pos === 'true')
-      .map(p => p.name)
+      .map(p => [p.name, p])
   )
 
-  const results: { name: string; status: 'created' | 'skipped' }[] = []
+  const results: { name: string; status: 'created' | 'updated' | 'ok' }[] = []
 
   for (const p of POS_PRODUCTS) {
-    if (existingNames.has(p.name)) {
-      results.push({ name: p.name, status: 'skipped' })
-      continue
-    }
+    const existingProduct = existingMap.get(p.name)
 
-    // Create the Stripe product
-    const product = await stripePost('products', {
-      name:                  p.name,
-      description:           p.description,
-      'metadata[pos]':           'true',
-      'metadata[memberAction]':  p.memberAction,
-      'metadata[creditAmount]':  p.creditAmount,
-      'metadata[planName]':      p.planName,
-    })
-
-    if (product.id) {
-      // Create a default price for it
-      await stripePost('prices', {
-        product:      product.id as string,
-        unit_amount:  String(p.amount),
-        currency:     'aud',
+    if (!existingProduct) {
+      // Create the Stripe product
+      const product = await stripePost('products', {
+        name:                      p.name,
+        description:               p.description,
+        'metadata[pos]':           'true',
+        'metadata[memberAction]':  p.memberAction,
+        'metadata[creditAmount]':  p.creditAmount,
+        'metadata[planName]':      p.planName,
       })
-    }
+      if (product.id) {
+        // Create and set default price
+        const price = await stripePost('prices', {
+          product:     product.id as string,
+          unit_amount: String(p.amount),
+          currency:    'aud',
+        })
+        if (price.id) {
+          await stripePost(`products/${product.id as string}`, { default_price: price.id as string })
+        }
+      }
+      results.push({ name: p.name, status: 'created' })
+    } else {
+      // Update product metadata/description to match current config
+      await stripePost(`products/${existingProduct.id}`, {
+        description:               p.description,
+        'metadata[memberAction]':  p.memberAction,
+        'metadata[creditAmount]':  p.creditAmount,
+        'metadata[planName]':      p.planName,
+      })
 
-    results.push({ name: p.name, status: 'created' })
+      // Check if the current default price matches the target amount
+      const defaultPriceId = typeof existingProduct.metadata?.default_price === 'string'
+        ? existingProduct.metadata.default_price
+        : null
+
+      // Fetch the actual default_price from the full product object via a fresh get
+      const freshProduct = await stripeGet(`products/${existingProduct.id}`) as unknown as { default_price?: string }
+      const currentPriceId = freshProduct.default_price
+
+      let needsPriceUpdate = true
+      if (currentPriceId) {
+        const currentPrice = await stripeGet(`prices/${currentPriceId}`) as unknown as { unit_amount?: number }
+        if (currentPrice.unit_amount === p.amount) needsPriceUpdate = false
+      }
+
+      if (needsPriceUpdate || !currentPriceId) {
+        // Create a new price with the correct amount and set it as default
+        const newPrice = await stripePost('prices', {
+          product:     existingProduct.id,
+          unit_amount: String(p.amount),
+          currency:    'aud',
+        })
+        if (newPrice.id) {
+          await stripePost(`products/${existingProduct.id}`, { default_price: newPrice.id as string })
+        }
+        results.push({ name: p.name, status: 'updated' })
+      } else {
+        results.push({ name: p.name, status: 'ok' })
+      }
+      void defaultPriceId
+    }
   }
 
   const created = results.filter(r => r.status === 'created').length
-  const skipped = results.filter(r => r.status === 'skipped').length
+  const updated = results.filter(r => r.status === 'updated').length
+  const ok      = results.filter(r => r.status === 'ok').length
 
-  return NextResponse.json({ ok: true, created, skipped, results })
+  return NextResponse.json({ ok: true, created, updated, unchanged: ok, results })
 }
