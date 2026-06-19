@@ -497,7 +497,7 @@ export const CREDIT_PLANS = [
   '10-Class Pack', '10 Class Pack',
   '20-Class Pack', '20 Class Pack',
   '50-Class Pass', '50 Class Pass',
-  'Free Trial', '7-Day Unlimited', '7 Day Unlimited', 'intro-offer',
+  'Free Trial',
 ]
 
 export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {

@@ -98,18 +98,22 @@ export async function POST(req: NextRequest) {
 
       // Credits to seed for one-time class packs
       const PLAN_CREDITS: Record<string, number> = {
-        'casual': 1, 'intro-offer': 0,
+        'casual': 1,
         '10pack': 10, '20pack': 20, '50pack': 50,
       }
       const creditSeed = PLAN_CREDITS[planKey] ?? 0
 
-      // End date for prepaid unlimited plans
+      // End date for prepaid plans (months, or 7 days for intro-offer)
       const PLAN_MONTHS: Record<string, number> = { '3month': 3, '6month': 6, '12month': 12 }
       const prepaidMonths = PLAN_MONTHS[planKey]
       let membershipEndDate: string | undefined
       if (prepaidMonths) {
         const d = new Date()
         d.setMonth(d.getMonth() + prepaidMonths)
+        membershipEndDate = d.toISOString().slice(0, 10)
+      } else if (planKey === 'intro-offer') {
+        const d = new Date()
+        d.setDate(d.getDate() + 7)
         membershipEndDate = d.toISOString().slice(0, 10)
       }
 
