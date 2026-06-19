@@ -835,6 +835,13 @@ function ClientDrawer({
   const [member, setMember]       = useState<MemberCredential | null | undefined>(undefined)
   const [memberLoading, setMemberLoading] = useState(false)
 
+  // Advance booking state
+  const [bookingMode, setBookingMode]         = useState(false)
+  const [upcomingSessions, setUpcomingSessions] = useState<{ id: string; title: string; start_time: string; end_time: string; bookedCount?: number; capacity: number }[] | null>(null)
+  const [sessionsLoading, setSessionsLoading] = useState(false)
+  const [bookingId, setBookingId]             = useState<string | null>(null)
+  const [bookingError, setBookingError]       = useState('')
+
   if (bookings === null && !loading) {
     setLoading(true)
     fetch(`/api/admin/contact-bookings?contactId=${contact.id}`)
@@ -870,6 +877,51 @@ function ClientDrawer({
     if (!note.trim()) return
     setNotes(n => [{ text: note.trim(), date: new Date().toISOString() }, ...n])
     setNote('')
+  }
+
+  function openBookingMode() {
+    setBookingMode(true)
+    setBookingError('')
+    if (!upcomingSessions) {
+      setSessionsLoading(true)
+      const now   = new Date()
+      const from  = now.toISOString().slice(0, 10) + 'T00:00:00'
+      const ahead = new Date(now); ahead.setDate(now.getDate() + 28)
+      const to    = ahead.toISOString().slice(0, 10) + 'T23:59:59'
+      fetch(`/api/admin/schedule-sessions?from=${from}&to=${to}`)
+        .then(r => r.json())
+        .then(d => {
+          const sess = (d.sessions ?? []).filter((s: {status: string}) => s.status !== 'CANCELLED')
+          setUpcomingSessions(sess)
+          setSessionsLoading(false)
+        })
+        .catch(() => { setUpcomingSessions([]); setSessionsLoading(false) })
+    }
+  }
+
+  async function bookSession(sessionId: string) {
+    if (bookingId) return
+    setBookingId(sessionId)
+    setBookingError('')
+    try {
+      const res  = await fetch('/api/admin/advance-book', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ memberId: contact.id, sessionId }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setBookings(prev => [data.booking, ...(prev ?? [])])
+        setBookingMode(false)
+        setBookingId(null)
+      } else {
+        setBookingError(data.error ?? 'Booking failed')
+        setBookingId(null)
+      }
+    } catch {
+      setBookingError('Network error')
+      setBookingId(null)
+    }
   }
 
   return (
@@ -941,10 +993,75 @@ function ClientDrawer({
           {/* Bookings */}
           {tab === 'bookings' && (
             <>
+              {/* Book class button / session picker */}
+              {!bookingMode ? (
+                <div className="px-6 py-3 border-b border-neutral-100 flex items-center justify-between">
+                  <p className="text-[11px] text-neutral-400">{totalBookings} booking{totalBookings !== 1 ? 's' : ''} on record</p>
+                  <button
+                    onClick={openBookingMode}
+                    className="h-8 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors"
+                  >
+                    + Book class
+                  </button>
+                </div>
+              ) : (
+                <div className="border-b border-neutral-200 bg-neutral-50">
+                  <div className="flex items-center justify-between px-6 py-3">
+                    <p className="text-[12px] font-semibold text-neutral-900">Pick a class to book</p>
+                    <button onClick={() => { setBookingMode(false); setBookingError('') }} className="text-neutral-400 hover:text-neutral-700 text-lg leading-none">✕</button>
+                  </div>
+                  {bookingError && <p className="px-6 pb-2 text-[12px] text-red-500">{bookingError}</p>}
+                  {sessionsLoading && <p className="px-6 pb-4 text-[12px] text-neutral-400">Loading upcoming classes…</p>}
+                  {!sessionsLoading && upcomingSessions?.length === 0 && <p className="px-6 pb-4 text-[12px] text-neutral-400">No upcoming classes found.</p>}
+                  {!sessionsLoading && upcomingSessions && upcomingSessions.length > 0 && (
+                    <div className="max-h-72 overflow-y-auto">
+                      {(() => {
+                        const byDay: Record<string, typeof upcomingSessions> = {}
+                        upcomingSessions.forEach(s => {
+                          const day = s.start_time.slice(0, 10)
+                          if (!byDay[day]) byDay[day] = []
+                          byDay[day].push(s)
+                        })
+                        return Object.entries(byDay).map(([day, daySessions]) => (
+                          <div key={day}>
+                            <p className="px-6 py-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider bg-neutral-100">
+                              {new Date(day + 'T12:00:00').toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })}
+                            </p>
+                            {daySessions.map(s => {
+                              const isBkg = bookingId === s.id
+                              const time  = s.start_time.slice(11, 16)
+                              const [h, m] = time.split(':').map(Number)
+                              const ampm   = h < 12 ? 'am' : 'pm'
+                              const h12    = h % 12 || 12
+                              const tFmt   = `${h12}:${m.toString().padStart(2,'0')} ${ampm}`
+                              return (
+                                <div key={s.id} className="flex items-center justify-between px-6 py-2.5 border-t border-neutral-100 hover:bg-white transition-colors">
+                                  <div>
+                                    <p className="text-[13px] font-medium text-neutral-900">{s.title}</p>
+                                    <p className="text-[11px] text-neutral-400">{tFmt}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => bookSession(s.id)}
+                                    disabled={!!bookingId}
+                                    className="h-8 px-3 text-[11px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 transition-colors shrink-0"
+                                  >
+                                    {isBkg ? '…' : 'Book'}
+                                  </button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ))
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {loading && <p className="px-6 py-6 text-sm text-neutral-400">Loading bookings…</p>}
               {!loading && bookings?.length === 0 && <p className="px-6 py-6 text-sm text-neutral-400">No bookings found.</p>}
               {bookings?.map((b, i) => (
-                <div key={b.id} className={`flex items-center justify-between px-6 py-3.5 ${i < bookings.length - 1 ? 'border-b border-neutral-100' : ''}`}>
+                <div key={b.id} className={`flex items-center justify-between px-6 py-3.5 ${i < (bookings?.length ?? 0) - 1 ? 'border-b border-neutral-100' : ''}`}>
                   <div>
                     <p className="text-[13px] font-medium text-neutral-900">{b.title}</p>
                     <p className="text-[11.5px] text-neutral-400 mt-0.5">{fmtDateTime(b.start)}</p>

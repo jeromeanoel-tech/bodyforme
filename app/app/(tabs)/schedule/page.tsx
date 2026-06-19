@@ -171,7 +171,7 @@ export default function SchedulePage() {
       if (res.ok) {
         setBookedMap(m => ({ ...m, [sessionId]: { bookingId: data.bookingId } }))
         setSessions(s => s.map(x => x.id === sessionId ? { ...x, bookedCount: x.bookedCount + 1 } : x))
-        showToast('Booking confirmed — check your email', true)
+        showToast("You're booked in!", true)
       } else {
         showToast(data.error ?? 'Booking failed', false)
       }
@@ -292,7 +292,20 @@ export default function SchedulePage() {
             {weekDays[0].date.getDate()}–{crossMonth ? `${weekDays[6].date.getDate()} ${endMonth}` : weekDays[6].date.getDate()}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          {weekOffset > 0 && (
+            <button
+              onClick={() => setWeekOffset(0)}
+              style={{
+                height: 32, padding: '0 10px',
+                fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: T.brown, background: 'none', border: `1px solid ${T.rule}`, cursor: 'pointer',
+              }}
+            >
+              Today
+            </button>
+          )}
           <button
             onClick={() => setWeekOffset(o => o - 1)}
             disabled={weekOffset === 0}
