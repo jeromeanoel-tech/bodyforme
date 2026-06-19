@@ -44,6 +44,15 @@ export default function ClassesClient({ initialServices, instructors }: { initia
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [deletingId,      setDeletingId]      = useState<string | null>(null)
+  const [deleteError,     setDeleteError]     = useState<string>('')
+
+  const [editClassId,     setEditClassId]     = useState<string | null>(null)
+  const [editName,        setEditName]        = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editDuration,    setEditDuration]    = useState(60)
+  const [editCapacity,    setEditCapacity]    = useState(25)
+  const [savingEdit,      setSavingEdit]      = useState(false)
+  const [editError,       setEditError]       = useState('')
 
   const [addSessionFor,    setAddSessionFor]    = useState<Service | null>(null)
   const [sessionDate,      setSessionDate]      = useState('')
@@ -101,16 +110,53 @@ export default function ClassesClient({ initialServices, instructors }: { initia
 
   async function deleteClass(id: string) {
     setDeletingId(id)
-    await fetch('/api/admin/classes', {
+    setDeleteError('')
+    const res  = await fetch('/api/admin/classes', {
       method:  'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ id }),
     })
+    if (!res.ok) {
+      const data = await res.json()
+      setDeleteError(data.error ?? 'Failed to delete class')
+      setDeleteConfirmId(null)
+      setDeletingId(null)
+      return
+    }
     setServices(prev => prev.filter(s => s.id !== id))
     setSessions(prev => { const next = { ...prev }; delete next[id]; return next })
     if (expandedId === id) setExpandedId(null)
     setDeleteConfirmId(null)
     setDeletingId(null)
+    router.refresh()
+  }
+
+  function openEditClass(service: Service) {
+    setEditClassId(service.id)
+    setEditName(service.name)
+    setEditDescription(service.description)
+    setEditDuration(service.duration)
+    setEditCapacity(service.capacity)
+    setEditError('')
+  }
+
+  async function saveEditClass() {
+    if (!editName.trim()) { setEditError('Class name is required'); return }
+    setSavingEdit(true)
+    setEditError('')
+    const res  = await fetch('/api/admin/classes', {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ id: editClassId, name: editName.trim(), description: editDescription, duration: editDuration, capacity: editCapacity }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setEditError(data.error ?? 'Failed to save'); setSavingEdit(false); return }
+    setServices(prev => prev.map(s => s.id === editClassId
+      ? { ...s, name: editName.trim(), description: editDescription, duration: editDuration, capacity: editCapacity }
+      : s
+    ))
+    setEditClassId(null)
+    setSavingEdit(false)
     router.refresh()
   }
 
@@ -257,6 +303,13 @@ export default function ClassesClient({ initialServices, instructors }: { initia
         >
           + Session
         </button>
+        <button
+          onClick={e => { e.stopPropagation(); openEditClass(service) }}
+          className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors touch-manipulation"
+          title="Edit class"
+        >
+          Edit
+        </button>
         {deleteConfirmId === service.id ? (
           <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
             <span className="text-[11px] text-neutral-500">Delete all?</span>
@@ -276,7 +329,7 @@ export default function ClassesClient({ initialServices, instructors }: { initia
           </div>
         ) : (
           <button
-            onClick={e => { e.stopPropagation(); setDeleteConfirmId(service.id) }}
+            onClick={e => { e.stopPropagation(); setDeleteError(''); setDeleteConfirmId(service.id) }}
             className="h-7 w-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors text-sm touch-manipulation"
             title="Delete class"
           >
@@ -303,6 +356,14 @@ export default function ClassesClient({ initialServices, instructors }: { initia
           + New class
         </button>
       </div>
+
+      {/* Delete error banner */}
+      {deleteError && (
+        <div className="shrink-0 px-4 md:px-6 py-2.5 bg-red-50 border-b border-red-200 flex items-center justify-between gap-3">
+          <p className="text-[12.5px] text-red-700">{deleteError}</p>
+          <button onClick={() => setDeleteError('')} className="text-red-400 hover:text-red-600 text-sm shrink-0">✕</button>
+        </div>
+      )}
 
       {/* Class list */}
       <div className="flex-1 overflow-y-auto">
@@ -698,6 +759,76 @@ export default function ClassesClient({ initialServices, instructors }: { initia
               </button>
             </div>
             <p className="text-[11px] text-neutral-400 mt-2 text-right">Add multiple sessions without closing</p>
+          </div>
+        </div>
+      )}
+
+      {/* Edit class modal */}
+      {editClassId && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setEditClassId(null)} />
+          <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
+            <h2 className="text-[15px] font-semibold text-neutral-900 mb-1">Edit class</h2>
+            <p className="text-[11px] text-neutral-400 mb-4">Capacity changes apply to all future sessions of this class.</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Description (optional)</label>
+                <input
+                  type="text"
+                  value={editDescription}
+                  onChange={e => setEditDescription(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Duration (min)</label>
+                  <input
+                    type="number"
+                    value={editDuration}
+                    onChange={e => setEditDuration(Number(e.target.value))}
+                    min={15} max={180}
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Capacity</label>
+                  <input
+                    type="number"
+                    value={editCapacity}
+                    onChange={e => setEditCapacity(Number(e.target.value))}
+                    min={1} max={100}
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
+                  />
+                </div>
+              </div>
+              {editError && <p className="text-[12px] text-red-600">{editError}</p>}
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                onClick={() => setEditClassId(null)}
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEditClass}
+                disabled={savingEdit}
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
+              >
+                {savingEdit ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
           </div>
         </div>
       )}
