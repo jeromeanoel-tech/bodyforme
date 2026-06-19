@@ -7,23 +7,44 @@ type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | '
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
 
-function wrapHtml(firstName: string, body: string, subject: string) {
-  const escaped = body
+function wrapHtml(firstName: string, body: string) {
+  const bodyHtml = body
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/\n/g, '<br>')
+    .split('\n\n')
+    .map(para => `<p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 18px">${para.replace(/\n/g, '<br>')}</p>`)
+    .join('')
 
-  return `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
-      <p>Hi ${firstName || 'there'},</p>
-      ${escaped}
-      <p style="margin-top:32px;color:#666;font-size:13px">
-        — The BodyForme Team<br>
-        <a href="https://bodyforme.com.au" style="color:#666">bodyforme.com.au</a>
+  return `<div style="background:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+  <div style="width:100%;max-width:600px;margin:0 auto;background:#fdfaf6;border:1px solid #d8ccba;overflow:hidden">
+    <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background:#fdfaf6">
+      <img src="https://bodyforme.com.au/bodyforme-wordmark.png" alt="BODYFORME" width="180" style="display:block;width:180px;height:auto;border:0">
+    </div>
+    <div style="padding:44px 48px 40px">
+      <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 24px">Hi ${firstName || 'there'},</p>
+      ${bodyHtml}
+      <div style="margin-top:32px;font-size:15px;line-height:1.7;color:#2a1506">Warm regards,</div>
+      <div style="margin-top:20px;padding-top:20px;border-top:1px solid #d8ccba">
+        <div style="font-style:italic;font-size:22px;color:#2a1506;line-height:1.2">Suzanne</div>
+        <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7a4a2a;margin-top:5px;line-height:1.8">
+          Studio Director &middot; BodyForme Pilates<br>
+          <a href="tel:0398502221" style="color:#7a4a2a;text-decoration:none">(03) 9850 2221</a>
+          &middot;
+          <a href="mailto:hello@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">hello@bodyforme.com.au</a>
+        </div>
+      </div>
+    </div>
+    <div style="padding:28px 48px 36px;border-top:1px solid #d8ccba;background:#fdfaf6">
+      <p style="font-size:12px;line-height:1.6;color:#a08568;margin:0">
+        <strong style="color:#2a1506;font-weight:600">BodyForme Pilates</strong> — 132 Ayr Street, Doncaster VIC 3108
+      </p>
+      <p style="margin-top:12px;font-size:11px;line-height:1.6;color:#a08568;margin-bottom:0">
+        You're receiving this because you have an account with BodyForme Pilates.
       </p>
     </div>
-  `
+  </div>
+</div>`
 }
 
 export async function POST(req: NextRequest) {
@@ -67,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     for (const contact of recipients) {
       const firstName = contact.firstName || ''
-      const html      = wrapHtml(firstName, body, subject)
+      const html      = wrapHtml(firstName, body)
 
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',

@@ -17,21 +17,16 @@ interface EmailPayload {
 // ── Shared layout ─────────────────────────────────────────────────────────────
 
 const HEADER = `
-  <div style="padding:34px 48px 28px;border-bottom:1px solid #d8ccba">
-    <span style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-style:italic;font-size:30px;font-weight:500;color:#2a1506;letter-spacing:.01em">Bodyforme</span>
+  <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background:#fdfaf6">
+    <img src="${BASE}/bodyforme-wordmark.png" alt="BODYFORME" width="180" style="display:block;width:180px;height:auto;border:0">
   </div>`
 
 const FOOTER = `
   <div style="padding:28px 48px 36px;border-top:1px solid #d8ccba;background:#fdfaf6">
-    <p style="font-size:12px;line-height:1.6;color:#a08568;margin:0 0 14px">
+    <p style="font-size:12px;line-height:1.6;color:#a08568;margin:0">
       <strong style="color:#2a1506;font-weight:600">BodyForme Pilates</strong> — 132 Ayr Street, Doncaster VIC 3108
     </p>
-    <table cellpadding="0" cellspacing="0" border="0"><tr>
-      <td style="padding-right:18px"><a href="${BASE}" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7a4a2a;text-decoration:none">Timetable</a></td>
-      <td style="padding-right:18px"><a href="${BASE}/app" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7a4a2a;text-decoration:none">My Account</a></td>
-      <td><a href="${BASE}/contact" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7a4a2a;text-decoration:none">Contact</a></td>
-    </tr></table>
-    <p style="margin-top:16px;font-size:11px;line-height:1.6;color:#a08568">
+    <p style="margin-top:12px;font-size:11px;line-height:1.6;color:#a08568;margin-bottom:0">
       You're receiving this because you have an account with BodyForme Pilates.
     </p>
   </div>`
@@ -73,9 +68,21 @@ function detailBox(rows: [string, string][]) {
 }
 
 function signoff(line: string) {
-  return `<div style="margin-top:28px;font-size:15px;line-height:1.7;color:#2a1506">
-    ${line}<br>
-    <span style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-style:italic;font-size:20px">The BodyForme team</span>
+  return `<div style="margin-top:32px;font-size:15px;line-height:1.7;color:#2a1506">
+    ${line}
+  </div>
+  <div style="margin-top:20px;padding-top:20px;border-top:1px solid #d8ccba">
+    <div style="display:flex;align-items:flex-start;gap:16px">
+      <div>
+        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-style:italic;font-size:22px;color:#2a1506;line-height:1.2">Suzanne</div>
+        <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7a4a2a;margin-top:5px;line-height:1.6">
+          Studio Director &nbsp;·&nbsp; BodyForme Pilates<br>
+          <a href="tel:0398502221" style="color:#7a4a2a;text-decoration:none">(03) 9850 2221</a>
+          &nbsp;·&nbsp;
+          <a href="mailto:hello@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">hello@bodyforme.com.au</a>
+        </div>
+      </div>
+    </div>
   </div>`
 }
 
