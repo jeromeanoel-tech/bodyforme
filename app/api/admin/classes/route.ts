@@ -8,6 +8,39 @@ const supabase = createClient(
   process.env.SUPABASE_SECRET_KEY!,
 )
 
+export async function PATCH(req: NextRequest) {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const { id, name, description, duration, capacity } = await req.json()
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  const patch: Record<string, unknown> = {}
+  if (name        !== undefined) patch.name        = name
+  if (description !== undefined) patch.description = description
+  if (duration    !== undefined) patch.duration    = duration
+  if (capacity    !== undefined) patch.capacity    = capacity
+
+  if (Object.keys(patch).length === 0) return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
+
+  const { error } = await supabase.from('services').update(patch).eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Cascade capacity changes to all future sessions of this class type
+  if (capacity !== undefined) {
+    await supabase
+      .from('sessions')
+      .update({ capacity })
+      .eq('service_id', id)
+      .gt('start_time', new Date().toISOString())
+      .neq('status', 'CANCELLED')
+  }
+
+  revalidatePath('/admin/schedule')
+  revalidatePath('/admin/classes')
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function GET() {
   const { data: services, error } = await supabase
     .from('services')
@@ -61,6 +94,30 @@ export async function DELETE(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const { id } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  // Refuse deletion if any future sessions have active bookings
+  const { data: futureSessions } = await supabase
+    .from('sessions')
+    .select('id')
+    .eq('service_id', id)
+    .gt('start_time', new Date().toISOString())
+    .neq('status', 'CANCELLED')
+
+  if (futureSessions && futureSessions.length > 0) {
+    const sessionIds = futureSessions.map((s: { id: string }) => s.id)
+    const { count: bookingCount } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .in('session_id', sessionIds)
+      .neq('status', 'CANCELLED')
+
+    if (bookingCount && bookingCount > 0) {
+      return NextResponse.json(
+        { error: `Cannot delete: ${bookingCount} upcoming booking${bookingCount !== 1 ? 's' : ''} exist across ${futureSessions.length} future session${futureSessions.length !== 1 ? 's' : ''}. Cancel the sessions first.` },
+        { status: 409 }
+      )
+    }
+  }
 
   await supabase.from('sessions').delete().eq('service_id', id)
   const { error } = await supabase.from('services').delete().eq('id', id)
