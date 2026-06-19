@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { signupPlans } from '@/lib/content'
-import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership } from '@/lib/db'
+import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS } from '@/lib/db'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
@@ -126,22 +126,20 @@ export async function POST(req: NextRequest) {
             ...(membershipEndDate ? { membershipEndDate } : {}),
           })
 
-          // Sync a memberships row so this member appears in the admin Memberships panel
+          // Sync memberships table — only for recurring plans, not packs/casual
           const today = new Date().toISOString().slice(0, 10)
-          await upsertMembership({
-            memberId:  member._id,
-            planName,
-            status:    'ACTIVE',
-            startDate: today,
-            endDate:   membershipEndDate ?? '',
-          })
+          const isPack = CREDIT_PLANS.some(p => planName.toLowerCase().includes(p.toLowerCase()))
+          if (!isPack) {
+            await upsertMembership({
+              memberId:  member._id,
+              planName,
+              status:    'ACTIVE',
+              startDate: today,
+              endDate:   membershipEndDate ?? '',
+            })
+          }
         }
 
-        await sendEmail(email, 'welcome', {
-          firstName,
-          planName,
-          bookingUrl: `${BASE_URL}/classes`,
-        })
       }
 
       await sendEmail(STUDIO_EMAIL, 'custom', {
@@ -202,6 +200,28 @@ export async function POST(req: NextRequest) {
         planOverride:  newPlanOverride,
         status:        newStatus,
       })
+      break
+    }
+
+    case 'setup_intent.succeeded': {
+      const si = event.data.object as { customer: string; payment_method: string; metadata: Record<string, string> }
+      const customerId     = si.customer
+      const paymentMethod  = si.payment_method
+      const memberId       = si.metadata?.memberId ?? ''
+      if (customerId && paymentMethod) {
+        await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: paymentMethod },
+        })
+      }
+      if (memberId) {
+        const member = await getMemberById(memberId)
+        if (member) {
+          await sendEmail(STUDIO_EMAIL, 'custom', {
+            subject: `Direct debit set up — ${member.firstName} ${member.lastName}`,
+            html: `<p>${member.firstName} ${member.lastName} (${member.email}) has completed their BECS direct debit setup. Their bank details are now saved in Stripe as the default payment method.</p>`,
+          })
+        }
+      }
       break
     }
 
