@@ -944,6 +944,8 @@ function ClientDrawer({
                 <p className="text-[12px] text-neutral-500 mt-0.5">
                   {activeMem
                     ? <>{activeMem.planName} · <span className={`font-medium ${activeMem.status === 'ACTIVE' ? 'text-neutral-800' : 'text-neutral-400'}`}>{activeMem.status.charAt(0) + activeMem.status.slice(1).toLowerCase()}</span></>
+                    : contact.planOverride
+                    ? <>{contact.planOverride} · <span className={`font-medium ${contact.memberStatus === 'active' ? 'text-green-700' : contact.memberStatus === 'inactive' ? 'text-red-600' : 'text-neutral-400'}`}>{contact.memberStatus ? contact.memberStatus.charAt(0).toUpperCase() + contact.memberStatus.slice(1) : ''}</span></>
                     : 'No active membership'
                   }
                 </p>
