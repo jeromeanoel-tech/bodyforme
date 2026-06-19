@@ -9,6 +9,7 @@ import {
   CREDIT_PLANS,
 } from '@/lib/db'
 import { getSession } from '@/lib/session'
+import { emailBookingCancelled, emailWaitlistBooked } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const session = await getSession()
@@ -19,11 +20,22 @@ export async function POST(req: NextRequest) {
 
   // get session details before cancelling (for email + waitlist)
   const booking = await getBookingWithSession(bookingId, session.id)
+  const cancelledMember = await getMemberByContactId(session.id)
 
   await cancelBooking(bookingId, session.id)
 
+  // Send cancellation confirmation email
+  if (booking && cancelledMember) {
+    emailBookingCancelled({
+      to:        cancelledMember.email,
+      firstName: cancelledMember.firstName,
+      className: booking.title,
+      startTime: booking.start_time,
+    }).catch(() => {})
+  }
+
   if (booking) {
-    // Promote next person off the waitlist (no email sent)
+    // Promote next person off the waitlist and notify them
     ;(async () => {
       if (booking.start_time && new Date(booking.start_time) > new Date()) {
         const next = await getFirstOnWaitlist(booking.sessionId)
@@ -46,7 +58,15 @@ export async function POST(req: NextRequest) {
           if (eligible) {
             try {
               const newBookingId = await createBooking(next.memberId, booking.sessionId)
-              if (newBookingId) await leaveWaitlist(next.memberId, booking.sessionId)
+              if (newBookingId) {
+                await leaveWaitlist(next.memberId, booking.sessionId)
+                emailWaitlistBooked({
+                  to:        nextMember!.email,
+                  firstName: nextMember!.firstName,
+                  className: booking.title,
+                  startTime: booking.start_time,
+                }).catch(() => {})
+              }
             } catch { /* booking failed — leave on waitlist */ }
           }
         }
