@@ -465,6 +465,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
             const memBadgeClass = mem
               ? MEM_STATUS_BADGE[mem.status] ?? 'bg-neutral-100 text-neutral-500'
               : contact.memberStatus === 'active'    ? 'bg-black text-white'
+              : contact.memberStatus === 'inactive'  ? 'bg-red-500 text-white'
               : contact.memberStatus === 'paused'    ? 'bg-neutral-200 text-neutral-600'
               : contact.memberStatus === 'cancelled' ? 'bg-neutral-100 text-neutral-400'
               : 'bg-neutral-100 text-neutral-500'
@@ -555,6 +556,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
                         {contact.memberStatus && (
                           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
                             contact.memberStatus === 'active'    ? 'bg-green-100 text-green-700' :
+                            contact.memberStatus === 'inactive'  ? 'bg-red-500 text-white' :
                             contact.memberStatus === 'paused'    ? 'bg-yellow-100 text-yellow-700' :
                             contact.memberStatus === 'cancelled' ? 'bg-red-100 text-red-600' :
                             'bg-neutral-100 text-neutral-500'

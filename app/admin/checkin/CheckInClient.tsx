@@ -9,7 +9,7 @@ type Props = {
 }
 
 type AttendeeState = Record<string, 'present' | 'absent' | 'loading'>
-type MemberResult  = { id: string; firstName: string; lastName: string; email: string }
+type MemberResult  = { id: string; firstName: string; lastName: string; email: string; status?: string; planOverride?: string; creditBalance?: number }
 
 function fmt12(iso: string) {
   if (!iso) return ''
@@ -315,21 +315,39 @@ export default function CheckInClient({ sessions, services }: Props) {
                       <p className="px-3 py-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider bg-neutral-50 border-b border-neutral-100">
                         Not booked — tap to add
                       </p>
-                      {unbookedSuggestions.map((m, i) => (
-                        <div key={m.id} className={`flex items-center justify-between px-3 py-3 ${i > 0 ? 'border-t border-neutral-100' : ''}`}>
-                          <div className="min-w-0 mr-2">
-                            <p className="text-[13px] font-medium text-neutral-900">{m.firstName} {m.lastName}</p>
-                            <p className="text-[11px] text-neutral-400 truncate">{m.email}</p>
+                      {unbookedSuggestions.map((m, i) => {
+                        const isInactive = m.status === 'inactive'
+                        return (
+                          <div key={m.id} className={`flex items-center justify-between px-3 py-3 ${i > 0 ? 'border-t border-neutral-100' : ''} ${isInactive ? 'bg-red-50' : ''}`}>
+                            <div className="min-w-0 mr-2">
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-[13px] font-medium text-neutral-900">{m.firstName} {m.lastName}</p>
+                                {isInactive && <span className="text-[9.5px] font-semibold bg-red-500 text-white px-1.5 py-0.5 rounded-full shrink-0">Inactive</span>}
+                              </div>
+                              {isInactive
+                                ? <p className="text-[11px] text-red-500 mt-0.5">Membership expired — must renew before check-in</p>
+                                : <p className="text-[11px] text-neutral-400 truncate">{m.email}</p>
+                              }
+                            </div>
+                            {isInactive ? (
+                              <a
+                                href={`/admin/pos?client=${encodeURIComponent(m.email ?? '')}&product=renew`}
+                                className="h-9 px-3 text-[12px] font-medium rounded-lg border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors shrink-0 touch-manipulation flex items-center"
+                              >
+                                Renew
+                              </a>
+                            ) : (
+                              <button
+                                onClick={() => addToSession(m)}
+                                disabled={addingId === m.id}
+                                className="h-9 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 transition-colors shrink-0 touch-manipulation"
+                              >
+                                {addingId === m.id ? '…' : 'Add'}
+                              </button>
+                            )}
                           </div>
-                          <button
-                            onClick={() => addToSession(m)}
-                            disabled={addingId === m.id}
-                            className="h-9 px-3 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 transition-colors shrink-0 touch-manipulation"
-                          >
-                            {addingId === m.id ? '…' : 'Add'}
-                          </button>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
@@ -464,17 +482,26 @@ export default function CheckInClient({ sessions, services }: Props) {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => toggleAttendance(b.id, state)}
-                        disabled={isLoading}
-                        className={`h-10 px-3 text-[12px] font-medium rounded-lg border transition-colors shrink-0 disabled:opacity-40 touch-manipulation ${
-                          isIn
-                            ? 'bg-black text-white border-black hover:bg-neutral-800'
-                            : 'bg-white text-neutral-600 border-neutral-200 hover:border-black hover:text-black'
-                        }`}
-                      >
-                        {isLoading ? '…' : isIn ? '✓ In' : 'Check in'}
-                      </button>
+                      {isExpired && !isIn ? (
+                        <a
+                          href={`/admin/pos?client=${encodeURIComponent(b.contactDetails.email)}&product=renew`}
+                          className="h-10 px-3 text-[12px] font-medium rounded-lg border border-red-300 bg-red-50 text-red-600 hover:bg-red-100 transition-colors shrink-0 touch-manipulation flex items-center"
+                        >
+                          Renew
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => toggleAttendance(b.id, state)}
+                          disabled={isLoading}
+                          className={`h-10 px-3 text-[12px] font-medium rounded-lg border transition-colors shrink-0 disabled:opacity-40 touch-manipulation ${
+                            isIn
+                              ? 'bg-black text-white border-black hover:bg-neutral-800'
+                              : 'bg-white text-neutral-600 border-neutral-200 hover:border-black hover:text-black'
+                          }`}
+                        >
+                          {isLoading ? '…' : isIn ? '✓ In' : 'Check in'}
+                        </button>
+                      )}
                     </div>
 
                     {/* Sell buttons row */}

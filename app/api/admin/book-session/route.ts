@@ -17,6 +17,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'memberId and sessionId required' }, { status: 400 })
   }
 
+  // Block inactive members — they must pay before being checked in
+  const { data: memberCheck } = await supabase
+    .from('members')
+    .select('status')
+    .eq('id', memberId)
+    .single()
+
+  if (memberCheck?.status === 'inactive') {
+    return NextResponse.json({ error: 'Membership inactive — member must renew before check-in.' }, { status: 403 })
+  }
+
   // Check if booking already exists (avoids relying on a named unique constraint)
   const { data: existing } = await supabase
     .from('bookings')
