@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getContacts, getMemberships } from '@/lib/db'
+import { getContacts } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 
 type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | 'no-membership'
@@ -16,12 +16,12 @@ function wrapHtml(firstName: string, body: string) {
     .map(para => `<p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 18px">${para.replace(/\n/g, '<br>')}</p>`)
     .join('')
 
-  return `<div style="background:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-  <div style="width:100%;max-width:600px;margin:0 auto;background:#fdfaf6;border:1px solid #d8ccba;overflow:hidden">
-    <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background:#fdfaf6">
+  return `<div style="color-scheme:light;background-color:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+  <div style="width:100%;max-width:600px;margin:0 auto;background-color:#fdfaf6;border:1px solid #d8ccba;overflow:hidden">
+    <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background-color:#f4ede1 !important">
       <img src="https://bodyforme.com.au/bodyforme-wordmark.png" alt="BODYFORME" width="180" style="display:block;width:180px;height:auto;border:0">
     </div>
-    <div style="padding:44px 48px 40px">
+    <div style="padding:44px 48px 40px;background-color:#fdfaf6">
       <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 24px">Hi ${firstName || 'there'},</p>
       ${bodyHtml}
       <div style="margin-top:32px;font-size:15px;line-height:1.7;color:#2a1506">Warm regards,</div>
@@ -35,7 +35,7 @@ function wrapHtml(firstName: string, body: string) {
         </div>
       </div>
     </div>
-    <div style="padding:28px 48px 36px;border-top:1px solid #d8ccba;background:#fdfaf6">
+    <div style="padding:28px 48px 36px;border-top:1px solid #d8ccba;background-color:#fdfaf6">
       <p style="font-size:12px;line-height:1.6;color:#a08568;margin:0">
         <strong style="color:#2a1506;font-weight:600">BodyForme Pilates</strong> — 132 Ayr Street, Doncaster VIC 3108
       </p>
@@ -45,6 +45,33 @@ function wrapHtml(firstName: string, body: string) {
     </div>
   </div>
 </div>`
+}
+
+function filterRecipients(contacts: Awaited<ReturnType<typeof getContacts>>, segment: Segment) {
+  const now          = Date.now()
+  const thirtyDaysAgo = now - 30 * 86400000
+
+  return contacts.filter(c => {
+    // Must have a real email and be active
+    if (!c.email || c.email.includes('@bodyforme.placeholder') || c.email.includes('@bodyforme.internal')) return false
+    if (c.memberStatus !== 'active') return false
+
+    switch (segment) {
+      case 'all':
+      case 'active-members':
+        return true
+      case 'expiring-soon': {
+        const expiry = c.endDate ?? c.nextBillingDate
+        if (!expiry) return false
+        const days = Math.ceil((new Date(expiry).getTime() - now) / 86400000)
+        return days >= 0 && days <= 14
+      }
+      case 'new-this-month':
+        return new Date(c.createdDate).getTime() >= thirtyDaysAgo
+      case 'no-membership':
+        return !c.planOverride
+    }
+  })
 }
 
 export async function POST(req: NextRequest) {
@@ -57,64 +84,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'segment, subject and body are required' }, { status: 400 })
     }
 
-    const [contacts, memberships] = await Promise.all([getContacts(), getMemberships()])
+    const contacts   = await getContacts()
+    const recipients = filterRecipients(contacts, segment)
 
-    const activeIds      = new Set(memberships.filter(m => m.status === 'ACTIVE').map(m => m.contactId))
-    const expiringIds    = new Set(
-      memberships
-        .filter(m => {
-          if (m.status !== 'ACTIVE' || !m.endDate) return false
-          const days = Math.ceil((new Date(m.endDate).getTime() - Date.now()) / 86400000)
-          return days >= 0 && days <= 14
-        })
-        .map(m => m.contactId)
-    )
-    const thirtyDaysAgo  = Date.now() - 30 * 86400000
-    const memberIds      = new Set(memberships.map(m => m.contactId))
-
-    const recipients = contacts.filter(c => {
-      if (!c.email || c.memberStatus !== 'active') return false
-      switch (segment) {
-        case 'all':            return true
-        case 'active-members': return activeIds.has(c.id)
-        case 'expiring-soon':  return expiringIds.has(c.id)
-        case 'new-this-month': return new Date(c.createdDate).getTime() >= thirtyDaysAgo
-        case 'no-membership':  return !memberIds.has(c.id)
-      }
-    })
-
-    let sent   = 0
-    let failed = 0
-
-    for (const contact of recipients) {
-      const firstName = contact.firstName || ''
-      const html      = wrapHtml(firstName, body)
-
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ from: FROM_ADDRESS, to: contact.email, subject, html }),
-      })
-
-      if (res.ok) sent++
-      else failed++
-
-      // Small delay to stay within Resend rate limits
-      if (sent + failed < recipients.length) {
-        await new Promise(r => setTimeout(r, 50))
-      }
+    if (recipients.length === 0) {
+      return NextResponse.json({ ok: true, sent: 0, failed: 0, total: 0 })
     }
 
-    return NextResponse.json({ ok: true, sent, failed, total: recipients.length })
+    // Use Resend batch API — single call, no loop, no timeout risk
+    const batch = recipients.map(c => ({
+      from:    FROM_ADDRESS,
+      to:      c.email,
+      subject,
+      html:    wrapHtml(c.firstName, body),
+    }))
+
+    const res = await fetch('https://api.resend.com/emails/batch', {
+      method:  'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body:    JSON.stringify(batch),
+    })
+
+    if (!res.ok) {
+      const err = await res.text()
+      return NextResponse.json({ error: err }, { status: res.status })
+    }
+
+    const data = await res.json()
+    const sent = Array.isArray(data) ? data.length : recipients.length
+
+    return NextResponse.json({ ok: true, sent, failed: 0, total: recipients.length })
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })
   }
 }
 
-// Preview how many recipients a segment would target (no emails sent)
+// Preview recipient count for a segment (no emails sent)
 export async function GET(req: NextRequest) {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -122,31 +127,8 @@ export async function GET(req: NextRequest) {
     const segment = req.nextUrl.searchParams.get('segment') as Segment
     if (!segment) return NextResponse.json({ error: 'segment required' }, { status: 400 })
 
-    const [contacts, memberships] = await Promise.all([getContacts(), getMemberships()])
-
-    const activeIds   = new Set(memberships.filter(m => m.status === 'ACTIVE').map(m => m.contactId))
-    const expiringIds = new Set(
-      memberships
-        .filter(m => {
-          if (m.status !== 'ACTIVE' || !m.endDate) return false
-          const days = Math.ceil((new Date(m.endDate).getTime() - Date.now()) / 86400000)
-          return days >= 0 && days <= 14
-        })
-        .map(m => m.contactId)
-    )
-    const thirtyDaysAgo = Date.now() - 30 * 86400000
-    const memberIds     = new Set(memberships.map(m => m.contactId))
-
-    const count = contacts.filter(c => {
-      if (!c.email || c.memberStatus !== 'active') return false
-      switch (segment) {
-        case 'all':            return true
-        case 'active-members': return activeIds.has(c.id)
-        case 'expiring-soon':  return expiringIds.has(c.id)
-        case 'new-this-month': return new Date(c.createdDate).getTime() >= thirtyDaysAgo
-        case 'no-membership':  return !memberIds.has(c.id)
-      }
-    }).length
+    const contacts = await getContacts()
+    const count    = filterRecipients(contacts, segment).length
 
     return NextResponse.json({ count })
   } catch (e) {

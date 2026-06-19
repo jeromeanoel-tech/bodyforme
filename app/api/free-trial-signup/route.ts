@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
       subject: 'Your free trial at BodyForme is confirmed',
       html: `<div style="background:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
   <div style="width:100%;max-width:600px;margin:0 auto;background:#fdfaf6;border:1px solid #d8ccba;overflow:hidden">
-    <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background:#fdfaf6">
+    <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background-color:#f4ede1 !important">
       <img src="https://bodyforme.com.au/bodyforme-wordmark.png" alt="BODYFORME" width="180" style="display:block;width:180px;height:auto;border:0">
     </div>
     <div style="padding:44px 48px 40px">

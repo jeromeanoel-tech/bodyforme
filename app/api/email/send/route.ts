@@ -17,7 +17,7 @@ interface EmailPayload {
 // ── Shared layout ─────────────────────────────────────────────────────────────
 
 const HEADER = `
-  <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background:#fdfaf6">
+  <div style="padding:32px 48px 28px;border-bottom:1px solid #d8ccba;background-color:#f4ede1 !important">
     <img src="${BASE}/bodyforme-wordmark.png" alt="BODYFORME" width="180" style="display:block;width:180px;height:auto;border:0">
   </div>`
 
@@ -32,10 +32,10 @@ const FOOTER = `
   </div>`
 
 function wrap(body: string) {
-  return `<div style="background:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
-  <div style="width:100%;max-width:600px;margin:0 auto;background:#fdfaf6;border:1px solid #d8ccba;overflow:hidden">
+  return `<div style="color-scheme:light;background:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
+  <div style="width:100%;max-width:600px;margin:0 auto;background-color:#fdfaf6;border:1px solid #d8ccba;overflow:hidden">
     ${HEADER}
-    <div style="padding:44px 48px 40px">
+    <div style="padding:44px 48px 40px;background-color:#fdfaf6">
       ${body}
     </div>
     ${FOOTER}

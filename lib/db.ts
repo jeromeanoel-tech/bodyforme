@@ -270,20 +270,22 @@ export async function getMemberships(): Promise<WixMembership[]> {
 export async function getContacts(): Promise<WixContact[]> {
   const { data } = await supabase
     .from('members')
-    .select('id, first_name, last_name, email, phone, created_at, plan_override, status')
+    .select('id, first_name, last_name, email, phone, created_at, plan_override, status, end_date, next_billing_date')
     .order('last_name')
     .order('first_name')
 
   // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
-    id:           r.id,
-    firstName:    r.first_name,
-    lastName:     r.last_name,
-    email:        r.email,
-    phone:        r.phone ?? '',
-    createdDate:  r.created_at,
-    planOverride: r.plan_override ?? undefined,
-    memberStatus: r.status ?? undefined,
+    id:              r.id,
+    firstName:       r.first_name,
+    lastName:        r.last_name,
+    email:           r.email,
+    phone:           r.phone ?? '',
+    createdDate:     r.created_at,
+    planOverride:    r.plan_override ?? undefined,
+    memberStatus:    r.status ?? undefined,
+    endDate:         r.end_date ?? undefined,
+    nextBillingDate: r.next_billing_date ?? undefined,
   }))
 }
 
