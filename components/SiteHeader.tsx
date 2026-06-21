@@ -57,18 +57,18 @@ export default function SiteHeader() {
             ))}
           </nav>
 
-          {/* Desktop: log in + book button */}
+          {/* Desktop: member app + book button */}
           <Link
-            href="/app/login"
+            href="/app"
             className="desk-book-btn"
-            style={{ fontSize: '10px', fontWeight: 400, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--mid)', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, borderBottom: '1px solid var(--rule)', paddingBottom: '1px' }}
+            style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'transparent', border: '1px solid var(--esp)', padding: '8px 18px', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, transition: 'background .2s, color .2s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--esp)'; e.currentTarget.style.color = 'var(--canvas)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--esp)' }}
           >
-            Log in
+            Member App
           </Link>
           <Link
-            href={studio.bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/free-trial"
             className="desk-book-btn"
             style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--canvas)', background: 'var(--esp)', padding: '9px 20px', textDecoration: 'none', whiteSpace: 'nowrap', transition: 'background .2s', flexShrink: 0 }}
             onMouseEnter={e => (e.currentTarget.style.background = 'var(--brown)')}
@@ -102,16 +102,14 @@ export default function SiteHeader() {
           ))}
           <div style={{ padding: '16px 24px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Link
-              href="/app/login"
+              href="/app"
               onClick={() => setOpen(false)}
-              style={{ display: 'block', padding: '14px 24px', fontSize: '10.5px', fontWeight: 400, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'transparent', border: '1px solid var(--rule)', textDecoration: 'none', textAlign: 'center' }}
+              style={{ display: 'block', padding: '14px 24px', fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'transparent', border: '1px solid var(--esp)', textDecoration: 'none', textAlign: 'center' }}
             >
-              Log in
+              Member App
             </Link>
             <Link
-              href={studio.bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/free-trial"
               onClick={() => setOpen(false)}
               style={{ display: 'block', padding: '14px 24px', fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--canvas)', background: 'var(--esp)', textDecoration: 'none', textAlign: 'center' }}
             >
