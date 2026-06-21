@@ -46,7 +46,10 @@ export async function POST(req: NextRequest) {
       capacity:        capacity ?? 10,
       status:          'CONFIRMED',
     }))
-    const { data, error } = await supabase.from('sessions').insert(rows).select('id')
+    const { data, error } = await supabase
+      .from('sessions')
+      .upsert(rows, { onConflict: 'service_id,start_time', ignoreDuplicates: true })
+      .select('id')
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     revalidatePath('/admin/schedule')
     revalidatePath('/admin/classes')

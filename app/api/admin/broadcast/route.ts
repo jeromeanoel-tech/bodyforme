@@ -7,6 +7,10 @@ type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | '
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
 
+function escHtml(s: string) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 function wrapHtml(firstName: string, body: string) {
   const bodyHtml = body
     .replace(/&/g, '&amp;')
@@ -22,7 +26,7 @@ function wrapHtml(firstName: string, body: string) {
       <img src="https://bodyforme.com.au/bodyforme-wordmark.png" alt="BODYFORME" width="180" style="display:block;width:180px;height:auto;border:0">
     </div>
     <div style="padding:44px 48px 40px;background-color:#fdfaf6">
-      <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 24px">Hi ${firstName || 'there'},</p>
+      <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 24px">Hi ${escHtml(firstName || 'there')},</p>
       ${bodyHtml}
       <div style="margin-top:32px;font-size:15px;line-height:1.7;color:#2a1506">Warm regards,</div>
       <div style="margin-top:20px;padding-top:20px;border-top:1px solid #d8ccba">
@@ -91,27 +95,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, sent: 0, failed: 0, total: 0 })
     }
 
-    // Use Resend batch API — single call, no loop, no timeout risk
-    const batch = recipients.map(c => ({
-      from:    FROM_ADDRESS,
-      to:      c.email,
-      subject,
-      html:    wrapHtml(c.firstName, body),
-    }))
+    // Resend batch API caps at 100 per call — chunk to stay within limit
+    const CHUNK = 100
+    let sent = 0
+    for (let i = 0; i < recipients.length; i += CHUNK) {
+      const chunk = recipients.slice(i, i + CHUNK)
+      const batch = chunk.map(c => ({
+        from:    FROM_ADDRESS,
+        to:      c.email,
+        subject,
+        html:    wrapHtml(c.firstName, body),
+      }))
 
-    const res = await fetch('https://api.resend.com/emails/batch', {
-      method:  'POST',
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body:    JSON.stringify(batch),
-    })
+      const res = await fetch('https://api.resend.com/emails/batch', {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify(batch),
+      })
 
-    if (!res.ok) {
-      const err = await res.text()
-      return NextResponse.json({ error: err }, { status: res.status })
+      if (!res.ok) {
+        const err = await res.text()
+        return NextResponse.json({ error: err, sent }, { status: res.status })
+      }
+
+      const data = await res.json()
+      sent += Array.isArray(data) ? data.length : chunk.length
     }
-
-    const data = await res.json()
-    const sent = Array.isArray(data) ? data.length : recipients.length
 
     return NextResponse.json({ ok: true, sent, failed: 0, total: recipients.length })
   } catch (e) {

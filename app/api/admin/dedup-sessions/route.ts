@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export async function POST(_req: NextRequest) {
   const admin = await getAdminSession()
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!admin || admin.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   // Fetch all sessions
   const { data: sessions, error } = await supabase
     .from('sessions')

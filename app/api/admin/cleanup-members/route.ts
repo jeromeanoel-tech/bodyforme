@@ -7,26 +7,17 @@ const supabase = createClient(
   process.env.SUPABASE_SECRET_KEY!,
 )
 
-const REAL_EMAILS = new Set([
-  'bonny_au@outlook.com','armitahashemi07@gmail.com','baric_i@yahoo.com','gregburgess@fastmail.com',
-  'lailaniburra@gmail.com','tiffaniecyy@gmail.com','mariachristofi__@hotmail.com','oclarke16@ford.com',
-  'anabelcrake@icloud.com','enzodaquino1@optusnet.com.au','michelle.edws@gmail.com','marissa.enderby@icloud.com',
-  'georgiafrey@gmail.com','jennifergip@gmail.com','rosalie.heckes@gmail.com','tchillier@gmail.com',
-  'rajkakarla@live.com','hediyeh.karimi@gmail.com','kylie_keats@yahoo.com.au','f.e.klonek@gmail.com',
-  'fattahi0410@gmail.com','lynda-kus@bigpond.com','monidlam@gmail.com','liangyu0210@hotmail.com',
-  'swmloo@hotmail.com','malhotra.akshra@gmail.com','dymatahari@gmail.com','miltiadou@bigpond.com',
-  'stephanie_monardo@hotmail.com','lauren.munari@gmail.com','rickyongsk@yahoo.com','nancyopasinis@gmail.com',
-  'nadenespaul@gmail.com','kpkiki11@hotmail.com','stevenrigoni@gmail.com','bartsaaf@gmail.com',
-  'sberna1@bigpond.com','robertasilluzio@jelliscraig.com.au','ifnotnowwhen1968@gmail.com','shoumyaat@gmail.com',
-  'julia.mai.trinh@gmail.com','jtsang26@gmail.com','tina.tsang@yahoo.com.au','rit.tse@iclubb.com',
-  'robertupton7@hotmail.com','yclyap@hotmail.com','karen_yau@hotmail.com','jack.zhuleyi@gmail.com',
-  'jerome.a.noel@gmail.com',
-])
-
-function isRealMember(email: string) {
-  if (REAL_EMAILS.has(email)) return true
-  if (email.includes('@bodyforme.placeholder')) return true  // placeholder emails for members without email
-  return false
+// A test account is one that was created only for development/testing.
+// We identify these by their email domain — never by absence from an allowlist,
+// which would delete real members who joined after the list was written.
+function isTestAccount(email: string) {
+  return (
+    email.includes('@bodyforme.placeholder') ||
+    email.includes('@bodyforme.internal') ||
+    email.includes('@bodyforme.test') ||
+    email.includes('@example.com') ||
+    email.endsWith('@test.com')
+  )
 }
 
 export async function GET(req: NextRequest) {
@@ -52,7 +43,7 @@ export async function GET(req: NextRequest) {
     .filter(([, rows]) => rows.length > 1)
     .map(([name, rows]) => ({ name, rows }))
 
-  const testAccounts = members.filter(m => !isRealMember(m.email))
+  const testAccounts = members.filter(m => isTestAccount(m.email))
 
   return NextResponse.json({ total: members.length, duplicates, testAccounts })
 }
@@ -75,7 +66,7 @@ export async function DELETE(req: NextRequest) {
   if (purgeTest) {
     // Delete any member whose email is not in the real members list and not a placeholder
     for (const m of members) {
-      if (!isRealMember(m.email)) toDelete.push(m.id)
+      if (isTestAccount(m.email)) toDelete.push(m.id)
     }
   } else {
     // Group by normalised name — keep the LAST created (the import), delete the rest

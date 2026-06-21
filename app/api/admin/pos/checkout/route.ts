@@ -25,6 +25,9 @@ export async function POST(req: NextRequest) {
     items:       CheckoutItem[]
   }
 
+  if (!memberId) {
+    return NextResponse.json({ error: 'memberId is required for POS sales' }, { status: 400 })
+  }
   if (!items?.length) {
     return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
   }

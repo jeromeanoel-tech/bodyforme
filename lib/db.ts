@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { createHash } from 'node:crypto'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -682,12 +683,18 @@ export async function getMemberBookingsForRange(
 
 // ── Password reset tokens ─────────────────────────────────────────────────────
 
+function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex')
+}
+
 export async function createPasswordResetToken(memberId: string): Promise<string> {
   const token = crypto.randomUUID() + '-' + crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  // Invalidate any previous unused tokens so old reset links can't be replayed
+  await supabase.from('password_reset_tokens').delete().eq('member_id', memberId).is('used_at', null)
   const { error } = await supabase
     .from('password_reset_tokens')
-    .insert({ member_id: memberId, token, expires_at: expiresAt })
+    .insert({ member_id: memberId, token: hashToken(token), expires_at: expiresAt })
   if (error) throw error
   return token
 }
@@ -698,7 +705,7 @@ export async function getPasswordResetToken(token: string): Promise<{
   const { data } = await supabase
     .from('password_reset_tokens')
     .select('member_id, expires_at, used_at')
-    .eq('token', token)
+    .eq('token', hashToken(token))
     .single()
   if (!data) return null
   return { memberId: data.member_id, expiresAt: data.expires_at, usedAt: data.used_at }
@@ -708,7 +715,7 @@ export async function markTokenUsed(token: string): Promise<void> {
   await supabase
     .from('password_reset_tokens')
     .update({ used_at: new Date().toISOString() })
-    .eq('token', token)
+    .eq('token', hashToken(token))
 }
 
 export async function updateMemberPassword(memberId: string, passwordHash: string): Promise<void> {
@@ -730,9 +737,11 @@ export async function getFreeTrialCount(): Promise<number> {
 export async function createAdminPasswordResetToken(username: string): Promise<string> {
   const token = crypto.randomUUID() + '-' + crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  // Invalidate any previous unused tokens so old reset links can't be replayed
+  await supabase.from('admin_password_resets').delete().eq('username', username).is('used_at', null)
   const { error } = await supabase
     .from('admin_password_resets')
-    .insert({ username, token, expires_at: expiresAt })
+    .insert({ username, token: hashToken(token), expires_at: expiresAt })
   if (error) throw error
   return token
 }
@@ -743,7 +752,7 @@ export async function getAdminPasswordResetToken(token: string): Promise<{
   const { data } = await supabase
     .from('admin_password_resets')
     .select('username, expires_at, used_at')
-    .eq('token', token)
+    .eq('token', hashToken(token))
     .single()
   if (!data) return null
   return { username: data.username, expiresAt: data.expires_at, usedAt: data.used_at }
@@ -753,7 +762,7 @@ export async function markAdminTokenUsed(token: string): Promise<void> {
   await supabase
     .from('admin_password_resets')
     .update({ used_at: new Date().toISOString() })
-    .eq('token', token)
+    .eq('token', hashToken(token))
 }
 
 export async function setAdminPasswordOverride(username: string, passwordHash: string): Promise<void> {
@@ -769,6 +778,14 @@ export async function getAdminPasswordOverride(username: string): Promise<string
     .eq('username', username)
     .single()
   return data?.password_hash ?? null
+}
+
+// ── Stripe event idempotency ──────────────────────────────────────────────────
+
+export async function recordStripeEvent(eventId: string): Promise<boolean> {
+  // Returns true if newly recorded (process this event), false if already seen (skip)
+  const { error } = await supabase.from('stripe_events').insert({ event_id: eventId })
+  return !error
 }
 
 // ── Schema (run once via /api/migrate) ───────────────────────────────────────
@@ -852,6 +869,11 @@ export async function runMigrations(): Promise<void> {
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`,
     `ALTER TABLE members ADD COLUMN IF NOT EXISTS paid_term TEXT NOT NULL DEFAULT ''`,
+    `CREATE TABLE IF NOT EXISTS stripe_events (
+      event_id   TEXT PRIMARY KEY,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS sessions_service_start_unique ON sessions (service_id, start_time)`,
   ]
 
   for (const sql of statements) {

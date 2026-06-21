@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { signupPlans } from '@/lib/content'
-import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS } from '@/lib/db'
+import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS, recordStripeEvent } from '@/lib/db'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-04-10' as never })
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
+
+  // Idempotency — skip events we've already processed (guards against Stripe retries)
+  const isNew = await recordStripeEvent(event.id)
+  if (!isNew) return NextResponse.json({ received: true })
 
   const obj = event.data.object as Record<string, unknown>
 

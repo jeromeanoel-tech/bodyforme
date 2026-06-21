@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
   const STUDIO_EMAIL  = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
   const fullAddress   = [address, suburb, state, postcode].filter(Boolean).join(', ')
 
+  const esc = (s: string) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
   if (!RESEND_KEY) {
     // Still return success so the user isn't blocked — studio will follow up manually
     console.warn('RESEND_API_KEY not set — free trial registration not emailed')
@@ -55,10 +57,10 @@ export async function POST(req: NextRequest) {
       html: `
         <h2>New Free Trial Registration</h2>
         <table>
-          <tr><td><strong>Name</strong></td><td>${firstName} ${lastName}</td></tr>
-          <tr><td><strong>Email</strong></td><td>${email}</td></tr>
-          <tr><td><strong>Phone</strong></td><td>${phone}</td></tr>
-          <tr><td><strong>Address</strong></td><td>${fullAddress}</td></tr>
+          <tr><td><strong>Name</strong></td><td>${esc(firstName)} ${esc(lastName)}</td></tr>
+          <tr><td><strong>Email</strong></td><td>${esc(email)}</td></tr>
+          <tr><td><strong>Phone</strong></td><td>${esc(phone)}</td></tr>
+          <tr><td><strong>Address</strong></td><td>${esc(fullAddress)}</td></tr>
         </table>
         <p>Follow up to confirm their first class booking.</p>
       `,
