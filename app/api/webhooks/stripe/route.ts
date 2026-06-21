@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
             let newCreditBalance = member.creditBalance
             let newPlanOverride  = member.planOverride
             let newStatus        = member.status ?? 'active'
+            let setPlanName: string | null = null
 
             for (const action of actions) {
               if (action.memberAction === 'add_credits') {
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
               } else if (action.memberAction === 'set_plan') {
                 newPlanOverride = action.planName
                 newStatus       = 'active'
+                setPlanName     = action.planName
               }
             }
 
@@ -83,6 +85,17 @@ export async function POST(req: NextRequest) {
               planOverride:  newPlanOverride,
               status:        newStatus,
             })
+
+            // Sync memberships table so Admin > Memberships shows this plan
+            if (setPlanName) {
+              await upsertMembership({
+                memberId,
+                planName:  setPlanName,
+                status:    'ACTIVE',
+                startDate: new Date().toISOString().slice(0, 10),
+                endDate:   '',
+              })
+            }
           }
         }
         break
@@ -167,6 +180,45 @@ export async function POST(req: NextRequest) {
       break
     }
 
+    case 'invoice.paid': {
+      // Recurring subscription renewed — keep end date and status fresh in DB
+      const inv = event.data.object as {
+        customer: string
+        lines: { data: { period: { end: number }; price: { nickname: string | null } }[] }
+      }
+      const renewedCustomerId = inv.customer
+      if (!renewedCustomerId) break
+
+      const renewedMember = await getMemberByStripeCustomerId(renewedCustomerId)
+      if (!renewedMember) break
+
+      const periodEnd   = inv.lines?.data?.[0]?.period?.end
+      const newEndDate  = periodEnd
+        ? new Date(periodEnd * 1000).toISOString().slice(0, 10)
+        : undefined
+
+      const nextBill    = periodEnd
+        ? new Date(periodEnd * 1000).toISOString().slice(0, 10)
+        : undefined
+
+      await updateMemberCredential(renewedMember._id, {
+        status: 'active',
+        ...(newEndDate ? { membershipEndDate: newEndDate } : {}),
+        ...(nextBill  ? { nextBillingDate:   nextBill }  : {}),
+      })
+
+      // Keep memberships table end date in sync
+      const renewedPlan = inv.lines?.data?.[0]?.price?.nickname ?? renewedMember.planOverride ?? ''
+      await upsertMembership({
+        memberId:  renewedMember._id,
+        planName:  renewedPlan,
+        status:    'ACTIVE',
+        startDate: '',
+        endDate:   newEndDate ?? '',
+      })
+      break
+    }
+
     case 'invoice.payment_failed': {
       const email     = (obj.customer_email as string) ?? ''
       const firstName = (obj.customer_name  as string)?.split(' ')[0] ?? ''
@@ -195,12 +247,14 @@ export async function POST(req: NextRequest) {
       let newPlanOverride  = member.planOverride
       let newStatus        = member.status ?? 'active'
 
+      let terminalSetPlan: string | null = null
       for (const action of actions) {
         if (action.memberAction === 'add_credits') {
           newCreditBalance += (action.creditAmount ?? 0) * (action.quantity ?? 1)
         } else if (action.memberAction === 'set_plan') {
-          newPlanOverride = action.planName
-          newStatus       = 'active'
+          newPlanOverride  = action.planName
+          newStatus        = 'active'
+          terminalSetPlan  = action.planName
         }
       }
 
@@ -209,6 +263,17 @@ export async function POST(req: NextRequest) {
         planOverride:  newPlanOverride,
         status:        newStatus,
       })
+
+      // Sync memberships table so Admin > Memberships shows this plan
+      if (terminalSetPlan) {
+        await upsertMembership({
+          memberId,
+          planName:  terminalSetPlan,
+          status:    'ACTIVE',
+          startDate: new Date().toISOString().slice(0, 10),
+          endDate:   '',
+        })
+      }
       break
     }
 
