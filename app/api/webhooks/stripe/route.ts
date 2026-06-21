@@ -159,8 +159,8 @@ export async function POST(req: NextRequest) {
 
       }
 
-      // Send welcome email to the new member
-      if (email && firstName) {
+      // Send welcome email — skip free-trial (they already got a confirmation from the free-trial-signup route)
+      if (email && firstName && planKey !== 'free-trial') {
         await sendEmail(email, 'welcome', { firstName }).catch(() => {})
       }
 

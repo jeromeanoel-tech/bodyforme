@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getSession } from '@/lib/session'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,7 +31,10 @@ export async function GET(
 ) {
   const { memberId } = await params
 
-  // Verify member exists (UUID is hard to guess — no auth token needed)
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  if (session.id !== memberId) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const { data: member } = await supabase
     .from('members')
     .select('id, first_name')

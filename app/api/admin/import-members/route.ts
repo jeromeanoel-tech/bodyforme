@@ -131,14 +131,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (!existing || force) {
-      await supabase.from('memberships').insert({
+      // Upsert — not insert — so force re-runs don't create duplicate membership rows
+      await supabase.from('memberships').upsert({
         member_id:  member.id,
         plan_id:    m.planOverride.toLowerCase().replace(/[\s/]+/g, '-'),
         plan_name:  m.plan,
         status:     'ACTIVE',
         start_date: m.startDate,
         end_date:   m.endDate,
-      })
+      }, { onConflict: 'member_id' })
     }
 
     results.push({ name: `${m.firstName} ${m.lastName}`, status: existing ? 'updated' : 'created' })

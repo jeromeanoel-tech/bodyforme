@@ -9,6 +9,9 @@ const supabase = createClient(
 )
 
 export async function GET(req: NextRequest) {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const serviceId = req.nextUrl.searchParams.get('serviceId')
   if (!serviceId) return NextResponse.json({ error: 'serviceId required' }, { status: 400 })
 
@@ -105,6 +108,20 @@ export async function DELETE(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const { id } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  // Block deletion if confirmed bookings exist — cancel the session instead
+  const { count: bookedCount } = await supabase
+    .from('bookings')
+    .select('id', { count: 'exact', head: true })
+    .eq('session_id', id)
+    .eq('status', 'CONFIRMED')
+
+  if (bookedCount && bookedCount > 0) {
+    return NextResponse.json(
+      { error: `Cannot delete: ${bookedCount} confirmed booking${bookedCount !== 1 ? 's' : ''} exist. Cancel the session first to notify members and restore credits.` },
+      { status: 409 },
+    )
+  }
 
   const { error } = await supabase.from('sessions').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

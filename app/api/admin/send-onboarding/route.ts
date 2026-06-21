@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     try {
       const res = await fetch(`${BASE}/api/email/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-internal-key': process.env.STRIPE_WEBHOOK_SECRET ?? '' },
         body: JSON.stringify({
           to: m.email,
           template: 'member-onboarding',

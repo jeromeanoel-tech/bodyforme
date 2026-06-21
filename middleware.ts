@@ -25,8 +25,7 @@ export async function middleware(req: NextRequest) {
     try {
       await jwtVerify(token, SECRET())
     } catch {
-      // If verification fails due to edge env issue, check (tabs)/layout.tsx server-side instead
-      return NextResponse.next()
+      return NextResponse.redirect(new URL('/app/login', req.url))
     }
   }
 

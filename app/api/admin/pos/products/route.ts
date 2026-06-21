@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { getAdminSession } from '@/lib/adminSession'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,9 @@ export type PosProduct = {
 }
 
 export async function GET() {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const products = await stripe.products.list({ active: true, limit: 100 })
 
   const posProducts = products.data.filter(p => p.metadata.pos === 'true')

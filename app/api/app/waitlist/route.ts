@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { joinWaitlist, leaveWaitlist, getMemberWaitlistInRange } from '@/lib/db'
 import { getSession } from '@/lib/session'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SECRET_KEY!,
+)
 
 // GET /api/app/waitlist?from=...&to=...  → list of session IDs the member is waiting on
 export async function GET(req: NextRequest) {
@@ -20,6 +26,19 @@ export async function POST(req: NextRequest) {
 
   const { sessionId } = await req.json()
   if (!sessionId) return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
+
+  // Prevent joining waitlist for a class already confirmed-booked
+  const { data: existing } = await supabase
+    .from('bookings')
+    .select('id')
+    .eq('member_id', session.id)
+    .eq('session_id', sessionId)
+    .eq('status', 'CONFIRMED')
+    .single()
+
+  if (existing) {
+    return NextResponse.json({ error: 'You already have a confirmed booking for this class.' }, { status: 409 })
+  }
 
   await joinWaitlist(session.id, sessionId)
   return NextResponse.json({ ok: true })
