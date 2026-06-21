@@ -70,12 +70,15 @@ const RULE = `<div style="height:1px;background:#d8ccba;margin:32px 0"></div>`
 // ── Send ──────────────────────────────────────────────────────────────────────
 
 async function sendEmail(to: string, subject: string, html: string) {
-  if (!RESEND_API_KEY) return
+  if (!RESEND_API_KEY) {
+    console.error('[email] RESEND_API_KEY is not set — email not sent:', subject)
+    return
+  }
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: FROM, to, subject, html }),
-  }).catch(() => {})
+  }).catch((err) => console.error('[email] send failed to', to, ':', err))
 }
 
 function fmtDate(iso: string) {

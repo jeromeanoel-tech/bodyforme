@@ -20,9 +20,12 @@ export async function POST(req: NextRequest) {
   // Fetch session title/time for notification emails before cancelling
   const { data: sess } = await supabase
     .from('sessions')
-    .select('title, start_time')
+    .select('title, start_time, status')
     .eq('id', sessionId)
     .single()
+
+  if (!sess) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+  if (sess.status === 'CANCELLED') return NextResponse.json({ ok: true, cancelledBookings: 0, alreadyCancelled: true })
 
   const { error } = await supabase
     .from('sessions')
@@ -52,24 +55,27 @@ export async function POST(req: NextRequest) {
       const m = (b as any).members
       if (!m) continue
 
-      // Restore one credit for pack-plan members
+      // Restore one credit for pack-plan members — re-fetch balance to avoid stale-read race
       const plan   = (m.plan_override ?? '').toLowerCase()
       const isPack = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
-      if (isPack && typeof m.credit_balance === 'number') {
-        await supabase
-          .from('members')
-          .update({ credit_balance: m.credit_balance + 1 })
-          .eq('id', b.member_id)
+      if (isPack) {
+        const { data: fresh } = await supabase.from('members').select('credit_balance').eq('id', b.member_id).single()
+        if (fresh && typeof fresh.credit_balance === 'number') {
+          await supabase
+            .from('members')
+            .update({ credit_balance: fresh.credit_balance + 1 })
+            .eq('id', b.member_id)
+        }
       }
 
       // Email member — skip placeholder addresses
-      if (sess && m.email && !m.email.includes('.placeholder')) {
+      if (m.email && !m.email.includes('.placeholder')) {
         emailBookingCancelled({
           to:        m.email,
           firstName: m.first_name ?? '',
           className: sess.title ?? 'your class',
           startTime: sess.start_time ?? '',
-        }).catch(() => {})
+        }).catch((err) => console.error('[cancel-session] email failed for', m.email, err))
       }
     }
   }

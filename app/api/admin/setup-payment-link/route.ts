@@ -24,7 +24,11 @@ export async function POST(req: NextRequest) {
       metadata: { memberId: member._id },
     })
     customerId = customer.id
-    await updateMemberCredential(member._id, { stripeCustomerId: customerId })
+    try {
+      await updateMemberCredential(member._id, { stripeCustomerId: customerId })
+    } catch (err) {
+      console.error('[setup-payment-link] Failed to save Stripe customer ID', member._id, customerId, err)
+    }
   }
 
   const checkout = await stripe.checkout.sessions.create({

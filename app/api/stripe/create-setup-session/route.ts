@@ -30,10 +30,14 @@ export async function POST(req: NextRequest) {
       metadata: { memberId: member._id },
     })
     customerId = customer.id
-    await updateMemberCredential(member._id, { stripeCustomerId: customerId })
+    try {
+      await updateMemberCredential(member._id, { stripeCustomerId: customerId })
+    } catch (err) {
+      console.error('[create-setup-session] Failed to save Stripe customer ID', member._id, customerId, err)
+    }
   }
 
-  const session = await stripe.checkout.sessions.create({
+  const checkoutSession = await stripe.checkout.sessions.create({
     mode:                 'setup',
     customer:             customerId,
     payment_method_types: ['au_becs_debit'],
@@ -45,5 +49,5 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  return NextResponse.json({ url: session.url })
+  return NextResponse.json({ url: checkoutSession.url })
 }

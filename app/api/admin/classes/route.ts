@@ -42,6 +42,9 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function GET() {
+  const admin = await getAdminSession()
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const { data: services, error } = await supabase
     .from('services')
     .select('id, name, description, duration, capacity, created_at')
@@ -91,7 +94,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   const admin = await getAdminSession()
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!admin || admin.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const { id } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 

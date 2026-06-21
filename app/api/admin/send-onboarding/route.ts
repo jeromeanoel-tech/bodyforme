@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
   const session = await getAdminSession()
   if (!session || session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+  const body = await req.json().catch(() => ({})) as { confirmed?: boolean }
   const { data: members, error } = await supabase
     .from('members')
     .select('id, email, first_name')
@@ -26,13 +27,22 @@ export async function POST(req: NextRequest) {
   // Skip placeholder emails
   const targets = members.filter(m => m.email && !PLACEHOLDER_RE.test(m.email))
 
+  // Safety guard — require explicit confirmation to prevent accidental double-sends
+  if (!body.confirmed) {
+    return NextResponse.json({
+      preview: true,
+      total: targets.length,
+      message: `This will send onboarding emails to ${targets.length} member${targets.length !== 1 ? 's' : ''}. POST with { confirmed: true } to proceed.`,
+    })
+  }
+
   const results: { email: string; ok: boolean; error?: string }[] = []
 
   for (const m of targets) {
     try {
       const res = await fetch(`${BASE}/api/email/send`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-internal-key': process.env.STRIPE_WEBHOOK_SECRET ?? '' },
+        headers: { 'Content-Type': 'application/json', 'x-internal-key': process.env.INTERNAL_EMAIL_KEY ?? process.env.STRIPE_WEBHOOK_SECRET ?? '' },
         body: JSON.stringify({
           to: m.email,
           template: 'member-onboarding',

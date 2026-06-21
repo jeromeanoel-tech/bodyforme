@@ -16,12 +16,15 @@ function toMemberStatus(s: string): string {
   return 'inactive'
 }
 
+const VALID_STATUSES = new Set(['ACTIVE', 'CANCELLED', 'CANCELED', 'PAUSED', 'ENDED'])
+
 export async function PATCH(req: NextRequest) {
   const admin = await getAdminSession()
-  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!admin || admin.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { id, status } = await req.json()
   if (!id || !status) return NextResponse.json({ error: 'id and status required' }, { status: 400 })
+  if (!VALID_STATUSES.has(status)) return NextResponse.json({ error: `Invalid status. Must be one of: ${[...VALID_STATUSES].join(', ')}` }, { status: 400 })
 
   const { error } = await supabase
     .from('memberships')

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/adminSession'
 import { createClient } from '@supabase/supabase-js'
+import { CREDIT_PLANS } from '@/lib/db'
+import { emailBookingConfirmed } from '@/lib/email'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +21,7 @@ export async function POST(req: NextRequest) {
   // Verify member exists and is not inactive
   const { data: member } = await supabase
     .from('members')
-    .select('id, first_name, last_name, status')
+    .select('id, first_name, last_name, email, status, plan_override, credit_balance')
     .eq('id', memberId)
     .single()
 
@@ -74,8 +76,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Booking failed' }, { status: 500 })
   }
 
+  // Check if pack-plan member has sufficient credits and warn if not
+  const plan    = (member.plan_override ?? '').toLowerCase()
+  const isPack  = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
+  const lowCredits = isPack && (member.credit_balance ?? 0) <= 0
+
+  // Send booking confirmation to member (skip placeholder addresses)
+  if (member.email && !member.email.includes('.placeholder')) {
+    emailBookingConfirmed({
+      to:        member.email,
+      firstName: member.first_name ?? '',
+      className: session.title,
+      startTime: session.start_time,
+    }).catch((err) => console.error('[advance-book] confirmation email failed', err))
+  }
+
   return NextResponse.json({
     ok: true,
+    lowCredits,
     booking: {
       id:       inserted.id,
       status:   'CONFIRMED',

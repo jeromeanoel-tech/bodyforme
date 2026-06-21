@@ -20,7 +20,11 @@ export async function POST() {
       metadata: { memberId: member._id },
     })
     customerId = customer.id
-    await updateMemberCredential(member._id, { stripeCustomerId: customerId })
+    try {
+      await updateMemberCredential(member._id, { stripeCustomerId: customerId })
+    } catch (err) {
+      console.error('[setup-intent] Failed to save Stripe customer ID', member._id, customerId, err)
+    }
   }
 
   const intent = await stripe.setupIntents.create({

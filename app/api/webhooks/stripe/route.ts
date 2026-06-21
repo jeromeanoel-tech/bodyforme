@@ -12,7 +12,7 @@ async function sendEmail(to: string, template: string, vars: Record<string, stri
     method: 'POST',
     headers: {
       'Content-Type':  'application/json',
-      'x-internal-key': process.env.STRIPE_WEBHOOK_SECRET ?? '',
+      'x-internal-key': process.env.INTERNAL_EMAIL_KEY ?? process.env.STRIPE_WEBHOOK_SECRET ?? '',
     },
     body: JSON.stringify({ to, template, vars }),
   })

@@ -7,6 +7,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
+  // Basic email format check
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+  }
+
+  const esc = (s: string) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+
   const RESEND_KEY = process.env.RESEND_API_KEY
   const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
 
@@ -23,10 +30,10 @@ export async function POST(req: NextRequest) {
       replyTo: email,
       subject: `Website enquiry: ${subject ?? 'General'}`,
       html: `
-        <p><strong>From:</strong> ${name} (${email})</p>
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>From:</strong> ${esc(name)} (${esc(email)})</p>
+        <p><strong>Subject:</strong> ${esc(subject)}</p>
         <hr />
-        <p>${message.replace(/\n/g, '<br />')}</p>
+        <p>${esc(message).replace(/\n/g, '<br />')}</p>
       `,
     }),
   })

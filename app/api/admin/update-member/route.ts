@@ -33,8 +33,25 @@ export async function PATCH(req: NextRequest) {
   const { contactId, ...patch } = body
   if (!contactId) return NextResponse.json({ error: 'contactId required' }, { status: 400 })
 
+  const VALID_STATUSES = ['active', 'inactive', 'paused', 'past_due']
+  if (patch.status !== undefined && !VALID_STATUSES.includes(patch.status)) {
+    return NextResponse.json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 })
+  }
+  if (typeof patch.creditBalance === 'number' && patch.creditBalance < 0) {
+    return NextResponse.json({ error: 'creditBalance cannot be negative' }, { status: 400 })
+  }
+
   const member = await getMemberByContactId(contactId)
   if (!member) return NextResponse.json({ error: 'No member record found for this contact' }, { status: 404 })
+
+  // If email is changing, verify it's not already used by another member
+  if (patch.email && patch.email.toLowerCase() !== member.email.toLowerCase()) {
+    const { getMemberByEmail } = await import('@/lib/db')
+    const conflict = await getMemberByEmail(patch.email.toLowerCase())
+    if (conflict && conflict._id !== member._id) {
+      return NextResponse.json({ error: 'That email address is already used by another member' }, { status: 409 })
+    }
+  }
 
   await updateMemberCredential(member._id, patch)
 

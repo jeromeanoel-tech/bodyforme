@@ -14,10 +14,13 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q')?.trim() ?? ''
   if (q.length < 2) return NextResponse.json({ members: [] })
 
+  // Escape LIKE wildcards to prevent pattern injection
+  const safeQ = q.replace(/[%_\\]/g, '\\$&')
+
   const { data } = await supabase
     .from('members')
     .select('id, first_name, last_name, email, plan_override, credit_balance, status')
-    .or(`first_name.ilike.%${q}%,last_name.ilike.%${q}%,email.ilike.%${q}%`)
+    .or(`first_name.ilike.%${safeQ}%,last_name.ilike.%${safeQ}%,email.ilike.%${safeQ}%`)
     .limit(10)
 
   // eslint-disable-next-line

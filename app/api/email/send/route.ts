@@ -285,8 +285,9 @@ export async function POST(req: NextRequest) {
     // All templates require an internal key — prevents unauthenticated callers from
     // sending branded email through our Resend account
     const internalKey = req.headers.get('x-internal-key')
-    const expected    = process.env.STRIPE_WEBHOOK_SECRET ?? ''
-    if (!expected || internalKey !== expected) {
+    // Accept either a dedicated INTERNAL_EMAIL_KEY or fall back to STRIPE_WEBHOOK_SECRET
+    const validKeys = [process.env.INTERNAL_EMAIL_KEY, process.env.STRIPE_WEBHOOK_SECRET].filter(Boolean)
+    if (validKeys.length === 0 || !validKeys.includes(internalKey ?? '')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

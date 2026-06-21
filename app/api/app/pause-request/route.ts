@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
 
   const { startDate, weeks, reason } = await req.json()
   if (!startDate || !weeks) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+  if (isNaN(new Date(startDate).getTime())) return NextResponse.json({ error: 'Invalid start date' }, { status: 400 })
+  const weeksNum = Number(weeks)
+  if (!Number.isInteger(weeksNum) || weeksNum < 1 || weeksNum > 12) return NextResponse.json({ error: 'Weeks must be a whole number between 1 and 12' }, { status: 400 })
 
   const member = await getMemberByContactId(session.id)
   if (!member) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
@@ -40,7 +43,7 @@ export async function POST(req: NextRequest) {
       <tr><td style="padding:6px 12px 6px 0;color:#888;font-size:13px">Phone</td><td>${member.phone || '—'}</td></tr>
       <tr><td style="padding:6px 12px 6px 0;color:#888;font-size:13px">Pause from</td><td>${startStr}</td></tr>
       <tr><td style="padding:6px 12px 6px 0;color:#888;font-size:13px">Duration</td><td>${weeks} week${weeks !== 1 ? 's' : ''} (until ${endStr})</td></tr>
-      ${reason ? `<tr><td style="padding:6px 12px 6px 0;color:#888;font-size:13px;vertical-align:top">Reason</td><td>${reason}</td></tr>` : ''}
+      ${reason ? `<tr><td style="padding:6px 12px 6px 0;color:#888;font-size:13px;vertical-align:top">Reason</td><td>${String(reason).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</td></tr>` : ''}
     </table>
     <p style="color:#666;font-size:13px">Action needed: process the pause in Stripe and confirm with the member.</p>
   `)
