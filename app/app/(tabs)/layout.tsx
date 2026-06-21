@@ -3,6 +3,7 @@ import { getSession } from '@/lib/session'
 import { SessionProvider } from '@/components/app/SessionProvider'
 import TabBar from '@/components/app/TabBar'
 import LiveClock from '@/components/LiveClock'
+import MembershipBanner from '@/components/app/MembershipBanner'
 
 export default async function TabsLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -24,6 +25,7 @@ export default async function TabsLayout({ children }: { children: React.ReactNo
         }}>
           <LiveClock variant="member" />
         </div>
+        <MembershipBanner />
         <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
           {children}
         </div>
