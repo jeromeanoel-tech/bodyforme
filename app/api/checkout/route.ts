@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { signupPlans } from '@/lib/content'
+import { getMemberByEmail } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -24,9 +25,16 @@ export async function POST(req: NextRequest) {
   const successUrl = `${base}/sign-up/success?type=${plan.mode}&session_id={CHECKOUT_SESSION_ID}`
   const cancelUrl  = `${base}/sign-up?plan=${planKey}`
 
+  // Reuse existing Stripe customer if the member already has one — prevents
+  // duplicate Stripe customers when a lapsed member re-subscribes
+  const existingMember     = await getMemberByEmail(email.toLowerCase().trim())
+  const existingCustomerId = existingMember?.stripeCustomerId ?? ''
+
   const sessionPayload: Record<string, unknown> = {
     mode:                 plan.mode === 'subscription' ? 'subscription' : 'payment',
-    customer_email:       email,
+    ...(existingCustomerId
+      ? { customer: existingCustomerId }
+      : { customer_email: email }),
     success_url:          successUrl,
     cancel_url:           cancelUrl,
     allow_promotion_codes: true,
@@ -61,8 +69,8 @@ export async function POST(req: NextRequest) {
       state,
       postcode,
     },
-    // Pre-fill customer name
-    customer_creation: plan.mode === 'payment' ? 'if_required' : undefined,
+    // customer_creation only valid when no explicit customer is provided
+    ...(!existingCustomerId && plan.mode === 'payment' ? { customer_creation: 'if_required' } : {}),
   }
 
   if (plan.mode === 'subscription') {

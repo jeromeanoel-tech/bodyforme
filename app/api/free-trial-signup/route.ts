@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
+import { getMemberByEmail, updateMemberCredential, upsertMembership } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
@@ -24,6 +24,14 @@ export async function POST(req: NextRequest) {
     status:        'active',
     planOverride:  'Free Trial',
     creditBalance: 1,
+  })
+
+  await upsertMembership({
+    memberId:  member._id,
+    planName:  'Free Trial',
+    status:    'ACTIVE',
+    startDate: new Date().toISOString().slice(0, 10),
+    endDate:   '',
   })
 
   const RESEND_KEY    = process.env.RESEND_API_KEY

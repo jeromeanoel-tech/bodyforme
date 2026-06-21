@@ -220,12 +220,34 @@ export async function POST(req: NextRequest) {
     }
 
     case 'invoice.payment_failed': {
-      const email     = (obj.customer_email as string) ?? ''
-      const firstName = (obj.customer_name  as string)?.split(' ')[0] ?? ''
-      const planName  = ((obj.lines as { data: { description: string }[] })?.data?.[0]?.description) ?? 'membership'
+      const inv = event.data.object as {
+        customer: string
+        customer_email: string
+        customer_name: string
+        lines: { data: { description: string }[] }
+      }
+      const email     = inv.customer_email ?? ''
+      const firstName = inv.customer_name?.split(' ')[0] ?? ''
+      const planName  = inv.lines?.data?.[0]?.description ?? 'membership'
+
+      // Mark member past_due in DB so admin can see it
+      if (inv.customer) {
+        const failedMember = await getMemberByStripeCustomerId(inv.customer)
+        if (failedMember) {
+          await updateMemberCredential(failedMember._id, { status: 'past_due' })
+        }
+      }
+
+      // Notify member
       if (email) {
         await sendEmail(email, 'payment-failed', { firstName, planName })
       }
+
+      // Alert studio so they can follow up
+      await sendEmail(STUDIO_EMAIL, 'custom', {
+        subject: `Payment failed — ${firstName || email}`,
+        html: `<p>A membership payment failed for <strong>${firstName || email}</strong> (${email}).</p><p>Plan: ${planName}</p><p>Their status has been set to <strong>past_due</strong>. Please follow up in Stripe and contact the member.</p>`,
+      })
       break
     }
 
@@ -302,9 +324,11 @@ export async function POST(req: NextRequest) {
     case 'customer.subscription.updated': {
       // Sync plan/status changes made via Stripe Portal (upgrade, downgrade, pause, resume)
       const sub = event.data.object as {
+        id: string
         customer: string
         status: string
-        items: { data: { price: { nickname: string | null } }[] }
+        current_period_end: number
+        items: { data: { price: { id: string; nickname: string | null } }[] }
         pause_collection: { behavior: string } | null
       }
       const updatedCustomerId = sub.customer
@@ -313,9 +337,22 @@ export async function POST(req: NextRequest) {
       const member = await getMemberByStripeCustomerId(updatedCustomerId)
       if (!member) break
 
-      const stripeStatus = sub.status // 'active', 'paused', 'canceled', 'past_due', etc.
+      const stripeStatus = sub.status
       const isPaused     = !!sub.pause_collection
-      const planNickname = sub.items?.data?.[0]?.price?.nickname ?? ''
+      const priceId      = sub.items?.data?.[0]?.price?.id ?? ''
+      let   planNickname = sub.items?.data?.[0]?.price?.nickname ?? ''
+
+      // Fall back to product name if price has no nickname
+      if (!planNickname && priceId) {
+        try {
+          const price = await stripe.prices.retrieve(priceId, { expand: ['product'] }) as Stripe.Price & { product: Stripe.Product }
+          planNickname = price.nickname ?? (price.product as Stripe.Product)?.name ?? ''
+        } catch { /* keep planNickname empty */ }
+      }
+
+      const newEndDate = sub.current_period_end
+        ? new Date(sub.current_period_end * 1000).toISOString().slice(0, 10)
+        : undefined
 
       let newStatus: string = member.status ?? 'active'
       if (stripeStatus === 'active' && !isPaused) newStatus = 'active'
@@ -324,8 +361,9 @@ export async function POST(req: NextRequest) {
       else if (stripeStatus === 'canceled')        newStatus = 'inactive'
 
       await updateMemberCredential(member._id, {
-        status:      newStatus,
+        status: newStatus,
         ...(planNickname ? { planOverride: planNickname } : {}),
+        ...(newEndDate   ? { membershipEndDate: newEndDate, nextBillingDate: newEndDate } : {}),
       })
 
       await upsertMembership({
@@ -333,7 +371,7 @@ export async function POST(req: NextRequest) {
         planName:  planNickname || member.planOverride || '',
         status:    stripeStatus === 'canceled' ? 'CANCELED' : 'ACTIVE',
         startDate: '',
-        endDate:   '',
+        endDate:   newEndDate ?? '',
       })
       break
     }
