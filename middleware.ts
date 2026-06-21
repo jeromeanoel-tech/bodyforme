@@ -7,7 +7,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // ── Admin protection ──────────────────────────────────────────────────────
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login') && !pathname.startsWith('/admin/forgot-password') && !pathname.startsWith('/admin/reset-password')) {
     const token = req.cookies.get('bf_admin')?.value
     if (!token) return NextResponse.redirect(new URL('/admin/login', req.url))
     try {
