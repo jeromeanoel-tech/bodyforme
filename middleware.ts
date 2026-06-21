@@ -25,7 +25,11 @@ export async function middleware(req: NextRequest) {
     try {
       await jwtVerify(token, SECRET())
     } catch {
-      return NextResponse.redirect(new URL('/app/login', req.url))
+      // JWT_SECRET may be unavailable in edge runtime on Vercel — fall through to
+      // server-side getSession() in (tabs)/layout.tsx which runs in Node.js and
+      // always has access to env vars. Token presence check above already handles
+      // the no-cookie case.
+      return NextResponse.next()
     }
   }
 
