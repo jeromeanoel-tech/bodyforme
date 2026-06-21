@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
 import type { ContactBooking } from '@/lib/db'
+import { getBrowserSupabase } from '@/lib/supabase-browser'
 
 function CalendarStrip({ memberId }: { memberId: string }) {
   const [open,   setOpen]   = useState(false)
@@ -39,7 +40,6 @@ function CalendarStrip({ memberId }: { memberId: string }) {
       {open && (
         <div style={{ border: `1px solid ${T.rule}`, borderTop: 'none', padding: '16px 14px', background: T.canvas, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* Apple Calendar — webcal:// opens the subscribe dialog directly */}
           <div>
             <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, margin: '0 0 6px' }}>Apple Calendar</p>
             <a
@@ -56,7 +56,6 @@ function CalendarStrip({ memberId }: { memberId: string }) {
             </a>
           </div>
 
-          {/* Google Calendar — copy URL then open settings */}
           <div>
             <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.muted, margin: '0 0 6px' }}>Google Calendar</p>
             <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
@@ -96,7 +95,6 @@ function CalendarStrip({ memberId }: { memberId: string }) {
             </a>
           </div>
 
-          {/* Download one-off */}
           <a
             href={`${feedUrl}?download=1`}
             style={{
@@ -130,12 +128,12 @@ const T = {
   sage:   '#7a9478',
 }
 
+// Read date directly from ISO string — avoids timezone shift for naive times
 function fmt(iso: string) {
   if (!iso) return ''
-  try {
-    const d = new Date(iso)
-    return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
-  } catch { return iso }
+  const datePart = iso.slice(0, 10) // 'YYYY-MM-DD' — no timezone conversion
+  const d = new Date(datePart + 'T12:00:00')
+  return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 function fmtTime(iso: string) {
@@ -150,8 +148,27 @@ function fmtTime(iso: string) {
   } catch { return '' }
 }
 
+function SkeletonBookingCard() {
+  return (
+    <div className="skeleton-pulse" style={{
+      background: T.canvas, border: `1px solid ${T.rule}`,
+      padding: '16px', marginBottom: 10, display: 'flex', gap: 14,
+    }}>
+      <div style={{ width: 52, flexShrink: 0, borderRight: `1px solid ${T.rule}`, paddingRight: 12 }}>
+        <div style={{ width: 28, height: 10, background: T.rule, borderRadius: 3, marginBottom: 6 }} />
+        <div style={{ width: 36, height: 28, background: T.l2, borderRadius: 3, marginBottom: 6 }} />
+        <div style={{ width: 32, height: 10, background: T.rule, borderRadius: 3 }} />
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ width: '70%', height: 18, background: T.l2, borderRadius: 3, marginBottom: 10 }} />
+        <div style={{ width: 56, height: 10, background: T.rule, borderRadius: 3 }} />
+      </div>
+    </div>
+  )
+}
+
 export default function BookingsPage() {
-  const session = useSession()
+  const session  = useSession()
   const [bookings, setBookings] = useState<ContactBooking[]>([])
   const [loading,  setLoading]  = useState(true)
   const [tab,      setTab]      = useState<'upcoming' | 'past'>('upcoming')
@@ -164,10 +181,25 @@ export default function BookingsPage() {
       .catch(() => setLoading(false))
   }, [session.id])
 
-  const now       = new Date()
-  const upcoming  = bookings.filter(b => b.status !== 'CANCELED' && new Date(b.start) >= now)
-  const past      = bookings.filter(b => b.status === 'CANCELED' || new Date(b.start) < now)
-  const shown     = tab === 'upcoming' ? upcoming : past
+  // Live: mark sessions as cancelled when admin cancels them
+  useEffect(() => {
+    const sbr = getBrowserSupabase()
+    const channel = sbr
+      .channel('schedule-updates-bookings')
+      .on('broadcast', { event: 'session-cancelled' }, ({ payload }) => {
+        const { sessionId } = payload as { sessionId: string }
+        setBookings(bs => bs.map(b =>
+          b.sessionId === sessionId && b.status !== 'CANCELLED' ? { ...b, status: 'CANCELLED' } : b
+        ))
+      })
+      .subscribe()
+    return () => { sbr.removeChannel(channel) }
+  }, [])
+
+  const now      = new Date()
+  const upcoming = bookings.filter(b => b.status !== 'CANCELLED' && new Date(b.start + '+00:00') >= now)
+  const past     = bookings.filter(b => b.status === 'CANCELLED' || new Date(b.start + '+00:00') < now)
+  const shown    = tab === 'upcoming' ? upcoming : past
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.linen, overflow: 'hidden' }}>
@@ -185,7 +217,7 @@ export default function BookingsPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', margin: '20px 20px 0', border: `1px solid ${T.rule}`, flexShrink: 0 }}>
         {[
           { n: upcoming.length, l: 'Upcoming' },
-          { n: past.filter(b => b.status !== 'CANCELED').length, l: 'Completed' },
+          { n: past.filter(b => b.status !== 'CANCELLED').length, l: 'Completed' },
           { n: bookings.length, l: 'Total' },
         ].map(s => (
           <div key={s.l} style={{
@@ -209,21 +241,20 @@ export default function BookingsPage() {
             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontSize: 11, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase',
             color: tab === t ? T.esp : T.muted,
-            borderBottom: tab === t ? `2px solid ${T.brown}` : '2px solid transparent',
-            marginBottom: -1, background: 'none', border: 'none',
+            background: 'none', border: 'none',
             borderBottomColor: tab === t ? T.brown : 'transparent',
             borderBottomWidth: 2,
             borderBottomStyle: 'solid',
-            cursor: 'pointer',
+            marginBottom: -1, cursor: 'pointer',
           }}>{t === 'upcoming' ? `Upcoming · ${upcoming.length}` : 'Past'}</button>
         ))}
       </div>
 
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 20px', background: T.linen }}>
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '40px 0', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.muted }}>Loading…</div>
-        )}
+
+        {/* Skeleton while loading */}
+        {loading && Array.from({ length: 4 }).map((_, i) => <SkeletonBookingCard key={i} />)}
 
         {!loading && shown.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
@@ -239,17 +270,19 @@ export default function BookingsPage() {
         )}
 
         {shown.map(b => {
-          const isPast = new Date(b.start) < now || b.status === 'CANCELED'
-          const statusLabel = b.status === 'CANCELED'
+          const startDate = new Date(b.start + '+00:00')
+          const isPast    = startDate < now || b.status === 'CANCELLED'
+          const statusLabel = b.status === 'CANCELLED'
             ? 'Cancelled'
             : isPast
               ? b.attended ? '✓ Attended' : 'Not attended'
               : 'Booked'
-          const statusColor = b.status === 'CANCELED'
+          const statusColor = b.status === 'CANCELLED'
             ? T.muted
             : isPast
               ? b.attended ? T.sage : T.muted
               : T.brown
+          const parts = fmt(b.start).split(' ')  // ['Mon', '22', 'Jun']
           return (
             <div key={b.id} style={{
               background: isPast ? 'transparent' : T.canvas,
@@ -267,10 +300,10 @@ export default function BookingsPage() {
                 display: 'flex', flexDirection: 'column', justifyContent: 'center',
               }}>
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted }}>
-                  {fmt(b.start).split(' ')[0]}
+                  {parts[0]}
                 </div>
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 28, lineHeight: 1, color: T.esp, marginTop: 1 }}>
-                  {fmt(b.start).split(' ')[1]}
+                  {parts[1]}
                 </div>
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, color: T.muted, marginTop: 3 }}>
                   {fmtTime(b.start)}

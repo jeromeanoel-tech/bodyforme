@@ -86,7 +86,8 @@ export default function ProfilePage() {
   const router  = useRouter()
   const initials = `${session.firstName[0] ?? ''}${session.lastName[0] ?? ''}`.toUpperCase()
 
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [stats,        setStats]        = useState<Stats | null>(null)
+  const [memberStatus, setMemberStatus] = useState<string | null>(null)
 
   // Personal details sheet
   const [showDetails, setShowDetails]   = useState(false)
@@ -100,6 +101,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetch('/api/app/stats').then(r => r.json()).then(setStats).catch(() => {})
+    fetch('/api/app/membership-status').then(r => r.json()).then(d => setMemberStatus(d.status ?? null)).catch(() => {})
     // Pre-fill phone/suburb from DB
     fetch('/api/app/member-record').then(r => r.json()).then(d => {
       if (d.phone)  setDetailPhone(d.phone)
@@ -171,7 +173,21 @@ export default function ProfilePage() {
           <div style={{ width: 76, height: 76, borderRadius: '50%', background: T.l3, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 28, color: T.brown, fontStyle: 'italic' }}>{initials}</div>
           <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 24, fontStyle: 'italic', color: T.esp, marginTop: 14 }}>{session.firstName} {session.lastName}</div>
           <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: T.muted, marginTop: 4 }}>{session.email}</div>
-          <div style={{ display: 'inline-block', marginTop: 14, padding: '5px 12px', background: T.esp, color: T.sand, fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Active member</div>
+          {memberStatus !== null && (
+            <div style={{
+              display: 'inline-block', marginTop: 14, padding: '5px 12px',
+              background: memberStatus === 'active' ? T.esp : T.rust,
+              color: T.sand,
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+              fontSize: 9, fontWeight: 500, letterSpacing: '0.2em', textTransform: 'uppercase',
+            }}>
+              {memberStatus === 'active'   ? 'Active member'
+               : memberStatus === 'past_due' ? 'Payment overdue'
+               : memberStatus === 'pending'  ? 'Account pending'
+               : memberStatus === 'inactive' ? 'Membership inactive'
+               : 'Member'}
+            </div>
+          )}
         </div>
 
         {/* Activity stats */}

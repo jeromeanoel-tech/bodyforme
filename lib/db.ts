@@ -64,6 +64,7 @@ export type Contact = {
 
 export type ContactBooking = {
   id: string
+  sessionId: string
   status: string
   title: string
   start: string
@@ -378,18 +379,19 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
 export async function getContactBookings(memberId: string): Promise<ContactBooking[]> {
   const { data } = await getSupabase()
     .from('bookings')
-    .select('id, status, attended, sessions(title, start_time)')
+    .select('id, session_id, status, attended, sessions(title, start_time)')
     .eq('member_id', memberId)
     .order('created_at', { ascending: false })
     .limit(50)
 
   // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
-    id:       r.id,
-    status:   r.status,
-    attended: r.attended ?? false,
-    title:    r.sessions?.title ?? '',
-    start:    r.sessions?.start_time ? isoSlice(r.sessions.start_time) : '',
+    id:        r.id,
+    sessionId: r.session_id ?? '',
+    status:    r.status,
+    attended:  r.attended ?? false,
+    title:     r.sessions?.title ?? '',
+    start:     r.sessions?.start_time ? isoSlice(r.sessions.start_time) : '',
   }))
 }
 
