@@ -290,13 +290,22 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
                         {menuOpenId === session.id && (
                           <>
                             <div className="fixed inset-0 z-10" onClick={() => setMenuOpenId(null)} />
-                            <div className="absolute right-0 top-9 z-20 w-40 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
+                            <div className="absolute right-0 top-9 z-20 w-44 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
                               <button
                                 className="w-full text-left px-3 py-2.5 hover:bg-neutral-50 text-neutral-700"
                                 onClick={() => { setMenuOpenId(null); setSelectedSession(session) }}
                               >
                                 View attendees
                               </button>
+                              {!cancelled && (
+                                <a
+                                  href={`/admin/checkin?session=${session.id}`}
+                                  className="block px-3 py-2.5 hover:bg-neutral-50 text-neutral-700"
+                                  onClick={() => setMenuOpenId(null)}
+                                >
+                                  Check in
+                                </a>
+                              )}
                               {!cancelled && (
                                 <button
                                   className="w-full text-left px-3 py-2.5 hover:bg-neutral-50 text-red-600"
@@ -366,13 +375,22 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
                         {menuOpenId === session.id && (
                           <>
                             <div className="fixed inset-0 z-10" onClick={() => setMenuOpenId(null)} />
-                            <div className="absolute right-0 top-8 z-20 w-40 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
+                            <div className="absolute right-0 top-8 z-20 w-44 bg-white border border-neutral-200 rounded-lg shadow-lg py-1 text-[13px]">
                               <button
                                 className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-neutral-700"
                                 onClick={() => { setMenuOpenId(null); setSelectedSession(session) }}
                               >
                                 View attendees
                               </button>
+                              {!cancelled && (
+                                <a
+                                  href={`/admin/checkin?session=${session.id}`}
+                                  className="block px-3 py-2 hover:bg-neutral-50 text-neutral-700"
+                                  onClick={() => setMenuOpenId(null)}
+                                >
+                                  Check in
+                                </a>
+                              )}
                               {!cancelled && (
                                 <button
                                   className="w-full text-left px-3 py-2 hover:bg-neutral-50 text-red-600"

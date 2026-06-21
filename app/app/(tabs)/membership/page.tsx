@@ -405,39 +405,57 @@ export default function MembershipPage() {
       <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 20 }}>
 
         {/* Inactive/pending banner */}
-        {memberStatus && (memberStatus.status === 'inactive' || memberStatus.status === 'pending') && (
+        {memberStatus && (memberStatus.status === 'inactive' || memberStatus.status === 'pending' || memberStatus.status === 'past_due') && (
           <div style={{ margin: '20px 20px 0', background: '#f5ede3', border: `1px solid ${T.rule}`, padding: '24px 24px 20px' }}>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.brown, marginBottom: 8 }}>
-              {memberStatus.status === 'pending' ? 'Account pending' : 'Membership inactive'}
+              {memberStatus.status === 'pending' ? 'Account pending' : memberStatus.status === 'past_due' ? 'Payment overdue' : 'Membership inactive'}
             </div>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontStyle: 'italic', color: T.esp, lineHeight: 1.2, marginBottom: 12 }}>
               {memberStatus.status === 'pending'
                 ? 'Your account is being set up.'
+                : memberStatus.status === 'past_due'
+                ? 'A payment didn\'t go through.'
                 : 'Your membership has lapsed.'}
             </div>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 20 }}>
               {memberStatus.status === 'pending'
-                ? 'Contact the studio and we\'ll get you sorted straight away.'
+                ? 'We\'re just finishing setting up your account. If this takes longer than expected, contact us and we\'ll sort it right away.'
+                : memberStatus.status === 'past_due'
+                ? 'Please update your payment details below so we can keep your membership active.'
                 : 'To get back on the mat, choose a new plan below or contact the studio.'}
             </div>
-            {memberStatus.status === 'inactive' && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {(memberStatus.status === 'inactive' || memberStatus.status === 'pending') && (
+                <a
+                  href="/sign-up"
+                  style={{
+                    display: 'inline-block', padding: '13px 28px',
+                    background: T.esp, color: T.linen,
+                    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+                    textDecoration: 'none',
+                  }}
+                >
+                  View plans &amp; renew
+                </a>
+              )}
               <a
-                href="/sign-up"
+                href="mailto:info@bodyforme.com.au"
                 style={{
                   display: 'inline-block', padding: '13px 28px',
-                  background: T.esp, color: T.linen,
+                  background: 'none', color: T.esp, border: `1px solid ${T.rule}`,
                   fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
                   textDecoration: 'none',
                 }}
               >
-                View plans &amp; renew
+                Contact studio
               </a>
-            )}
+            </div>
           </div>
         )}
 
-        {/* Dark plan card + actions — active members only */}
+        {/* Dark plan card + actions — shown for active, past_due, and paused members */}
         {(!memberStatus || (memberStatus.status !== 'inactive' && memberStatus.status !== 'pending')) && (<>
         <div style={{ margin: '20px 20px 0', background: T.esp, padding: '28px 24px 24px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'repeating-linear-gradient(45deg, #fff 0 1px, transparent 1px 6px)' }} />

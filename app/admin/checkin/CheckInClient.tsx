@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from 'react'
 import type { Session, Service, Booking } from '@/lib/db'
 
 type Props = {
-  sessions: Session[]
-  services: Service[]
+  sessions:         Session[]
+  services:         Service[]
+  defaultSessionId?: string
 }
 
 type AttendeeState = Record<string, 'present' | 'absent' | 'loading'>
@@ -24,9 +25,9 @@ function pct(n: number, d: number) {
   return d > 0 ? Math.round((n / d) * 100) : 0
 }
 
-export default function CheckInClient({ sessions, services }: Props) {
+export default function CheckInClient({ sessions, services, defaultSessionId }: Props) {
   const [selectedSession, setSelectedSession] = useState<Session | null>(
-    sessions.length > 0 ? sessions[0] : null
+    (defaultSessionId ? sessions.find(s => s.id === defaultSessionId) : null) ?? (sessions.length > 0 ? sessions[0] : null)
   )
   const [bookings, setBookings] = useState<Booking[] | null>(null)
   const [loading, setLoading]   = useState(false)
@@ -473,7 +474,12 @@ export default function CheckInClient({ sessions, services }: Props) {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-medium text-neutral-900">{name}</p>
+                        <a
+                          href={`/admin/clients?client=${b.memberId}`}
+                          className="text-[13px] font-medium text-neutral-900 hover:underline hover:text-black"
+                        >
+                          {name}
+                        </a>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <p className={`text-[11.5px] font-semibold ${classesColour}`}>{classesLabel}</p>
                           {hasPlan && !isExpired && (

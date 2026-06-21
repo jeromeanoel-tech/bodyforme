@@ -43,16 +43,17 @@ export type Membership = {
 }
 
 export type Contact = {
-  id:              string
-  firstName:       string
-  lastName:        string
-  email:           string
-  phone:           string
-  createdDate:     string
-  planOverride?:   string
-  memberStatus?:   string
-  endDate?:        string
+  id:               string
+  firstName:        string
+  lastName:         string
+  email:            string
+  phone:            string
+  createdDate:      string
+  planOverride?:    string
+  memberStatus?:    string
+  endDate?:         string
   nextBillingDate?: string
+  stripeCustomerId?: string
 }
 
 export type ContactBooking = {
@@ -271,22 +272,23 @@ export async function getMemberships(): Promise<Membership[]> {
 export async function getContacts(): Promise<Contact[]> {
   const { data } = await supabase
     .from('members')
-    .select('id, first_name, last_name, email, phone, created_at, plan_override, status, end_date, next_billing_date')
+    .select('id, first_name, last_name, email, phone, created_at, plan_override, status, end_date, next_billing_date, stripe_customer_id')
     .order('last_name')
     .order('first_name')
 
   // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
-    id:              r.id,
-    firstName:       r.first_name,
-    lastName:        r.last_name,
-    email:           r.email,
-    phone:           r.phone ?? '',
-    createdDate:     r.created_at,
-    planOverride:    r.plan_override ?? undefined,
-    memberStatus:    r.status ?? undefined,
-    endDate:         r.end_date ?? undefined,
-    nextBillingDate: r.next_billing_date ?? undefined,
+    id:               r.id,
+    firstName:        r.first_name,
+    lastName:         r.last_name,
+    email:            r.email,
+    phone:            r.phone ?? '',
+    createdDate:      r.created_at,
+    planOverride:     r.plan_override ?? undefined,
+    memberStatus:     r.status ?? undefined,
+    endDate:          r.end_date ?? undefined,
+    nextBillingDate:  r.next_billing_date ?? undefined,
+    stripeCustomerId: r.stripe_customer_id ?? undefined,
   }))
 }
 

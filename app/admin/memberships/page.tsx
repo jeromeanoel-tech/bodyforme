@@ -15,11 +15,12 @@ export default async function AdminMembershipsPage() {
 
   const rows = memberships.map(m => ({
     ...m,
-    clientName: contactMap[m.contactId]
+    clientName:       contactMap[m.contactId]
       ? `${contactMap[m.contactId].firstName} ${contactMap[m.contactId].lastName}`.trim()
       : '—',
-    email: contactMap[m.contactId]?.email ?? '',
-    phone: contactMap[m.contactId]?.phone ?? '',
+    email:            contactMap[m.contactId]?.email           ?? '',
+    phone:            contactMap[m.contactId]?.phone           ?? '',
+    stripeCustomerId: contactMap[m.contactId]?.stripeCustomerId ?? '',
   }))
 
   return <MembershipsClient rows={rows} />

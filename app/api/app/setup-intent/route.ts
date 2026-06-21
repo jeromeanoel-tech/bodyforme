@@ -29,7 +29,7 @@ export async function POST() {
 
   const intent = await stripe.setupIntents.create({
     customer:             customerId,
-    payment_method_types: ['au_becs_debit', 'card'],
+    payment_method_types: ['card', 'au_becs_debit'],
     metadata:             { memberId: member._id },
   })
 

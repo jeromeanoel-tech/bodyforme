@@ -19,21 +19,22 @@ export async function PATCH(req: NextRequest) {
   const session = await getAdminSession()
   if (!session || session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const body = await req.json() as {
-    contactId:        string
-    email?:           string
-    phone?:           string
-    status?:          string
-    planOverride?:    string
-    nextBillingDate?: string
-    creditBalance?:   number
-    adminNotes?:      string
-    paidTerm?:        string
+    contactId:           string
+    email?:              string
+    phone?:              string
+    status?:             string
+    planOverride?:       string
+    nextBillingDate?:    string
+    membershipEndDate?:  string
+    creditBalance?:      number
+    adminNotes?:         string
+    paidTerm?:           string
   }
 
   const { contactId, ...patch } = body
   if (!contactId) return NextResponse.json({ error: 'contactId required' }, { status: 400 })
 
-  const VALID_STATUSES = ['active', 'inactive', 'paused', 'past_due']
+  const VALID_STATUSES = ['active', 'inactive', 'paused', 'past_due', 'pending']
   if (patch.status !== undefined && !VALID_STATUSES.includes(patch.status)) {
     return NextResponse.json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` }, { status: 400 })
   }
@@ -43,6 +44,17 @@ export async function PATCH(req: NextRequest) {
 
   const member = await getMemberByContactId(contactId)
   if (!member) return NextResponse.json({ error: 'No member record found for this contact' }, { status: 404 })
+
+  // When admin activates a member and no new expiry is supplied, clear any stale end_date
+  // so booking is not blocked by a past expiry from a previous membership period.
+  if (patch.status === 'active' && patch.membershipEndDate === undefined) {
+    const existingEnd = member.membershipEndDate
+    if (existingEnd) {
+      const endDate = new Date(existingEnd); endDate.setHours(0, 0, 0, 0)
+      const today   = new Date();            today.setHours(0, 0, 0, 0)
+      if (today > endDate) patch.membershipEndDate = ''
+    }
+  }
 
   // If email is changing, verify it's not already used by another member
   if (patch.email && patch.email.toLowerCase() !== member.email.toLowerCase()) {

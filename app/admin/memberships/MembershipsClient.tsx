@@ -6,9 +6,10 @@ import type { Membership } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
 type MembershipRow = Membership & {
-  clientName: string
-  email: string
-  phone: string
+  clientName:       string
+  email:            string
+  phone:            string
+  stripeCustomerId: string
 }
 
 type Props = { rows: MembershipRow[] }
@@ -584,17 +585,21 @@ function MembershipDrawer({ row, expiringDays, onClose, onStatusChange }: {
 
           <div className="border-t border-neutral-100" />
 
-          {/* Payment health placeholder */}
+          {/* Payment health — link to Stripe dashboard */}
           <div>
-            <p className="text-[11px] text-neutral-400 uppercase tracking-wider mb-3">Payment health</p>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-[12.5px] text-neutral-600">Last charge</span>
-              <span className="text-[12.5px] text-neutral-400">Stripe sync coming soon</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-[12.5px] text-neutral-600">Failed payments</span>
-              <span className="text-[12.5px] text-neutral-400">Stripe sync coming soon</span>
-            </div>
+            <p className="text-[11px] text-neutral-400 uppercase tracking-wider mb-3">Payment</p>
+            {row.stripeCustomerId ? (
+              <a
+                href={`https://dashboard.stripe.com/customers/${row.stripeCustomerId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[12.5px] text-indigo-600 hover:text-indigo-800 font-medium"
+              >
+                View in Stripe ↗
+              </a>
+            ) : (
+              <p className="text-[12.5px] text-neutral-400">No Stripe customer linked yet. Set up direct debit in the Clients tab to create one.</p>
+            )}
           </div>
 
           <div className="border-t border-neutral-100" />

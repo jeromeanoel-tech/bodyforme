@@ -139,6 +139,20 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
   const { settings } = useSettings()
   const newMemberDays = settings.newMemberDays
 
+  // Auto-open a specific contact if ?client=<id> is in the URL
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const clientId = params.get('client')
+    if (!clientId) return
+    const contact = contacts.find(c => c.id === clientId)
+    if (contact) setSelected(contact)
+    // Clean the param from the URL without a page reload
+    const url = new URL(window.location.href)
+    url.searchParams.delete('client')
+    window.history.replaceState({}, '', url.toString())
+  }, [contacts])
+
   // New client modal
   const [showNewClient, setShowNewClient]   = useState(false)
   const [ncFirstName, setNcFirstName]       = useState('')
@@ -954,7 +968,7 @@ function ClientDrawer({
             <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl mt-0.5">×</button>
           </div>
           <div className="flex gap-2 mt-4">
-            <ActionBtn label="Book class" />
+            <ActionBtn label="Book class" onClick={() => { setTab('bookings'); openBookingMode() }} />
             <ActionBtn label="Send email" />
             <ActionBtn label="Add note" onClick={() => setTab('notes')} />
           </div>
@@ -1281,6 +1295,41 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   const [payLoading,      setPayLoading]      = useState(false)
   const [payError,        setPayError]        = useState('')
   const [payDone,         setPayDone]         = useState(false)
+  const [pauseOpen,   setPauseOpen]   = useState(false)
+  const [pauseFrom,   setPauseFrom]   = useState('')
+  const [pauseUntil,  setPauseUntil]  = useState('')
+  const [pauseSaving, setPauseSaving] = useState(false)
+  const [pauseDone,   setPauseDone]   = useState(false)
+  const [pauseError,  setPauseError]  = useState('')
+
+  async function applyPause() {
+    if (!member) return
+    setPauseSaving(true); setPauseError('')
+    const today = new Date().toISOString().slice(0, 10)
+    const isNow = !pauseFrom || pauseFrom <= today
+    const patch: Record<string, unknown> = { contactId: contact.id }
+    if (isNow) {
+      patch.status = 'paused'
+    } else {
+      // Future pause — record intent in adminNotes; admin will need to activate manually or via Stripe
+      const note = `[PAUSE PLANNED: ${pauseFrom}${pauseUntil ? ` → ${pauseUntil}` : ''}]`
+      const existing = (member.adminNotes ?? '').trim()
+      patch.adminNotes = existing ? `${note}\n${existing}` : note
+    }
+    const res = await fetch('/api/admin/update-member', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+    setPauseSaving(false)
+    if (res.ok) {
+      setPauseDone(true)
+      if (isNow && member) onMemberUpdate({ ...member, status: 'paused' } as MemberCredential)
+    } else {
+      const d = await res.json()
+      setPauseError(d.error ?? 'Failed to save pause')
+    }
+  }
 
   async function openPaymentSetup() {
     if (!contact.email) return
@@ -1298,12 +1347,13 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
 
   useEffect(() => {
     if (member) setForm({
-      status:          member.status,
-      planOverride:    member.planOverride    || '',
-      nextBillingDate: member.nextBillingDate || '',
-      creditBalance:   member.creditBalance   ?? 0,
-      adminNotes:      member.adminNotes      || '',
-      paidTerm:        member.paidTerm        || '',
+      status:             member.status,
+      planOverride:       member.planOverride      || '',
+      nextBillingDate:    member.nextBillingDate    || '',
+      membershipEndDate:  member.membershipEndDate  || '',
+      creditBalance:      member.creditBalance      ?? 0,
+      adminNotes:         member.adminNotes         || '',
+      paidTerm:           member.paidTerm           || '',
     })
   }, [member])
 
@@ -1537,6 +1587,56 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
               </div>
             )}
 
+            {/* Pause membership */}
+            {!editing && (
+              <div>
+                <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">Pause membership</p>
+                {pauseDone ? (
+                  <p className="text-[11.5px] text-green-600 font-medium">
+                    {(!pauseFrom || pauseFrom <= new Date().toISOString().slice(0, 10))
+                      ? 'Membership paused ✓'
+                      : `Pause scheduled for ${pauseFrom} ✓`}
+                  </p>
+                ) : pauseOpen ? (
+                  <div className="space-y-2 p-3 bg-neutral-50 border border-neutral-200 rounded-lg">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10.5px] text-neutral-500 mb-1">Pause from</label>
+                        <input type="date" value={pauseFrom} onChange={e => setPauseFrom(e.target.value)}
+                          min={new Date().toISOString().slice(0, 10)}
+                          className="w-full text-[12px] border border-neutral-200 rounded px-2 py-1.5 outline-none focus:border-black" />
+                      </div>
+                      <div>
+                        <label className="block text-[10.5px] text-neutral-500 mb-1">Resume from (optional)</label>
+                        <input type="date" value={pauseUntil} onChange={e => setPauseUntil(e.target.value)}
+                          min={pauseFrom || new Date().toISOString().slice(0, 10)}
+                          className="w-full text-[12px] border border-neutral-200 rounded px-2 py-1.5 outline-none focus:border-black" />
+                      </div>
+                    </div>
+                    <p className="text-[10.5px] text-neutral-400 leading-relaxed">
+                      Leave &quot;Pause from&quot; blank or set to today to pause immediately. Future dates are saved as a note — update status manually on the day or handle via Stripe billing portal.
+                    </p>
+                    {pauseError && <p className="text-[11px] text-red-500">{pauseError}</p>}
+                    <div className="flex gap-2">
+                      <button onClick={applyPause} disabled={pauseSaving}
+                        className="h-7 px-3 text-[11.5px] font-medium bg-black text-white rounded-lg disabled:opacity-40">
+                        {pauseSaving ? '…' : 'Confirm'}
+                      </button>
+                      <button onClick={() => { setPauseOpen(false); setPauseError('') }}
+                        className="h-7 px-3 text-[11.5px] border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => { setPauseOpen(true); setPauseDone(false); setPauseFrom(''); setPauseUntil('') }}
+                    className="h-7 px-3 text-[11.5px] border border-neutral-200 rounded-full text-neutral-700 hover:border-black hover:text-black transition-colors">
+                    ⏸ Pause membership
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Edit form */}
             {!editing ? (
               <div className="space-y-2">
@@ -1560,7 +1660,8 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                     className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black">
                     <option value="active">Active</option>
                     <option value="paused">Paused</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="past_due">Past due</option>
                     <option value="pending">Pending</option>
                   </select>
                 </div>
@@ -1589,6 +1690,20 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                   <input type="date" value={form.nextBillingDate || ''} onChange={e => setForm(f => ({ ...f, nextBillingDate: e.target.value }))}
                     className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black" />
                   <p className="text-[10.5px] text-neutral-400 mt-1">Set this to their actual Stripe billing date so the app shows it correctly.</p>
+                </div>
+                <div>
+                  <label className="text-[11px] text-neutral-500 font-medium block mb-1">Membership expiry date</label>
+                  <div className="flex gap-2 items-center">
+                    <input type="date" value={form.membershipEndDate || ''} onChange={e => setForm(f => ({ ...f, membershipEndDate: e.target.value }))}
+                      className="flex-1 text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black" />
+                    {form.membershipEndDate && (
+                      <button type="button" onClick={() => setForm(f => ({ ...f, membershipEndDate: '' }))}
+                        className="h-9 px-2 text-[11px] text-neutral-400 hover:text-red-500 transition-colors" title="Clear expiry date">
+                        ✕ Clear
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10.5px] text-neutral-400 mt-1">For prepaid plans. Clear this if re-activating a member on a recurring plan — otherwise they&apos;ll be blocked from booking.</p>
                 </div>
                 <div>
                   <label className="text-[11px] text-neutral-500 font-medium block mb-1">Classes remaining</label>
