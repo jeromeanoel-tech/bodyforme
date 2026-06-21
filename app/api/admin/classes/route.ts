@@ -21,11 +21,14 @@ export async function PATCH(req: NextRequest) {
   const { error } = await supabase.from('services').update(patch).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Cascade capacity changes to all future sessions of this class type
-  if (capacity !== undefined) {
+  // Cascade name and capacity changes to all future sessions of this class type
+  const sessionPatch: Record<string, unknown> = {}
+  if (name     !== undefined) sessionPatch.title    = name
+  if (capacity !== undefined) sessionPatch.capacity = capacity
+  if (Object.keys(sessionPatch).length > 0) {
     await supabase
       .from('sessions')
-      .update({ capacity })
+      .update(sessionPatch)
       .eq('service_id', id)
       .gt('start_time', new Date().toISOString())
       .neq('status', 'CANCELLED')
