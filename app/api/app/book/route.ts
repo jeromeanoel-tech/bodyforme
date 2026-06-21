@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createBooking, getMemberByContactId, getSessionById, CREDIT_PLANS, countPendingBookings } from '@/lib/db'
 import { getSession } from '@/lib/session'
 import { emailBookingConfirmed } from '@/lib/email'
+import { broadcastBookingChanged } from '@/lib/broadcast'
 
 export async function POST(req: NextRequest) {
   const session = await getSession()
@@ -61,6 +62,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const bookingId = await createBooking(session.id, sessionId)
+
+    broadcastBookingChanged(sessionId, 1).catch(() => {})
 
     emailBookingConfirmed({
       to:             member.email,

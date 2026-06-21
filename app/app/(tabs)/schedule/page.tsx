@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { Session, MemberBooking } from '@/lib/db'
+import { getBrowserSupabase } from '@/lib/supabase-browser'
 
 const T = {
   linen:  '#f4ede1',
@@ -133,13 +134,33 @@ export default function SchedulePage() {
     setLoading(true)
     fetchWeek(weekOffset).catch(() => {}).finally(() => setLoading(false))
 
-    // Re-fetch every 60 s so booking availability stays current
+    // Fallback poll every 30 s — Realtime handles instant updates but this self-heals any drift
     const fetchId = setInterval(() => {
       fetchWeek(weekOffset).catch(() => {})
-    }, 60_000)
+    }, 30_000)
 
     return () => clearInterval(fetchId)
   }, [weekOffset]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Realtime subscription — updates spot counts and session status instantly
+  useEffect(() => {
+    const sbr = getBrowserSupabase()
+    const channel = sbr
+      .channel('schedule-updates')
+      .on('broadcast', { event: 'booking-changed' }, ({ payload }) => {
+        const { sessionId, delta } = payload as { sessionId: string; delta: number }
+        setSessions(s => s.map(x =>
+          x.id === sessionId ? { ...x, bookedCount: Math.max(0, x.bookedCount + delta) } : x
+        ))
+      })
+      .on('broadcast', { event: 'session-cancelled' }, ({ payload }) => {
+        const { sessionId } = payload as { sessionId: string }
+        setSessions(s => s.filter(x => x.id !== sessionId))
+      })
+      .subscribe()
+
+    return () => { sbr.removeChannel(channel) }
+  }, [])
 
   // Tick every 30 s to update past/upcoming status live
   useEffect(() => {

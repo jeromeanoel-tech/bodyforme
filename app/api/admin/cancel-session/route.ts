@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getAdminSession } from '@/lib/adminSession'
 import { CREDIT_PLANS } from '@/lib/db'
 import { emailBookingCancelled } from '@/lib/email'
+import { broadcastSessionCancelled } from '@/lib/broadcast'
 
 
 export async function POST(req: NextRequest) {
@@ -78,6 +79,8 @@ export async function POST(req: NextRequest) {
 
   // Clear waitlist — no point keeping entries for a cancelled session
   await supabase.from('waitlist').delete().eq('session_id', sessionId)
+
+  broadcastSessionCancelled(sessionId).catch(() => {})
 
   revalidatePath('/classes')
   revalidatePath('/admin/schedule')

@@ -19,8 +19,5 @@ export async function GET(req: NextRequest) {
   const scheduleToName  = Object.fromEntries(services.map(s => [s.scheduleId, s.name]))
   const resourceToStaff = Object.fromEntries(staff.map(s => [s.resourceId, s.name]))
 
-  return NextResponse.json(
-    { sessions, scheduleToName, resourceToStaff },
-    { headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=30' } }
-  )
+  return NextResponse.json({ sessions, scheduleToName, resourceToStaff })
 }

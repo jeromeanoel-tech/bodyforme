@@ -11,6 +11,7 @@ import {
 } from '@/lib/db'
 import { getSession } from '@/lib/session'
 import { emailBookingCancelled, emailWaitlistBooked } from '@/lib/email'
+import { broadcastBookingChanged } from '@/lib/broadcast'
 
 export async function POST(req: NextRequest) {
   const session = await getSession()
@@ -36,6 +37,9 @@ export async function POST(req: NextRequest) {
   const cancelledMember = await getMemberByContactId(session.id)
 
   await cancelBooking(bookingId, session.id)
+
+  // Notify other members immediately that a spot opened
+  if (booking) broadcastBookingChanged(booking.sessionId, -1).catch(() => {})
 
   // Send cancellation confirmation email
   if (booking && cancelledMember) {
@@ -78,6 +82,7 @@ export async function POST(req: NextRequest) {
               const newBookingId = await createBooking(next.memberId, booking.sessionId)
               if (newBookingId) {
                 await leaveWaitlist(next.memberId, booking.sessionId)
+                broadcastBookingChanged(booking.sessionId, 1).catch(() => {})
                 emailWaitlistBooked({
                   to:        nextMember!.email,
                   firstName: nextMember!.firstName,
