@@ -1,12 +1,8 @@
+import { supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { markAttendance } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
 const RESEND_API_KEY = process.env.RESEND_API_KEY

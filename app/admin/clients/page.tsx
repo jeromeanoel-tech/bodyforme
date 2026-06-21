@@ -2,7 +2,7 @@ import { getContacts, getMemberships } from '@/lib/db'
 import type { Membership } from '@/lib/db'
 import ClientsClient from './ClientsClient'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function AdminClientsPage() {
   const [contacts, memberships] = await Promise.all([

@@ -1,11 +1,7 @@
+import { supabase } from '@/lib/supabase'
 import { type NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
 
 export async function POST(_req: NextRequest) {
   const admin = await getAdminSession()

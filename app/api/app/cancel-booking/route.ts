@@ -54,22 +54,24 @@ export async function POST(req: NextRequest) {
         const next = await getFirstOnWaitlist(booking.sessionId)
         if (next) {
           const nextMember = await getMemberByContactId(next.memberId)
-          const eligible = nextMember &&
-            nextMember.status !== 'inactive' &&
-            (() => {
-              if (nextMember.membershipEndDate) {
-                const today = new Date(); today.setHours(0, 0, 0, 0)
-                const end   = new Date(nextMember.membershipEndDate); end.setHours(0, 0, 0, 0)
-                if (today > end) return false
-              }
-              const plan = nextMember.planOverride.toLowerCase()
+          let eligible = false
+          if (nextMember && nextMember.status !== 'inactive') {
+            let ok = true
+            if (nextMember.membershipEndDate) {
+              const today = new Date(); today.setHours(0, 0, 0, 0)
+              const end   = new Date(nextMember.membershipEndDate); end.setHours(0, 0, 0, 0)
+              if (today > end) ok = false
+            }
+            if (ok) {
+              const plan   = nextMember.planOverride.toLowerCase()
               const isPack = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
               if (isPack) {
                 const pending = await countPendingBookings(next.memberId)
-                if (nextMember.creditBalance - pending <= 0) return false
+                if (nextMember.creditBalance - pending <= 0) ok = false
               }
-              return true
-            })()
+            }
+            eligible = ok
+          }
 
           if (eligible) {
             try {

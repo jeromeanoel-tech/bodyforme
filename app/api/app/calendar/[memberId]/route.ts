@@ -1,11 +1,7 @@
+import { supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/session'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
 
 // Strip timezone offset and reformat as ICS datetime: '2026-06-19T09:00:00' → '20260619T090000'
 // Sessions are stored as Melbourne local time (naive UTC in Postgres), so no conversion needed.

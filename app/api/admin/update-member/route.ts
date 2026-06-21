@@ -1,12 +1,8 @@
+import { supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 import { getMemberByContactId, updateMemberCredential, upsertMembership, CREDIT_PLANS } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
-import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
 
 // Plans that are class packs or casual drop-ins — not recurring memberships.
 // These should NOT create a membership row; credits tracked via creditBalance instead.

@@ -1,12 +1,8 @@
+import { supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 import { joinWaitlist, leaveWaitlist, getMemberWaitlistInRange } from '@/lib/db'
 import { getSession } from '@/lib/session'
-import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
 
 // GET /api/app/waitlist?from=...&to=...  → list of session IDs the member is waiting on
 export async function GET(req: NextRequest) {

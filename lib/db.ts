@@ -1,10 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'node:crypto'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
+let _supabase: ReturnType<typeof createClient> | null = null
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SECRET_KEY!,
+    )
+  }
+  return _supabase
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -134,7 +140,7 @@ function rowToCredential(r: any): MemberCredential {
 // ── Staff ─────────────────────────────────────────────────────────────────────
 
 export async function getStaff(): Promise<Staff[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('sessions')
     .select('instructor_name')
     .neq('instructor_name', '')
@@ -147,7 +153,7 @@ export async function getStaff(): Promise<Staff[]> {
 // ── Services ──────────────────────────────────────────────────────────────────
 
 export async function getServices(): Promise<Service[]> {
-  const { data } = await supabase.from('services').select('id, name').order('name')
+  const { data } = await getSupabase().from('services').select('id, name').order('name')
   return (data ?? []).map((r: { id: string; name: string }) => ({
     id:         r.id,
     name:       r.name,
@@ -161,7 +167,7 @@ export async function createService(data: {
   duration?: number
   capacity?: number
 }): Promise<string> {
-  const { data: row, error } = await supabase
+  const { data: row, error } = await getSupabase()
     .from('services')
     .insert({ name: data.name, description: data.description ?? '', duration: data.duration ?? 60, capacity: data.capacity ?? 25 })
     .select('id')
@@ -173,7 +179,7 @@ export async function createService(data: {
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
 export async function getSessions(from: string, to: string): Promise<Session[]> {
-  const { data: sessions } = await supabase
+  const { data: sessions } = await getSupabase()
     .from('sessions')
     .select('*')
     .gte('start_time', from)
@@ -184,7 +190,7 @@ export async function getSessions(from: string, to: string): Promise<Session[]> 
 
   // Fetch confirmed booking counts for these sessions
   const ids = sessions.map((s: { id: string }) => s.id)
-  const { data: bookings } = await supabase
+  const { data: bookings } = await getSupabase()
     .from('bookings')
     .select('session_id')
     .in('session_id', ids)
@@ -217,7 +223,7 @@ export async function createSession(data: {
   endTime: string
   capacity: number
 }): Promise<string> {
-  const { data: row, error } = await supabase
+  const { data: row, error } = await getSupabase()
     .from('sessions')
     .insert({ service_id: data.serviceId, title: data.title, instructor_name: data.instructorName, start_time: data.startTime, end_time: data.endTime, capacity: data.capacity })
     .select('id')
@@ -235,7 +241,7 @@ export async function upsertMembership(data: {
   startDate: string
   endDate: string
 }): Promise<void> {
-  await supabase
+  await getSupabase()
     .from('memberships')
     .upsert(
       {
@@ -250,7 +256,7 @@ export async function upsertMembership(data: {
 }
 
 export async function getMemberships(): Promise<Membership[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('memberships')
     .select('*')
     .order('created_at', { ascending: false })
@@ -270,7 +276,7 @@ export async function getMemberships(): Promise<Membership[]> {
 // ── Contacts ──────────────────────────────────────────────────────────────────
 
 export async function getContacts(): Promise<Contact[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('members')
     .select('id, first_name, last_name, email, phone, created_at, plan_override, status, end_date, next_billing_date, stripe_customer_id')
     .order('last_name')
@@ -295,7 +301,7 @@ export async function getContacts(): Promise<Contact[]> {
 // ── Member credentials ────────────────────────────────────────────────────────
 
 export async function createMemberCredential(data: Omit<MemberCredential, '_id'>): Promise<string> {
-  const { data: row, error } = await supabase
+  const { data: row, error } = await getSupabase()
     .from('members')
     .insert({
       email:             data.email,
@@ -318,7 +324,7 @@ export async function createMemberCredential(data: Omit<MemberCredential, '_id'>
 }
 
 export async function getMemberByEmail(email: string): Promise<MemberCredential | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('members')
     .select('*')
     .eq('email', email)
@@ -327,7 +333,7 @@ export async function getMemberByEmail(email: string): Promise<MemberCredential 
 }
 
 export async function getMemberByStripeCustomerId(customerId: string): Promise<MemberCredential | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('members')
     .select('*')
     .eq('stripe_customer_id', customerId)
@@ -338,7 +344,7 @@ export async function getMemberByStripeCustomerId(customerId: string): Promise<M
 export const getMemberById = async (id: string) => getMemberByContactId(id)
 
 export async function getMemberByContactId(id: string): Promise<MemberCredential | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('members')
     .select('*')
     .eq('id', id)
@@ -364,13 +370,13 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
   if (patch.paidTerm          !== undefined) update.paid_term          = patch.paidTerm
 
   if (!Object.keys(update).length) return
-  await supabase.from('members').update(update).eq('id', id)
+  await getSupabase().from('members').update(update).eq('id', id)
 }
 
 // ── Bookings for a member ─────────────────────────────────────────────────────
 
 export async function getContactBookings(memberId: string): Promise<ContactBooking[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('bookings')
     .select('id, status, attended, sessions(title, start_time)')
     .eq('member_id', memberId)
@@ -420,7 +426,7 @@ function weeklyAllowance(plan: string): number | null {
 }
 
 export async function getSessionBookings(sessionId: string): Promise<Booking[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('bookings')
     .select('id, status, attended, members(id, first_name, last_name, email, plan_override, credit_balance, status)')
     .eq('session_id', sessionId)
@@ -442,7 +448,7 @@ export async function getSessionBookings(sessionId: string): Promise<Booking[]> 
 
   const usageMap: Record<string, number> = {}
   if (weeklyMemberIds.length > 0) {
-    const { data: usageRows } = await supabase
+    const { data: usageRows } = await getSupabase()
       .from('bookings')
       .select('member_id, sessions!inner(start_time)')
       .in('member_id', weeklyMemberIds)
@@ -507,14 +513,14 @@ export const CREDIT_PLANS = [
 
 export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {
   // Read current attended state BEFORE updating so we know whether a credit was previously deducted
-  const { data: prev } = await supabase
+  const { data: prev } = await getSupabase()
     .from('bookings')
     .select('attended, member_id, members(plan_override, credit_balance)')
     .eq('id', bookingId)
     .single()
 
   // Mark the booking
-  await supabase.from('bookings').update({ attended }).eq('id', bookingId)
+  await getSupabase().from('bookings').update({ attended }).eq('id', bookingId)
 
   if (!prev) return
   // eslint-disable-next-line
@@ -538,7 +544,7 @@ export async function markAttendance(bookingId: string, attended: boolean): Prom
   // If state didn't change, or both false, no credit adjustment needed
 
   if (next !== current) {
-    await supabase
+    await getSupabase()
       .from('members')
       .update({ credit_balance: next })
       .eq('id', prev.member_id)
@@ -550,7 +556,7 @@ export async function markAttendance(bookingId: string, attended: boolean): Prom
 // Returns the number of upcoming CONFIRMED bookings not yet attended.
 // Used to prevent a member from booking more classes than their credit balance.
 export async function countPendingBookings(memberId: string): Promise<number> {
-  const { count } = await supabase
+  const { count } = await getSupabase()
     .from('bookings')
     .select('sessions!inner(start_time)', { count: 'exact', head: true })
     .eq('member_id', memberId)
@@ -563,7 +569,7 @@ export async function countPendingBookings(memberId: string): Promise<number> {
 // ── Create / cancel booking ───────────────────────────────────────────────────
 
 export async function createBooking(memberId: string, sessionId: string): Promise<string> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('bookings')
     .upsert({ member_id: memberId, session_id: sessionId, status: 'CONFIRMED' }, { onConflict: 'member_id,session_id' })
     .select('id')
@@ -573,7 +579,7 @@ export async function createBooking(memberId: string, sessionId: string): Promis
 }
 
 export async function cancelBooking(bookingId: string, memberId: string): Promise<void> {
-  await supabase
+  await getSupabase()
     .from('bookings')
     .update({ status: 'CANCELLED' })
     .eq('id', bookingId)
@@ -583,13 +589,13 @@ export async function cancelBooking(bookingId: string, memberId: string): Promis
 // ── Session lookup ────────────────────────────────────────────────────────────
 
 export async function getSessionById(id: string): Promise<{ title: string; start_time: string; instructor_name: string; status: string; capacity: number; bookedCount: number } | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('sessions')
     .select('title, start_time, instructor_name, status, capacity')
     .eq('id', id)
     .single()
   if (!data) return null
-  const { count } = await supabase
+  const { count } = await getSupabase()
     .from('bookings')
     .select('id', { count: 'exact', head: true })
     .eq('session_id', id)
@@ -603,7 +609,7 @@ export async function getSessionById(id: string): Promise<{ title: string; start
 export async function getBookingWithSession(bookingId: string, memberId: string): Promise<{
   sessionId: string; title: string; start_time: string
 } | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('bookings')
     .select('session_id, sessions(title, start_time)')
     .eq('id', bookingId)
@@ -618,13 +624,13 @@ export async function getBookingWithSession(bookingId: string, memberId: string)
 // ── Waitlist ──────────────────────────────────────────────────────────────────
 
 export async function joinWaitlist(memberId: string, sessionId: string): Promise<void> {
-  await supabase
+  await getSupabase()
     .from('waitlist')
     .upsert({ member_id: memberId, session_id: sessionId }, { onConflict: 'member_id,session_id' })
 }
 
 export async function leaveWaitlist(memberId: string, sessionId: string): Promise<void> {
-  await supabase
+  await getSupabase()
     .from('waitlist')
     .delete()
     .eq('member_id', memberId)
@@ -636,7 +642,7 @@ export async function getMemberWaitlistInRange(
   from: string,
   to: string,
 ): Promise<string[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('waitlist')
     .select('session_id, sessions!inner(start_time)')
     .eq('member_id', memberId)
@@ -648,7 +654,7 @@ export async function getMemberWaitlistInRange(
 export async function getFirstOnWaitlist(sessionId: string): Promise<{
   memberId: string; email: string; firstName: string
 } | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('waitlist')
     .select('member_id, members(email, first_name)')
     .eq('session_id', sessionId)
@@ -668,7 +674,7 @@ export async function getMemberBookingsForRange(
   from: string,
   to: string,
 ): Promise<MemberBooking[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('bookings')
     .select('id, session_id, status, sessions!inner(start_time)')
     .eq('member_id', memberId)
@@ -693,8 +699,8 @@ export async function createPasswordResetToken(memberId: string): Promise<string
   const token = crypto.randomUUID() + '-' + crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
   // Invalidate any previous unused tokens so old reset links can't be replayed
-  await supabase.from('password_reset_tokens').delete().eq('member_id', memberId).is('used_at', null)
-  const { error } = await supabase
+  await getSupabase().from('password_reset_tokens').delete().eq('member_id', memberId).is('used_at', null)
+  const { error } = await getSupabase()
     .from('password_reset_tokens')
     .insert({ member_id: memberId, token: hashToken(token), expires_at: expiresAt })
   if (error) throw error
@@ -704,7 +710,7 @@ export async function createPasswordResetToken(memberId: string): Promise<string
 export async function getPasswordResetToken(token: string): Promise<{
   memberId: string; expiresAt: string; usedAt: string | null
 } | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('password_reset_tokens')
     .select('member_id, expires_at, used_at')
     .eq('token', hashToken(token))
@@ -714,20 +720,20 @@ export async function getPasswordResetToken(token: string): Promise<{
 }
 
 export async function markTokenUsed(token: string): Promise<void> {
-  await supabase
+  await getSupabase()
     .from('password_reset_tokens')
     .update({ used_at: new Date().toISOString() })
     .eq('token', hashToken(token))
 }
 
 export async function updateMemberPassword(memberId: string, passwordHash: string): Promise<void> {
-  await supabase.from('members').update({ password_hash: passwordHash }).eq('id', memberId)
+  await getSupabase().from('members').update({ password_hash: passwordHash }).eq('id', memberId)
 }
 
 // ── Free trial stats ──────────────────────────────────────────────────────────
 
 export async function getFreeTrialCount(): Promise<number> {
-  const { count } = await supabase
+  const { count } = await getSupabase()
     .from('members')
     .select('*', { count: 'exact', head: true })
     .eq('plan_override', 'Free Trial')
@@ -740,8 +746,8 @@ export async function createAdminPasswordResetToken(username: string): Promise<s
   const token = crypto.randomUUID() + '-' + crypto.randomUUID()
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
   // Invalidate any previous unused tokens so old reset links can't be replayed
-  await supabase.from('admin_password_resets').delete().eq('username', username).is('used_at', null)
-  const { error } = await supabase
+  await getSupabase().from('admin_password_resets').delete().eq('username', username).is('used_at', null)
+  const { error } = await getSupabase()
     .from('admin_password_resets')
     .insert({ username, token: hashToken(token), expires_at: expiresAt })
   if (error) throw error
@@ -751,7 +757,7 @@ export async function createAdminPasswordResetToken(username: string): Promise<s
 export async function getAdminPasswordResetToken(token: string): Promise<{
   username: string; expiresAt: string; usedAt: string | null
 } | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('admin_password_resets')
     .select('username, expires_at, used_at')
     .eq('token', hashToken(token))
@@ -761,20 +767,20 @@ export async function getAdminPasswordResetToken(token: string): Promise<{
 }
 
 export async function markAdminTokenUsed(token: string): Promise<void> {
-  await supabase
+  await getSupabase()
     .from('admin_password_resets')
     .update({ used_at: new Date().toISOString() })
     .eq('token', hashToken(token))
 }
 
 export async function setAdminPasswordOverride(username: string, passwordHash: string): Promise<void> {
-  await supabase
+  await getSupabase()
     .from('admin_password_overrides')
     .upsert({ username, password_hash: passwordHash, updated_at: new Date().toISOString() })
 }
 
 export async function getAdminPasswordOverride(username: string): Promise<string | null> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('admin_password_overrides')
     .select('password_hash')
     .eq('username', username)
@@ -786,7 +792,7 @@ export async function getAdminPasswordOverride(username: string): Promise<string
 
 export async function recordStripeEvent(eventId: string): Promise<boolean> {
   // Returns true if newly recorded (process this event), false if already seen (skip)
-  const { error } = await supabase.from('stripe_events').insert({ event_id: eventId })
+  const { error } = await getSupabase().from('stripe_events').insert({ event_id: eventId })
   return !error
 }
 
@@ -879,7 +885,7 @@ export async function runMigrations(): Promise<void> {
   ]
 
   for (const sql of statements) {
-    const { error } = await supabase.rpc('exec_sql', { sql })
+    const { error } = await getSupabase().rpc('exec_sql', { sql })
     if (error) throw new Error(error.message)
   }
 }

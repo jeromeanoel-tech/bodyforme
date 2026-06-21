@@ -1,11 +1,7 @@
+import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getSession } from '@/lib/session'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
 
 export async function GET() {
   const session = await getSession()

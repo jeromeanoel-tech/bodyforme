@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getAdminSession } from '@/lib/adminSession'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 import ClassesClient from './ClassesClient'
 
 export const revalidate = 30
@@ -11,11 +11,6 @@ function getInstructors(): string[] {
     return all.map(u => u.name).filter(Boolean).sort()
   } catch { return [] }
 }
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-)
 
 export default async function AdminClassesPage() {
   const session = await getAdminSession()
