@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
-import { StripeSetupForm } from '@/components/StripeSetupForm'
+import { MemberBecsForm } from '@/components/MemberBecsForm'
 import { signupPlans } from '@/lib/content'
 
 const T = {
@@ -351,11 +351,12 @@ export default function MembershipPage() {
                 {ddLoading && <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.muted }}>Loading…</p>}
                 {ddError  && <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: '#c0392b', lineHeight: 1.5 }}>{ddError}</p>}
                 {ddClientSecret && (
-                  <StripeSetupForm
+                  <MemberBecsForm
                     clientSecret={ddClientSecret}
+                    defaultName={`${session?.firstName ?? ''} ${session?.lastName ?? ''}`.trim()}
+                    defaultEmail={session?.email ?? ''}
                     onSuccess={() => setDdDone(true)}
                     onCancel={() => setDdOpen(false)}
-                    dark
                   />
                 )}
               </>
