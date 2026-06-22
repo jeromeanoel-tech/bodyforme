@@ -322,6 +322,60 @@ export async function POST(req: NextRequest) {
       break
     }
 
+    case 'customer.subscription.created': {
+      // New subscription — set billing dates immediately so admin sees them
+      // (invoice.paid won't fire for 2-3 days for BECS; this fills the gap)
+      const sub = event.data.object as {
+        customer:             string
+        status:               string
+        current_period_end:   number
+        current_period_start: number
+        metadata:             Record<string, string>
+        items: { data: { price: { id: string; nickname: string | null } }[] }
+      }
+      const newSubCustomerId = sub.customer
+      if (!newSubCustomerId) break
+
+      const newSubMember = await getMemberByStripeCustomerId(newSubCustomerId)
+      if (!newSubMember) break
+
+      const newSubPeriodEnd = sub.current_period_end
+      const newSubEndDate   = newSubPeriodEnd
+        ? new Date(newSubPeriodEnd * 1000).toISOString().slice(0, 10)
+        : undefined
+      const newSubStartDate = sub.current_period_start
+        ? new Date(sub.current_period_start * 1000).toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10)
+
+      // Resolve plan name: price nickname → product name → metadata planKey → planOverride
+      const newSubPriceId = sub.items?.data?.[0]?.price?.id ?? ''
+      let   newSubPlanName = sub.items?.data?.[0]?.price?.nickname ?? ''
+      if (!newSubPlanName && newSubPriceId) {
+        try {
+          const price = await stripe.prices.retrieve(newSubPriceId, { expand: ['product'] }) as Stripe.Price & { product: Stripe.Product }
+          newSubPlanName = price.nickname ?? (price.product as Stripe.Product)?.name ?? ''
+        } catch { /* keep empty */ }
+      }
+      if (!newSubPlanName) {
+        const mk = sub.metadata?.planKey ?? sub.metadata?.plan ?? ''
+        newSubPlanName = (mk && signupPlans[mk]?.name) ? signupPlans[mk].name : newSubMember.planOverride ?? ''
+      }
+
+      await updateMemberCredential(newSubMember._id, {
+        status: 'active',
+        ...(newSubEndDate ? { membershipEndDate: newSubEndDate, nextBillingDate: newSubEndDate } : {}),
+      })
+
+      await upsertMembership({
+        memberId:  newSubMember._id,
+        planName:  newSubPlanName,
+        status:    'ACTIVE',
+        startDate: newSubStartDate,
+        endDate:   newSubEndDate ?? '',
+      })
+      break
+    }
+
     case 'customer.subscription.updated': {
       // Sync plan/status changes made via Stripe Portal (upgrade, downgrade, pause, resume)
       const sub = event.data.object as {

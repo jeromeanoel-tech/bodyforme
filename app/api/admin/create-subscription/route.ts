@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
+import { getMemberByEmail, updateMemberCredential, upsertMembership } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 import { signupPlans } from '@/lib/content'
 
@@ -70,10 +70,25 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Update member record
+    // Billing dates from the subscription's current period
+    const periodEnd   = (subscription as unknown as { current_period_end: number }).current_period_end
+    const nextBilling = periodEnd ? new Date(periodEnd * 1000).toISOString().slice(0, 10) : undefined
+    const today       = new Date().toISOString().slice(0, 10)
+
+    // Update member record — use human-readable plan.name, not planKey
     await updateMemberCredential(member._id, {
-      planOverride: planKey,
+      planOverride: plan.name,
       status:       'active',
+      ...(nextBilling ? { nextBillingDate: nextBilling, membershipEndDate: nextBilling } : {}),
+    })
+
+    // Sync memberships history table immediately (not waiting for invoice.paid)
+    await upsertMembership({
+      memberId:  member._id,
+      planName:  plan.name,
+      status:    'ACTIVE',
+      startDate: today,
+      endDate:   nextBilling ?? '',
     })
 
     return NextResponse.json({ subscriptionId: subscription.id, status: subscription.status })
