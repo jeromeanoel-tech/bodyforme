@@ -48,7 +48,7 @@ function InnerForm({ onSuccess, onCancel, dark }: {
   if (dark) {
     return (
       <form onSubmit={handleSubmit}>
-        <PaymentElement options={{ layout: 'tabs' }} />
+        <PaymentElement options={{ layout: 'tabs', paymentMethodOrder: ['au_becs_debit', 'card', 'link'] }} />
         {error && (
           <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: '#c0392b', marginTop: 12, lineHeight: 1.5 }}>
             {error}
@@ -88,7 +88,7 @@ function InnerForm({ onSuccess, onCancel, dark }: {
 
   return (
     <form onSubmit={handleSubmit}>
-      <PaymentElement options={{ layout: 'tabs' }} />
+      <PaymentElement options={{ layout: 'tabs', paymentMethodOrder: ['au_becs_debit', 'card', 'link'] }} />
       {error && <p className="text-[12px] text-red-600 mt-3 leading-relaxed">{error}</p>}
       <div className="flex gap-2 mt-5">
         <button
