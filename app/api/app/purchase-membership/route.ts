@@ -35,9 +35,6 @@ export async function POST(req: NextRequest) {
     success_url:           successUrl,
     cancel_url:            cancelUrl,
     allow_promotion_codes: true,
-    ...(plan.mode === 'subscription'
-      ? { payment_method_types: ['au_becs_debit', 'card'] }
-      : {}),
     line_items: [{
       quantity:   1,
       price_data: {
