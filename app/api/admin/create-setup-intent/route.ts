@@ -26,10 +26,16 @@ export async function POST(req: NextRequest) {
     await updateMemberCredential(member._id, { stripeCustomerId: customerId })
   }
 
-  const intent = await stripe.setupIntents.create({
-    customer: customerId,
-    metadata: { memberId: member._id },
-  })
-
-  return NextResponse.json({ clientSecret: intent.client_secret })
+  try {
+    const intent = await stripe.setupIntents.create({
+      customer:                 customerId,
+      automatic_payment_methods: { enabled: true },
+      metadata:                 { memberId: member._id },
+    })
+    return NextResponse.json({ clientSecret: intent.client_secret })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[create-setup-intent] Stripe error:', msg)
+    return NextResponse.json({ error: msg }, { status: 502 })
+  }
 }

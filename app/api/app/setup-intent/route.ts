@@ -27,11 +27,16 @@ export async function POST() {
     }
   }
 
-  const intent = await stripe.setupIntents.create({
-    customer:             customerId,
-    payment_method_types: ['card', 'au_becs_debit'],
-    metadata:             { memberId: member._id },
-  })
-
-  return NextResponse.json({ clientSecret: intent.client_secret })
+  try {
+    const intent = await stripe.setupIntents.create({
+      customer:                  customerId,
+      automatic_payment_methods: { enabled: true },
+      metadata:                  { memberId: member._id },
+    })
+    return NextResponse.json({ clientSecret: intent.client_secret })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[setup-intent] Stripe error:', msg)
+    return NextResponse.json({ error: msg }, { status: 502 })
+  }
 }
