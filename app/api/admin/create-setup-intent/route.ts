@@ -28,9 +28,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const intent = await stripe.setupIntents.create({
-      customer:                 customerId,
-      automatic_payment_methods: { enabled: true },
-      metadata:                 { memberId: member._id },
+      customer:             customerId,
+      payment_method_types: ['card', 'au_becs_debit'],
+      metadata:             { memberId: member._id },
     })
     return NextResponse.json({ clientSecret: intent.client_secret })
   } catch (err) {

@@ -1342,11 +1342,13 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: contact.email }),
       })
-      const data = await res.json()
-      if (!res.ok) { setPayError(data.error ?? 'Failed to start payment setup'); setPayLoading(false); return }
+      let data: Record<string, string> = {}
+      try { data = await res.json() } catch { /* non-JSON body */ }
+      if (!res.ok) { setPayError(data.error ?? `Server error ${res.status}`); setPayLoading(false); return }
+      if (!data.clientSecret) { setPayError('No client secret returned — check Stripe config'); setPayLoading(false); return }
       setPayClientSecret(data.clientSecret)
-    } catch {
-      setPayError('Could not connect to payment service. Please try again.')
+    } catch (err) {
+      setPayError(`Network error: ${err instanceof Error ? err.message : String(err)}`)
     }
     setPayLoading(false)
   }
