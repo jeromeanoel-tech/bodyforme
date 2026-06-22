@@ -1299,6 +1299,10 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   const [payLoading,      setPayLoading]      = useState(false)
   const [payError,        setPayError]        = useState('')
   const [payDone,         setPayDone]         = useState(false)
+  const [cancelConfirm,  setCancelConfirm]  = useState(false)
+  const [cancelLoading,  setCancelLoading]  = useState(false)
+  const [cancelError,    setCancelError]    = useState('')
+
   const [pauseOpen,   setPauseOpen]   = useState(false)
   const [pauseFrom,   setPauseFrom]   = useState('')
   const [pauseUntil,  setPauseUntil]  = useState('')
@@ -1353,6 +1357,26 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
       setPayError(`Network error: ${err instanceof Error ? err.message : String(err)}`)
     }
     setPayLoading(false)
+  }
+
+  async function cancelSubscription() {
+    if (!contact.email) return
+    setCancelLoading(true); setCancelError('')
+    try {
+      const res = await fetch('/api/admin/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: contact.email }),
+      })
+      let data: Record<string, string> = {}
+      try { data = await res.json() } catch { /* non-JSON */ }
+      if (!res.ok) { setCancelError(data.error ?? `Server error ${res.status}`); setCancelLoading(false); return }
+      if (member) onMemberUpdate({ ...member, status: 'inactive', planOverride: '' } as MemberCredential)
+      setCancelConfirm(false)
+    } catch (err) {
+      setCancelError(`Network error: ${err instanceof Error ? err.message : String(err)}`)
+    }
+    setCancelLoading(false)
   }
 
   useEffect(() => {
@@ -1527,6 +1551,44 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                   Open in Stripe ↗
                 </a>
               )}
+
+              {/* Cancel subscription — only for active subscription plan members */}
+              {contact.email && member?.planOverride && signupPlans[member.planOverride]?.mode === 'subscription' && member.status !== 'inactive' && (
+                <div className="pt-1 border-t border-neutral-200 mt-1">
+                  {cancelConfirm ? (
+                    <div className="space-y-1.5">
+                      <p className="text-[11.5px] text-neutral-700">
+                        Cancel {member.planOverride} and mark inactive?
+                        {member.stripeCustomerId ? ' Stripe subscription will also be cancelled.' : ''}
+                      </p>
+                      {cancelError && <p className="text-[11px] text-red-500">{cancelError}</p>}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={cancelSubscription}
+                          disabled={cancelLoading}
+                          className="h-7 px-3 text-[11.5px] bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-40"
+                        >
+                          {cancelLoading ? 'Cancelling…' : 'Yes, cancel'}
+                        </button>
+                        <button
+                          onClick={() => { setCancelConfirm(false); setCancelError('') }}
+                          className="h-7 px-3 text-[11.5px] border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors"
+                        >
+                          Keep active
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setCancelConfirm(true)}
+                      className="h-7 px-3 text-[11.5px] border border-red-200 text-red-600 rounded-lg hover:border-red-400 hover:bg-red-50 transition-colors"
+                    >
+                      Cancel subscription
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Direct debit setup — only for weekly subscription plans */}
               {contact.email && member?.planOverride && signupPlans[member.planOverride]?.mode === 'subscription' && (
                 <div className="pt-1 border-t border-neutral-200 mt-1">
