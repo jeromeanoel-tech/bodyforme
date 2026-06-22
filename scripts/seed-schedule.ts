@@ -25,7 +25,7 @@ if (fs.existsSync(envPath)) {
     const m = line.match(/^([^#=\s][^=]*)=(.*)$/)
     if (m) {
       const key = m[1].trim()
-      const val = m[2].trim().replace(/^"(.*)"$/, '$1')
+      const val = m[2].trim().replace(/^"(.*)"$/, '$1').replace(/\\n$/, '')
       if (!process.env[key]) process.env[key] = val
     }
   }
