@@ -4,6 +4,8 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import type { Contact, ContactBooking, Membership, MemberCredential } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 import { StripeSetupForm } from '@/components/StripeSetupForm'
+import { AdminBecsForm } from '@/components/AdminBecsForm'
+import { signupPlans } from '@/lib/content'
 
 type Props = {
   contacts: Contact[]
@@ -1525,32 +1527,35 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                   Open in Stripe ↗
                 </a>
               )}
-              {/* Payment setup */}
-              {contact.email && (
+              {/* Direct debit setup — only for weekly subscription plans */}
+              {contact.email && member?.planOverride && signupPlans[member.planOverride]?.mode === 'subscription' && (
                 <div className="pt-1 border-t border-neutral-200 mt-1">
-                  <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">Direct debit / card</p>
+                  <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">Direct debit</p>
                   {payDone ? (
-                    <p className="text-[11.5px] text-green-600 font-medium">Payment details saved ✓</p>
+                    <p className="text-[11.5px] text-green-600 font-medium">Direct debit set up — Stripe subscription created ✓</p>
                   ) : (
                     <button onClick={openPaymentSetup} disabled={payLoading}
                       className="h-7 px-3 text-[11.5px] border border-neutral-200 text-neutral-700 rounded-lg hover:border-black hover:text-black transition-colors disabled:opacity-40">
-                      {payLoading ? 'Loading…' : 'Enter direct debit / card details'}
+                      {payLoading ? 'Loading…' : 'Set up direct debit'}
                     </button>
                   )}
                   {payError && <p className="text-[11px] text-red-500 mt-1">{payError}</p>}
                 </div>
               )}
 
-              {/* Payment setup modal */}
-              {payOpen && (
+              {/* Direct debit modal */}
+              {payOpen && member?.planOverride && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center">
                   <div className="absolute inset-0 bg-black/40" onClick={() => !payDone && setPayOpen(false)} />
                   <div className="relative bg-white rounded-xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-auto p-6">
                     {payDone ? (
                       <div className="text-center py-4 space-y-3">
-                        <p className="text-2xl font-semibold text-neutral-900">Payment details saved</p>
-                        <p className="text-[13px] text-neutral-500">Direct debit is set up and ready. Stripe will use these details for recurring billing.</p>
-                        <button onClick={() => { setPayOpen(false); setPayDone(true) }}
+                        <p className="text-2xl font-semibold text-neutral-900">Direct debit set up</p>
+                        <p className="text-[13px] text-neutral-500">
+                          Stripe subscription created for {signupPlans[member.planOverride]?.name ?? member.planOverride}.
+                          First debit processes in 2–3 business days.
+                        </p>
+                        <button onClick={() => setPayOpen(false)}
                           className="h-9 px-6 text-sm font-medium bg-black text-white rounded-lg hover:bg-neutral-800">
                           Done
                         </button>
@@ -1558,16 +1563,19 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                     ) : (
                       <>
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-[15px] font-semibold text-neutral-900">Set up direct debit / card</h3>
+                          <h3 className="text-[15px] font-semibold text-neutral-900">Set up direct debit</h3>
                           <button onClick={() => setPayOpen(false)} className="text-neutral-400 hover:text-neutral-700 text-xl">×</button>
                         </div>
                         <p className="text-[12px] text-neutral-500 mb-4">
-                          For {contact.firstName} {contact.lastName}. Enter BSB and account number (or card) below. Processed securely by Stripe.
+                          For {contact.firstName} {contact.lastName}. Enter BSB and account number below. Processed securely by Stripe.
                         </p>
                         {payLoading && <p className="text-sm text-neutral-400">Loading…</p>}
                         {payClientSecret && (
-                          <StripeSetupForm
+                          <AdminBecsForm
                             clientSecret={payClientSecret}
+                            planKey={member.planOverride}
+                            contactName={`${contact.firstName} ${contact.lastName}`.trim()}
+                            contactEmail={contact.email ?? ''}
                             onSuccess={() => setPayDone(true)}
                             onCancel={() => setPayOpen(false)}
                           />
