@@ -8,7 +8,7 @@ export type AdminUser = {
 }
 
 export const ADMIN_COOKIE = 'bf_admin'
-export const ADMIN_MAX_AGE = 60 * 60 * 8  // 8 hours
+export const ADMIN_MAX_AGE = 60 * 60 * 24 * 7  // 7 days
 
 const secret = () => new TextEncoder().encode(process.env.JWT_SECRET ?? 'dev-secret-change-me')
 

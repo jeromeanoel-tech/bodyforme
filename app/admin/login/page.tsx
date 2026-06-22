@@ -1,12 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 export default function AdminLoginPage() {
+  const params   = useSearchParams()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
+
+  useEffect(() => {
+    if (params.get('expired')) setError('Your session has expired. Please log in again.')
+  }, [params])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

@@ -78,9 +78,18 @@ export default function ClassesClient({ initialServices, instructors }: { initia
   const [editInstructorVal,   setEditInstructorVal]   = useState('')
   const [savingInstructor,    setSavingInstructor]    = useState(false)
 
+  function requireAuth(res: Response) {
+    if (res.status === 403) {
+      router.push('/admin/login?expired=1')
+      return false
+    }
+    return true
+  }
+
   async function loadSessions(serviceId: string) {
     setLoadingId(serviceId)
     const res  = await fetch(`/api/admin/sessions?serviceId=${serviceId}`)
+    if (!requireAuth(res)) return
     const data = await res.json()
     setSessions(prev => ({ ...prev, [serviceId]: data.sessions ?? [] }))
     setLoadingId(null)
@@ -222,6 +231,7 @@ export default function ClassesClient({ initialServices, instructors }: { initia
           capacity:       sessionCapacity,
         }),
       })
+      if (!requireAuth(res)) return
       const data = await res.json()
       if (!res.ok) { setSessionError(data.error ?? 'Failed to add sessions'); setSavingSession(false); return }
       setServices(prev => prev.map(s => s.id === addSessionFor!.id ? { ...s, upcomingSessions: s.upcomingSessions + sessionRepeatWeeks } : s))
@@ -247,6 +257,7 @@ export default function ClassesClient({ initialServices, instructors }: { initia
           capacity:       sessionCapacity,
         }),
       })
+      if (!requireAuth(res)) return
       const data = await res.json()
       if (!res.ok) { setSessionError(data.error ?? 'Failed to add session'); setSavingSession(false); return }
       const newSession: Session = {
