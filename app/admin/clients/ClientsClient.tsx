@@ -184,14 +184,16 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
 
   async function generatePayLink() {
     setNcPayLoading(true)
-    const res = await fetch('/api/admin/create-setup-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: ncEmail.trim().toLowerCase() }),
-    })
-    const data = await res.json()
+    try {
+      const res  = await fetch('/api/admin/create-setup-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: ncEmail.trim().toLowerCase() }),
+      })
+      const data = await res.json()
+      if (res.ok && data.clientSecret) setNcClientSecret(data.clientSecret)
+    } catch { /* network error — button re-enables */ }
     setNcPayLoading(false)
-    if (res.ok && data.clientSecret) setNcClientSecret(data.clientSecret)
   }
 
   function resetNewClient() {
@@ -1334,15 +1336,19 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   async function openPaymentSetup() {
     if (!contact.email) return
     setPayOpen(true); setPayLoading(true); setPayError(''); setPayClientSecret(''); setPayDone(false)
-    const res = await fetch('/api/admin/create-setup-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: contact.email }),
-    })
-    const data = await res.json()
+    try {
+      const res  = await fetch('/api/admin/create-setup-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: contact.email }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setPayError(data.error ?? 'Failed to start payment setup'); setPayLoading(false); return }
+      setPayClientSecret(data.clientSecret)
+    } catch {
+      setPayError('Could not connect to payment service. Please try again.')
+    }
     setPayLoading(false)
-    if (!res.ok) { setPayError(data.error ?? 'Failed to start payment setup'); return }
-    setPayClientSecret(data.clientSecret)
   }
 
   useEffect(() => {
