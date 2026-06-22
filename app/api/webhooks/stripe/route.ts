@@ -163,23 +163,20 @@ export async function POST(req: NextRequest) {
 
       }
 
-      // Send welcome email — skip free-trial (they already got a confirmation from the free-trial-signup route)
-      if (email && firstName && planKey !== 'free-trial') {
+      const isRenewal = meta.source === 'member_app'
+
+      // Skip welcome email for renewals (member already has an account)
+      if (email && firstName && planKey !== 'free-trial' && !isRenewal) {
         await sendEmail(email, 'welcome', { firstName }).catch(() => {})
       }
 
       await sendEmail(STUDIO_EMAIL, 'custom', {
-        subject: `New sign-up — ${fullName || email} (${planName})`,
-        html: `
-          <h2>New Sign-Up via Stripe Checkout</h2>
-          <table cellpadding="6">
-            <tr><td><strong>Name</strong></td><td>${fullName}</td></tr>
-            <tr><td><strong>Email</strong></td><td>${email}</td></tr>
-            <tr><td><strong>Plan</strong></td><td>${planName}</td></tr>
-            <tr><td><strong>Phone</strong></td><td>${meta.phone ?? ''}</td></tr>
-            <tr><td><strong>Address</strong></td><td>${[meta.address, meta.suburb, meta.state, meta.postcode].filter(Boolean).join(', ')}</td></tr>
-          </table>
-        `,
+        subject: isRenewal
+          ? `Membership renewed — ${fullName || email} (${planName})`
+          : `New sign-up — ${fullName || email} (${planName})`,
+        html: isRenewal
+          ? `<h2>Membership Renewed via Member App</h2><table cellpadding="6"><tr><td><strong>Name</strong></td><td>${fullName}</td></tr><tr><td><strong>Email</strong></td><td>${email}</td></tr><tr><td><strong>Plan</strong></td><td>${planName}</td></tr></table>`
+          : `<h2>New Sign-Up via Stripe Checkout</h2><table cellpadding="6"><tr><td><strong>Name</strong></td><td>${fullName}</td></tr><tr><td><strong>Email</strong></td><td>${email}</td></tr><tr><td><strong>Plan</strong></td><td>${planName}</td></tr><tr><td><strong>Phone</strong></td><td>${meta.phone ?? ''}</td></tr><tr><td><strong>Address</strong></td><td>${[meta.address, meta.suburb, meta.state, meta.postcode].filter(Boolean).join(', ')}</td></tr></table>`,
       })
       break
     }
