@@ -2,20 +2,19 @@
 
 import { useState } from 'react'
 
-const APP_URL = 'bodyforme.com.au/app'
+const APP_URL      = 'bodyforme.com.au/app'
 const APP_URL_FULL = `https://${APP_URL}`
 
 export default function InstallPage() {
-  const [copied, setCopied] = useState(false)
+  const [copied,   setCopied]   = useState(false)
+  const [platform, setPlatform] = useState<'ios' | 'android'>('ios')
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(APP_URL_FULL)
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
-    } catch {
-      // fallback — can't copy
-    }
+    } catch { /* fallback — can't copy */ }
   }
 
   return (
@@ -52,34 +51,261 @@ export default function InstallPage() {
           body { background: #fff; }
           .no-print { display: none !important; }
         }
+
+        /* ── Responsive layout ── */
+        .install-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 28px 20px 56px;
+        }
+        .install-brand-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-bottom: 14px;
+          border-bottom: 1px solid #d8ccba;
+          margin-bottom: 28px;
+        }
+        .install-hero {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          padding-bottom: 32px;
+          border-bottom: 1px solid #d8ccba;
+        }
+        .install-hero-heading {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 42px;
+          font-weight: 400;
+          line-height: 1.05;
+          letter-spacing: -0.01em;
+          margin: 0;
+          color: #2a1506;
+        }
+        .install-hero-heading img {
+          height: 36px;
+          width: auto;
+          vertical-align: middle;
+        }
+        .install-hero-body {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 14px;
+          font-weight: 300;
+          line-height: 1.7;
+          color: #6b4e36;
+          margin: 0 0 18px;
+        }
+        /* Platform tabs — mobile only */
+        .platform-tabs {
+          display: flex;
+          gap: 0;
+          border: 1px solid #d8ccba;
+          overflow: hidden;
+          margin-bottom: 0;
+        }
+        .platform-tab {
+          flex: 1;
+          padding: 12px 8px;
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          border: none;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .platform-tab.active   { background: #2a1506; color: #f4ede1; }
+        .platform-tab.inactive { background: #f4ede1; color: #a08568; }
+        /* Desktop layout */
+        .install-platforms-desktop {
+          display: none;
+        }
+        .install-platforms-mobile {
+          display: block;
+          padding-top: 28px;
+        }
+        .install-col-heading {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 28px;
+          font-weight: 400;
+          margin: 0;
+          line-height: 1;
+          color: #2a1506;
+        }
+        .install-step-row {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          padding: 24px 0;
+          border-bottom: 1px solid #d8ccba;
+        }
+        .install-step-row.last { border-bottom: none; }
+        .install-step-header {
+          display: flex;
+          align-items: baseline;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+        .install-step-num {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 36px;
+          font-weight: 300;
+          color: #7a4a2a;
+          line-height: 1;
+          font-style: italic;
+          flex-shrink: 0;
+        }
+        .install-step-title {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 18px;
+          font-weight: 400;
+          line-height: 1.2;
+          margin: 0 0 6px;
+          color: #2a1506;
+        }
+        .install-step-body {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 13px;
+          font-weight: 300;
+          line-height: 1.65;
+          margin: 0;
+          color: #6b4e36;
+        }
+        .install-step-mockup {
+          display: flex;
+          justify-content: center;
+          margin-top: 16px;
+        }
+        .install-footer {
+          margin-top: 40px;
+          padding-top: 28px;
+          border-top: 1px solid #d8ccba;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .install-footer-text {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 16px;
+          line-height: 1.4;
+          color: #2a1506;
+        }
+        .install-footer-meta {
+          font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          font-size: 10px;
+          font-weight: 500;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #a08568;
+          line-height: 1.8;
+        }
+
+        @media (min-width: 768px) {
+          .install-inner {
+            padding: 64px 56px 80px;
+          }
+          .install-hero {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 56px;
+            align-items: start;
+            padding-bottom: 48px;
+          }
+          .install-hero-heading {
+            font-size: 76px;
+          }
+          .install-hero-heading img {
+            height: 64px;
+          }
+          .platform-tabs {
+            display: none;
+          }
+          .install-platforms-desktop {
+            display: grid;
+            grid-template-columns: 1fr 1px 1fr;
+            gap: 0;
+            padding-top: 48px;
+          }
+          .install-platforms-mobile {
+            display: none;
+          }
+          .install-col-heading {
+            font-size: 38px;
+          }
+          .install-step-row {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            padding: 28px 0;
+          }
+          .install-step-header {
+            display: block;
+            margin-bottom: 0;
+          }
+          .install-step-num {
+            font-size: 44px;
+          }
+          .install-step-inner {
+            display: grid;
+            grid-template-columns: 1fr 168px;
+            gap: 24px;
+            align-items: start;
+          }
+          .install-step-title {
+            font-size: 22px;
+            margin-bottom: 8px;
+          }
+          .install-step-body {
+            font-size: 13px;
+          }
+          .install-step-mockup {
+            justify-content: flex-end;
+            margin-top: 0;
+          }
+          .install-footer {
+            margin-top: 56px;
+            padding-top: 32px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 32px;
+            align-items: end;
+          }
+          .install-footer-text {
+            font-size: 22px;
+          }
+          .install-footer-meta {
+            text-align: right;
+          }
+        }
       `}</style>
 
       <div style={{ background: '#f4ede1', minHeight: '100vh', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", WebkitFontSmoothing: 'antialiased' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 56px 80px' }}>
+        <div className="install-inner">
 
           {/* Brand bar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 14, borderBottom: '1px solid #d8ccba' }}>
-            <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 28, width: 'auto', display: 'block' }} />
+          <div className="install-brand-bar">
+            <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 24, width: 'auto', display: 'block' }} />
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>
               Member app · Install guide
             </div>
           </div>
 
-          {/* Title + URL card */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: 56, padding: '56px 0 48px', borderBottom: '1px solid #d8ccba' }}>
-            <h1 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 76, fontWeight: 400, lineHeight: 1.0, letterSpacing: '-0.01em', margin: 0, color: '#2a1506' }}>
-              Add <img src="/bodyforme-wordmark.png" alt="BodyForme" style={{ height: 64, width: 'auto', verticalAlign: 'middle' }} /><br />to your <em style={{ color: '#7a4a2a', fontWeight: 400 }}>home screen</em>.
+          {/* Hero: heading + URL card */}
+          <div className="install-hero">
+            <h1 className="install-hero-heading">
+              Add <img src="/bodyforme-wordmark.png" alt="BodyForme" /><br />
+              to your <em style={{ color: '#7a4a2a', fontWeight: 400 }}>home screen</em>.
             </h1>
-            <div style={{ paddingTop: 14 }}>
-              <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 14, fontWeight: 300, lineHeight: 1.7, color: '#6b4e36', margin: '0 0 22px' }}>
+            <div>
+              <p className="install-hero-body">
                 Our member app lives on the web — there&apos;s nothing to download from a store. Just open the link below in your phone&apos;s browser, then add it to your home screen for one-tap access to bookings, schedule and your membership.
               </p>
-              <div style={{ background: '#2a1506', color: '#f4ede1', padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 18 }}>
-                <div>
-                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.5)', marginBottom: 6 }}>
+              <div style={{ background: '#2a1506', color: '#f4ede1', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(244,237,225,0.5)', marginBottom: 5 }}>
                     Open in your browser
                   </div>
-                  <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 18, fontWeight: 500, color: '#f4ede1', letterSpacing: '0.01em' }}>
+                  <div style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 15, fontWeight: 500, color: '#f4ede1', letterSpacing: '0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {APP_URL.split('/app')[0]}/<em style={{ color: '#c4a882', fontStyle: 'normal' }}>app</em>
                   </div>
                 </div>
@@ -87,7 +313,7 @@ export default function InstallPage() {
                   className="no-print"
                   onClick={handleCopy}
                   style={{
-                    marginLeft: 'auto', border: '1px solid rgba(244,237,225,0.35)', padding: '10px 16px',
+                    flexShrink: 0, border: '1px solid rgba(244,237,225,0.35)', padding: '10px 14px',
                     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500,
                     letterSpacing: '0.18em', textTransform: 'uppercase', color: copied ? '#2a1506' : '#f4ede1',
                     cursor: 'pointer', background: copied ? '#c4a882' : 'transparent',
@@ -101,54 +327,115 @@ export default function InstallPage() {
             </div>
           </div>
 
-          {/* Two columns */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 0, paddingTop: 48 }}>
+          {/* ── Mobile: platform tabs ── */}
+          <div className="platform-tabs" style={{ marginTop: 28 }}>
+            <button
+              className={`platform-tab ${platform === 'ios' ? 'active' : 'inactive'}`}
+              onClick={() => setPlatform('ios')}
+            >
+              iPhone &amp; iPad
+            </button>
+            <button
+              className={`platform-tab ${platform === 'android' ? 'active' : 'inactive'}`}
+              onClick={() => setPlatform('android')}
+            >
+              Android
+            </button>
+          </div>
 
-            {/* ─── iPhone column ─── */}
-            <div style={{ paddingLeft: 0, paddingRight: 36 }}>
+          {/* ── Mobile: selected platform steps ── */}
+          <div className="install-platforms-mobile">
+            {platform === 'ios' && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid #d8ccba', marginBottom: 0 }}>
+                  <h2 className="install-col-heading">
+                    <em style={{ color: '#7a4a2a' }}>iPhone</em> &amp; iPad
+                  </h2>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Safari</div>
+                </div>
+                <MobileStep num="1" title="Open the link in Safari." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Safari&apos;s address bar. The browser must be Safari — not Chrome, not the in-app browser inside Instagram or Facebook.</>}>
+                  <MockPhone type="ios"><StatusBar /><ChromeBar /><WebpagePreview /><IosToolbar /></MockPhone>
+                </MobileStep>
+                <MobileStep num="2" title="Tap the Share button." body={<>It&apos;s the square-with-an-arrow icon in the centre of Safari&apos;s bottom toolbar.</>} keytap={<><ShareIcon /> Share</>}>
+                  <MockPhone type="ios"><StatusBar /><ChromeBar /><WebpagePreview short /><IosToolbar highlightShare /></MockPhone>
+                </MobileStep>
+                <MobileStep num="3" title={<>Choose &ldquo;Add to Home Screen&rdquo;.</>} body="Scroll down through the share sheet until you see it.">
+                  <MockPhone type="ios"><StatusBar minimal /><div style={{ height: '60%', background: 'rgba(42,21,6,0.35)' }} /><ShareSheet /></MockPhone>
+                </MobileStep>
+                <MobileStep num="4" title={<>Tap &ldquo;Add&rdquo; in the top corner.</>} body={<>You&apos;ll see the Bodyforme icon and name — then tap <strong>Add</strong> in the top-right.</>}>
+                  <MockPhone type="ios">
+                    <StatusBar minimal />
+                    <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, color: '#6b4e36' }}>Cancel</div>
+                      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 600, color: '#2a1506' }}>Add to Home Screen</div>
+                      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, fontWeight: 600, color: '#7a4a2a', position: 'relative' }}>
+                        Add<span className="tap-ring" style={{ right: -8, top: -6 }} />
+                      </div>
+                    </div>
+                  </MockPhone>
+                </MobileStep>
+                <MobileStep num="5" title="Open Bodyforme any time." body="The app icon now sits on your home screen. Tap it to launch — the browser chrome is hidden, just like a regular app." last>
+                  <MockPhone type="ios"><StatusBar /><HomeGrid highlightIdx={5} /></MockPhone>
+                </MobileStep>
+              </div>
+            )}
+            {platform === 'android' && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', paddingBottom: 16, borderBottom: '1px solid #d8ccba', marginBottom: 0 }}>
+                  <h2 className="install-col-heading"><em style={{ color: '#7a4a2a' }}>Android</em></h2>
+                  <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Chrome</div>
+                </div>
+                <MobileStep num="1" title="Open the link in Chrome." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Chrome&apos;s address bar.</>}>
+                  <MockPhone type="android"><StatusBar /><ChromeBar android /><WebpagePreview /></MockPhone>
+                </MobileStep>
+                <MobileStep num="2" title="Open the browser menu." body="Tap the three-dot menu icon in the top-right of Chrome." keytap={<><DotsIcon /> More options</>}>
+                  <MockPhone type="android"><StatusBar minimal /><ChromeBar android highlightMenu /><WebpagePreview short /></MockPhone>
+                </MobileStep>
+                <MobileStep num="3" title={<>Choose &ldquo;Install app&rdquo; or &ldquo;Add to Home screen&rdquo;.</>} body="The exact wording depends on your phone. Both options do the same thing.">
+                  <MockPhone type="android"><StatusBar minimal /><ChromeBar android /><div style={{ opacity: 0.4 }}><WebpagePreview short /></div><AndroidMenu /></MockPhone>
+                </MobileStep>
+                <MobileStep num="4" title={<>Confirm with &ldquo;Install&rdquo;.</>} body={<>A small dialog will pop up. Tap <strong>Install</strong> (or <strong>Add</strong>) to confirm.</>}>
+                  <MockPhone type="android">
+                    <StatusBar minimal />
+                    <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center' }}>
+                      <div style={{ flex: 1, background: '#ede4d4', borderRadius: 6, padding: '5px 8px', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, color: '#2a1506', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', whiteSpace: 'nowrap' }}>🔒 bodyforme.com.au/app</div>
+                    </div>
+                    <div style={{ opacity: 0.5 }}><WebpagePreview short /></div>
+                    <InstallDialog />
+                  </MockPhone>
+                </MobileStep>
+                <MobileStep num="5" title="Open Bodyforme any time." body="The Bodyforme icon now sits with your other apps. Tap it to launch — full-screen, no browser bars." last>
+                  <MockPhone type="android"><StatusBar /><HomeGrid highlightIdx={2} /></MockPhone>
+                </MobileStep>
+              </div>
+            )}
+          </div>
+
+          {/* ── Desktop: two-column iOS + Android ── */}
+          <div className="install-platforms-desktop">
+
+            {/* iPhone column */}
+            <div style={{ paddingRight: 36 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', paddingBottom: 18, borderBottom: '1px solid #d8ccba' }}>
-                <h2 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}>
-                  <em style={{ color: '#7a4a2a' }}>iPhone</em> &amp; iPad
-                </h2>
+                <h2 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}><em style={{ color: '#7a4a2a' }}>iPhone</em> &amp; iPad</h2>
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Safari</div>
               </div>
-
               <Step num="1" title="Open the link in Safari." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Safari&apos;s address bar. The browser must be Safari — not Chrome, not the in-app browser inside Instagram or Facebook.</>}>
-                <MockPhone type="ios">
-                  <StatusBar />
-                  <ChromeBar />
-                  <WebpagePreview />
-                  <IosToolbar />
-                </MockPhone>
+                <MockPhone type="ios"><StatusBar /><ChromeBar /><WebpagePreview /><IosToolbar /></MockPhone>
               </Step>
-
               <Step num="2" title="Tap the Share button." body={<>It&apos;s the square-with-an-arrow icon in the centre of Safari&apos;s bottom toolbar. On older iOS, it&apos;s at the top.</>} keytap={<><ShareIcon /> Share</>}>
-                <MockPhone type="ios">
-                  <StatusBar />
-                  <ChromeBar />
-                  <WebpagePreview short />
-                  <IosToolbar highlightShare />
-                </MockPhone>
+                <MockPhone type="ios"><StatusBar /><ChromeBar /><WebpagePreview short /><IosToolbar highlightShare /></MockPhone>
               </Step>
-
               <Step num="3" title={<>Choose &ldquo;Add to Home Screen&rdquo;.</>} body="Scroll down through the share sheet until you see it. The icon looks like a square with a + inside.">
-                <MockPhone type="ios">
-                  <StatusBar minimal />
-                  <div style={{ height: '60%', background: 'rgba(42,21,6,0.35)' }} />
-                  <ShareSheet />
-                </MockPhone>
+                <MockPhone type="ios"><StatusBar minimal /><div style={{ height: '60%', background: 'rgba(42,21,6,0.35)' }} /><ShareSheet /></MockPhone>
               </Step>
-
               <Step num="4" title={<>Tap &ldquo;Add&rdquo; in the top corner.</>} body={<>You&apos;ll see the Bodyforme icon and name — feel free to keep it as is, then tap <strong>Add</strong> in the top-right.</>}>
                 <MockPhone type="ios">
                   <StatusBar minimal />
                   <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, color: '#6b4e36' }}>Cancel</div>
                     <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 600, color: '#2a1506' }}>Add to Home Screen</div>
-                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, fontWeight: 600, color: '#7a4a2a', position: 'relative' }}>
-                      Add
-                      <span className="tap-ring" style={{ right: -8, top: -6 }} />
-                    </div>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, fontWeight: 600, color: '#7a4a2a', position: 'relative' }}>Add<span className="tap-ring" style={{ right: -8, top: -6 }} /></div>
                   </div>
                   <div style={{ padding: '14px 12px' }}>
                     <div style={{ display: 'flex', gap: 10, alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid #d8ccba' }}>
@@ -158,88 +445,56 @@ export default function InstallPage() {
                         <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7, color: '#a08568', marginTop: 2 }}>bodyforme.com.au</div>
                       </div>
                     </div>
-                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, color: '#a08568', marginTop: 10, lineHeight: 1.5 }}>
-                      An icon will be added to your Home Screen so you can quickly access this website.
-                    </div>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, color: '#a08568', marginTop: 10, lineHeight: 1.5 }}>An icon will be added to your Home Screen so you can quickly access this website.</div>
                   </div>
                 </MockPhone>
               </Step>
-
               <Step num="5" title="Open Bodyforme any time." body="The app icon now sits on your home screen. Tap it to launch — the browser chrome is hidden, just like a regular app." last>
-                <MockPhone type="ios">
-                  <StatusBar />
-                  <HomeGrid highlightIdx={5} />
-                </MockPhone>
+                <MockPhone type="ios"><StatusBar /><HomeGrid highlightIdx={5} /></MockPhone>
               </Step>
             </div>
 
-            {/* Vertical rule */}
+            {/* Divider */}
             <div style={{ background: '#d8ccba' }} />
 
-            {/* ─── Android column ─── */}
-            <div style={{ paddingLeft: 36, paddingRight: 0 }}>
+            {/* Android column */}
+            <div style={{ paddingLeft: 36 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', paddingBottom: 18, borderBottom: '1px solid #d8ccba' }}>
-                <h2 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}>
-                  <em style={{ color: '#7a4a2a' }}>Android</em>
-                </h2>
+                <h2 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 38, fontWeight: 400, margin: 0, lineHeight: 1, color: '#2a1506' }}><em style={{ color: '#7a4a2a' }}>Android</em></h2>
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568' }}>Use Chrome</div>
               </div>
-
               <Step num="1" title="Open the link in Chrome." body={<>Type or paste <strong>bodyforme.com.au/app</strong> into Chrome&apos;s address bar. Chrome works best — Samsung Internet and Edge also support installing.</>}>
-                <MockPhone type="android">
-                  <StatusBar />
-                  <ChromeBar android />
-                  <WebpagePreview />
-                </MockPhone>
+                <MockPhone type="android"><StatusBar /><ChromeBar android /><WebpagePreview /></MockPhone>
               </Step>
-
               <Step num="2" title="Open the browser menu." body="Tap the three-dot menu icon in the top-right of Chrome." keytap={<><DotsIcon /> More options</>}>
-                <MockPhone type="android">
-                  <StatusBar minimal />
-                  <ChromeBar android highlightMenu />
-                  <WebpagePreview short />
-                </MockPhone>
+                <MockPhone type="android"><StatusBar minimal /><ChromeBar android highlightMenu /><WebpagePreview short /></MockPhone>
               </Step>
-
               <Step num="3" title={<>Choose &ldquo;Install app&rdquo; or &ldquo;Add to Home screen&rdquo;.</>} body="The exact wording depends on your phone. Both options do the same thing.">
-                <MockPhone type="android">
-                  <StatusBar minimal />
-                  <ChromeBar android />
-                  <div style={{ opacity: 0.4 }}><WebpagePreview short /></div>
-                  <AndroidMenu />
-                </MockPhone>
+                <MockPhone type="android"><StatusBar minimal /><ChromeBar android /><div style={{ opacity: 0.4 }}><WebpagePreview short /></div><AndroidMenu /></MockPhone>
               </Step>
-
               <Step num="4" title={<>Confirm with &ldquo;Install&rdquo;.</>} body={<>A small dialog will pop up showing the Bodyforme icon. Tap <strong>Install</strong> (or <strong>Add</strong>) to confirm.</>}>
                 <MockPhone type="android">
                   <StatusBar minimal />
                   <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center' }}>
-                    <div style={{ flex: 1, background: '#ede4d4', borderRadius: 6, padding: '5px 8px', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, color: '#2a1506', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                      🔒 bodyforme.com.au/app
-                    </div>
+                    <div style={{ flex: 1, background: '#ede4d4', borderRadius: 6, padding: '5px 8px', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, color: '#2a1506', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', whiteSpace: 'nowrap' }}>🔒 bodyforme.com.au/app</div>
                   </div>
                   <div style={{ opacity: 0.5 }}><WebpagePreview short /></div>
                   <InstallDialog />
                 </MockPhone>
               </Step>
-
               <Step num="5" title="Open Bodyforme any time." body="The Bodyforme icon now sits with your other apps. Tap it to launch — full-screen, no browser bars." last>
-                <MockPhone type="android">
-                  <StatusBar />
-                  <HomeGrid highlightIdx={2} />
-                </MockPhone>
+                <MockPhone type="android"><StatusBar /><HomeGrid highlightIdx={2} /></MockPhone>
               </Step>
             </div>
-
           </div>
 
           {/* Footer */}
-          <div style={{ marginTop: 56, paddingTop: 32, borderTop: '1px solid #d8ccba', display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'end' }}>
-            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, lineHeight: 1.3, color: '#2a1506', maxWidth: 600 }}>
+          <div className="install-footer">
+            <div className="install-footer-text">
               Stuck? Email <em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>info@bodyforme.com.au</em> or call (03) 9850 2221<br />
               or ask at the front desk — we&apos;ll get you sorted in a minute.
             </div>
-            <div style={{ textAlign: 'right', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#a08568', lineHeight: 1.8 }}>
+            <div className="install-footer-meta">
               Bodyforme · Doncaster<br />
               Member App v1.0
             </div>
@@ -251,7 +506,34 @@ export default function InstallPage() {
   )
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
+// ─── Mobile step (simplified layout — no fixed grid columns) ─────────────────
+
+function MobileStep({ num, title, body, keytap, children, last }: {
+  num: string
+  title: React.ReactNode
+  body: React.ReactNode
+  keytap?: React.ReactNode
+  children: React.ReactNode
+  last?: boolean
+}) {
+  return (
+    <div className={`install-step-row${last ? ' last' : ''}`}>
+      <div className="install-step-header">
+        <span className="install-step-num">{num}</span>
+        <h3 className="install-step-title">{title}</h3>
+      </div>
+      <p className="install-step-body">{body}</p>
+      {keytap && (
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '5px 10px', background: '#ede4d4', border: '1px solid #d8ccba', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: '#2a1506', fontWeight: 500 }}>
+          {keytap}
+        </div>
+      )}
+      <div className="install-step-mockup">{children}</div>
+    </div>
+  )
+}
+
+// ─── Desktop step ────────────────────────────────────────────────────────────
 
 function Step({ num, title, body, keytap, children, last }: {
   num: string
@@ -262,18 +544,12 @@ function Step({ num, title, body, keytap, children, last }: {
   last?: boolean
 }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr', gap: 0, padding: '28px 0', borderBottom: last ? 'none' : '1px solid #d8ccba' }}>
-      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 44, fontWeight: 300, color: '#7a4a2a', lineHeight: 1, fontStyle: 'italic' }}>
-        {num}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 168px', gap: 24, alignItems: 'start' }}>
+    <div className={`install-step-row${last ? ' last' : ''}`}>
+      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 44, fontWeight: 300, color: '#7a4a2a', lineHeight: 1, fontStyle: 'italic' }}>{num}</div>
+      <div className="install-step-inner">
         <div>
-          <h3 style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontWeight: 400, lineHeight: 1.2, margin: '0 0 8px', color: '#2a1506' }}>
-            {title}
-          </h3>
-          <p style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, fontWeight: 300, lineHeight: 1.65, margin: 0, color: '#6b4e36' }}>
-            {body}
-          </p>
+          <h3 className="install-step-title">{title}</h3>
+          <p className="install-step-body">{body}</p>
           {keytap && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '5px 10px', background: '#ede4d4', border: '1px solid #d8ccba', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: '#2a1506', fontWeight: 500 }}>
               {keytap}
@@ -286,17 +562,14 @@ function Step({ num, title, body, keytap, children, last }: {
   )
 }
 
+// ─── Shared sub-components (unchanged) ──────────────────────────────────────
+
 function MockPhone({ type, children }: { type: 'ios' | 'android'; children: React.ReactNode }) {
   return (
-    <div style={{ width: 168, height: 296, background: '#000', borderRadius: 22, padding: 4, boxShadow: '0 14px 30px rgba(42,21,6,0.18), 0 0 0 1px rgba(0,0,0,0.08)', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ width: 140, height: 246, background: '#000', borderRadius: 22, padding: 4, boxShadow: '0 14px 30px rgba(42,21,6,0.18), 0 0 0 1px rgba(0,0,0,0.08)', position: 'relative', overflow: 'hidden' }}>
       <div style={{ width: '100%', height: '100%', background: '#f4ede1', borderRadius: 18, overflow: 'hidden', position: 'relative' }}>
-        {/* Notch / punch hole */}
-        {type === 'ios' && (
-          <div style={{ position: 'absolute', top: 5, left: '50%', transform: 'translateX(-50%)', width: 56, height: 16, background: '#000', borderRadius: 12, zIndex: 30 }} />
-        )}
-        {type === 'android' && (
-          <div style={{ position: 'absolute', top: 7, right: 18, width: 8, height: 8, background: '#000', borderRadius: '50%', zIndex: 30 }} />
-        )}
+        {type === 'ios'     && <div style={{ position: 'absolute', top: 5, left: '50%', transform: 'translateX(-50%)', width: 56, height: 16, background: '#000', borderRadius: 12, zIndex: 30 }} />}
+        {type === 'android' && <div style={{ position: 'absolute', top: 7, right: 18, width: 8, height: 8, background: '#000', borderRadius: '50%', zIndex: 30 }} />}
         {children}
       </div>
     </div>
@@ -320,10 +593,8 @@ function ChromeBar({ android, highlightMenu }: { android?: boolean; highlightMen
   return (
     <div style={{ background: '#fdfaf6', borderBottom: '1px solid #d8ccba', padding: '4px 8px 6px', display: 'flex', alignItems: 'center', gap: 6 }}>
       <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b4e36', flexShrink: 0 }}>
-        {android
-          ? <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5h6M5 2L8 5 5 8" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round"/></svg>
-          : <svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round"/></svg>
-        }
+        {android ? <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5h6M5 2L8 5 5 8" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round"/></svg>
+                 : <svg width="10" height="10" viewBox="0 0 10 10"><path d="M7 1L3 5l4 4" stroke="currentColor" strokeWidth="1.4" fill="none" strokeLinecap="round"/></svg>}
       </div>
       <div style={{ flex: 1, background: '#ede4d4', borderRadius: 6, padding: '5px 8px', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 8, color: '#2a1506', display: 'flex', alignItems: 'center', gap: 4, overflow: 'hidden', whiteSpace: 'nowrap' }}>
         🔒 bodyforme.com.au/app
@@ -331,8 +602,8 @@ function ChromeBar({ android, highlightMenu }: { android?: boolean; highlightMen
       <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b4e36', flexShrink: 0, position: 'relative' }}>
         {android
           ? <><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="2" r="0.9" fill="currentColor"/><circle cx="5" cy="5" r="0.9" fill="currentColor"/><circle cx="5" cy="8" r="0.9" fill="currentColor"/></svg>
-            {highlightMenu && <span className="tap-ring" style={{ right: -6, top: -6 }} />}
-          </>
+              {highlightMenu && <span className="tap-ring" style={{ right: -6, top: -6 }} />}
+            </>
           : <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>
         }
       </div>
@@ -343,17 +614,13 @@ function ChromeBar({ android, highlightMenu }: { android?: boolean; highlightMen
 function WebpagePreview({ short }: { short?: boolean }) {
   return (
     <div style={{ padding: '12px 12px 0', display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 14, fontStyle: 'italic', color: '#2a1506', lineHeight: 1, marginTop: 6 }}>
-        Body<em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>forme</em>
-      </div>
+      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 14, fontStyle: 'italic', color: '#2a1506', lineHeight: 1, marginTop: 6 }}>Body<em style={{ color: '#7a4a2a', fontStyle: 'italic' }}>forme</em></div>
       <div style={{ height: 4, background: '#d8ccba', borderRadius: 2, width: '80%' }} />
       <div style={{ height: 4, background: '#d8ccba', borderRadius: 2, width: '60%' }} />
       {!short && <>
         <div style={{ height: 4, background: '#d8ccba', borderRadius: 2 }} />
         <div style={{ height: 4, background: '#d8ccba', borderRadius: 2, width: '80%' }} />
-        <div style={{ marginTop: 6, padding: '5px 0', textAlign: 'center', background: '#2a1506', color: '#f4ede1', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 6.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
-          Sign in to book
-        </div>
+        <div style={{ marginTop: 6, padding: '5px 0', textAlign: 'center', background: '#2a1506', color: '#f4ede1', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 6.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Sign in to book</div>
       </>}
     </div>
   )
@@ -374,11 +641,7 @@ function IosToolbar({ highlightShare }: { highlightShare?: boolean }) {
 }
 
 function ToolbarIcon({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return (
-    <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a4a2a', ...style }}>
-      {children}
-    </div>
-  )
+  return <div style={{ width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7a4a2a', ...style }}>{children}</div>
 }
 
 function ShareSheet() {
@@ -387,12 +650,7 @@ function ShareSheet() {
       <div style={{ width: 30, height: 3, background: '#d8ccba', margin: '0 auto 8px', borderRadius: 2 }} />
       <SheetRow label="Add Bookmark" icon={<svg width="11" height="11" viewBox="0 0 11 11"><path d="M5.5 1v9M1 5.5h9" stroke="#7a4a2a" strokeWidth="1.2" strokeLinecap="round"/></svg>} />
       <SheetRow label="Add to Reading List" icon={<svg width="11" height="11" viewBox="0 0 11 11"><path d="M2 2h7v7H2z" stroke="#7a4a2a" strokeWidth="1.2" fill="none"/></svg>} />
-      <SheetRow
-        label="Add to Home Screen"
-        highlight
-        icon={<svg width="11" height="11" viewBox="0 0 11 11"><rect x="2" y="2" width="7" height="7" stroke="#c4a882" strokeWidth="1.2" fill="none"/><path d="M5.5 4v3M4 5.5h3" stroke="#c4a882" strokeWidth="1.2" strokeLinecap="round"/></svg>}
-        after={<span className="tap-ring" style={{ right: -8, top: '50%', transform: 'translateY(-50%)' }} />}
-      />
+      <SheetRow label="Add to Home Screen" highlight icon={<svg width="11" height="11" viewBox="0 0 11 11"><rect x="2" y="2" width="7" height="7" stroke="#c4a882" strokeWidth="1.2" fill="none"/><path d="M5.5 4v3M4 5.5h3" stroke="#c4a882" strokeWidth="1.2" strokeLinecap="round"/></svg>} after={<span className="tap-ring" style={{ right: -8, top: '50%', transform: 'translateY(-50%)' }} />} />
       <SheetRow label="Copy" icon={<svg width="11" height="11" viewBox="0 0 11 11"><path d="M3 4l2.5 3L8 4" stroke="#7a4a2a" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>} />
     </div>
   )
@@ -401,12 +659,8 @@ function ShareSheet() {
 function SheetRow({ label, icon, highlight, after }: { label: string; icon: React.ReactNode; highlight?: boolean; after?: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: highlight ? '#2a1506' : '#fdfaf6', border: highlight ? '1px solid #7a4a2a' : 'none', borderRadius: 8, marginBottom: 4, position: 'relative' }}>
-      <div style={{ width: 22, height: 22, background: highlight ? 'rgba(255,255,255,0.1)' : '#ede4d4', borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        {icon}
-      </div>
-      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8.5, color: highlight ? '#f4ede1' : '#2a1506', fontWeight: highlight ? 500 : 400, flex: 1 }}>
-        {label}
-      </div>
+      <div style={{ width: 22, height: 22, background: highlight ? 'rgba(255,255,255,0.1)' : '#ede4d4', borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</div>
+      <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8.5, color: highlight ? '#f4ede1' : '#2a1506', fontWeight: highlight ? 500 : 400, flex: 1 }}>{label}</div>
       {after}
     </div>
   )
@@ -417,16 +671,7 @@ function AndroidMenu() {
   return (
     <div style={{ position: 'absolute', top: 26, right: 6, width: 110, background: '#fdfaf6', border: '1px solid #d8ccba', borderRadius: 6, padding: '4px 0', boxShadow: '0 8px 22px rgba(42,21,6,0.18)' }}>
       {items.map(item => (
-        <div key={item} style={{
-          padding: '5px 10px',
-          fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-          fontSize: 8,
-          color: item === 'Install app' ? '#7a4a2a' : '#2a1506',
-          background: item === 'Install app' ? '#ede4d4' : 'transparent',
-          borderLeft: item === 'Install app' ? '2px solid #7a4a2a' : '2px solid transparent',
-          fontWeight: item === 'Install app' ? 500 : 400,
-          position: 'relative',
-        }}>
+        <div key={item} style={{ padding: '5px 10px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 8, color: item === 'Install app' ? '#7a4a2a' : '#2a1506', background: item === 'Install app' ? '#ede4d4' : 'transparent', borderLeft: item === 'Install app' ? '2px solid #7a4a2a' : '2px solid transparent', fontWeight: item === 'Install app' ? 500 : 400, position: 'relative' }}>
           {item}
           {item === 'Install app' && <span className="tap-ring" style={{ right: 0, top: '50%', transform: 'translateY(-50%)' }} />}
         </div>
@@ -448,10 +693,7 @@ function InstallDialog() {
         </div>
         <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
           <div style={{ padding: '4px 10px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 4, color: '#6b4e36' }}>Cancel</div>
-          <div style={{ padding: '4px 10px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 4, background: '#2a1506', color: '#f4ede1', position: 'relative', boxShadow: '0 0 0 3px rgba(122,74,42,0.25)' }}>
-            Install
-            <span className="tap-ring" style={{ right: -6, top: -6 }} />
-          </div>
+          <div style={{ padding: '4px 10px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 7.5, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', borderRadius: 4, background: '#2a1506', color: '#f4ede1', position: 'relative', boxShadow: '0 0 0 3px rgba(122,74,42,0.25)' }}>Install<span className="tap-ring" style={{ right: -6, top: -6 }} /></div>
         </div>
       </div>
     </div>
