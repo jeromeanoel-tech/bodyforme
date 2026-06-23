@@ -42,16 +42,31 @@ export async function POST(req: NextRequest) {
       capacity:        capacity ?? 10,
       status:          'CONFIRMED',
     }))
+
+    // Skip rows that already exist (avoids needing a unique index for upsert)
+    const startTimes = rows.map(r => r.start_time)
+    const { data: existing } = await supabase
+      .from('sessions')
+      .select('start_time')
+      .eq('service_id', serviceId)
+      .in('start_time', startTimes)
+    const existingTimes = new Set((existing ?? []).map((e: { start_time: string }) => e.start_time))
+    const newRows = rows.filter(r => !existingTimes.has(r.start_time))
+
+    if (newRows.length === 0) {
+      return NextResponse.json({ ids: [], count: 0, skipped: rows.length })
+    }
+
     const { data, error } = await supabase
       .from('sessions')
-      .upsert(rows, { onConflict: 'service_id,start_time', ignoreDuplicates: true })
+      .insert(newRows)
       .select('id')
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     revalidatePath('/admin/schedule')
     revalidatePath('/admin/classes')
     revalidatePath('/admin/checkin')
     revalidatePath('/classes')
-    return NextResponse.json({ ids: data.map((r: { id: string }) => r.id), count: data.length })
+    return NextResponse.json({ ids: data.map((r: { id: string }) => r.id), count: data.length, skipped: rows.length - data.length })
   }
 
   // Single session insert
