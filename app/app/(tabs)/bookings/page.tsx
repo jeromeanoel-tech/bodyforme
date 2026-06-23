@@ -139,12 +139,12 @@ function fmt(iso: string) {
 function fmtTime(iso: string) {
   if (!iso) return ''
   try {
-    const [, time] = iso.split('T')
-    if (!time) return ''
-    const [h, m] = time.split(':').map(Number)
-    const ampm   = h < 12 ? 'am' : 'pm'
-    const h12    = h % 12 || 12
-    return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`
+    return new Date(iso).toLocaleTimeString('en-AU', {
+      timeZone: 'Australia/Melbourne',
+      hour:     'numeric',
+      minute:   '2-digit',
+      hour12:   true,
+    })
   } catch { return '' }
 }
 

@@ -23,16 +23,10 @@ type Session = {
 }
 
 function fmt(iso: string) {
-  // Sessions are stored as naive Melbourne time in UTC — read the raw digits, don't convert
-  const naive = iso.slice(0, 16)           // '2026-06-22T09:30'
-  const [dateStr, timeStr] = naive.split('T')
-  const [h, m] = timeStr.split(':').map(Number)
-  const ampm = h < 12 ? 'am' : 'pm'
-  const h12  = h % 12 || 12
-  // Parse the date at noon to avoid any DST edge-case flipping the day
-  const d = new Date(dateStr + 'T12:00:00')
-  const day = d.toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
-  return `${day}, ${h12}:${m.toString().padStart(2, '0')}${ampm}`
+  const d = new Date(iso)
+  const day  = d.toLocaleString('en-AU', { timeZone: 'Australia/Melbourne', weekday: 'short', day: 'numeric', month: 'short' })
+  const time = d.toLocaleTimeString('en-AU', { timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit', hour12: true })
+  return `${day}, ${time}`
 }
 
 export default function ClassesClient({ initialServices, instructors }: { initialServices: Service[]; instructors: string[] }) {
