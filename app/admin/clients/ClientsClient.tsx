@@ -503,16 +503,20 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
             const mems  = membershipsByContact[contact.id] ?? []
             const mem   = activeMembership(mems)
 
-            const memBadgeClass = mem
-              ? MEM_STATUS_BADGE[mem.status] ?? 'bg-neutral-100 text-neutral-500'
+            // members.status is the operational source of truth — if it says inactive,
+            // override the memberships table (which can lag behind due to async webhooks).
+            const effectiveMem = contact.memberStatus === 'inactive' ? null : mem
+
+            const memBadgeClass = effectiveMem
+              ? MEM_STATUS_BADGE[effectiveMem.status] ?? 'bg-neutral-100 text-neutral-500'
               : contact.memberStatus === 'active'    ? 'bg-black text-white'
               : contact.memberStatus === 'inactive'  ? 'bg-red-500 text-white'
               : contact.memberStatus === 'paused'    ? 'bg-neutral-200 text-neutral-600'
               : contact.memberStatus === 'cancelled' ? 'bg-neutral-100 text-neutral-400'
               : 'bg-neutral-100 text-neutral-500'
 
-            const memLabel = mem
-              ? mem.status === 'ENDED' ? 'Expired' : mem.status === 'CANCELED' ? 'Cancelled' : mem.status.charAt(0) + mem.status.slice(1).toLowerCase()
+            const memLabel = effectiveMem
+              ? effectiveMem.status === 'ENDED' ? 'Expired' : effectiveMem.status === 'CANCELED' ? 'Cancelled' : effectiveMem.status.charAt(0) + effectiveMem.status.slice(1).toLowerCase()
               : contact.memberStatus
               ? contact.memberStatus.charAt(0).toUpperCase() + contact.memberStatus.slice(1)
               : ''
@@ -587,8 +591,10 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
                     mem ? (
                       <div className="flex items-center gap-2">
                         <span className="text-[12px] text-neutral-700 truncate">{mem.planName}</span>
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${MEM_STATUS_BADGE[mem.status] ?? 'bg-neutral-100 text-neutral-500'}`}>
-                          {mem.status === 'ENDED' ? 'Expired' : mem.status === 'CANCELED' ? 'Cancelled' : mem.status.charAt(0) + mem.status.slice(1).toLowerCase()}
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                          contact.memberStatus === 'inactive' ? 'bg-red-500 text-white' : MEM_STATUS_BADGE[mem.status] ?? 'bg-neutral-100 text-neutral-500'
+                        }`}>
+                          {contact.memberStatus === 'inactive' ? 'Inactive' : mem.status === 'ENDED' ? 'Expired' : mem.status === 'CANCELED' ? 'Cancelled' : mem.status.charAt(0) + mem.status.slice(1).toLowerCase()}
                         </span>
                       </div>
                     ) : contact.planOverride ? (

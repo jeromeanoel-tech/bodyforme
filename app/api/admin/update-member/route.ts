@@ -17,6 +17,8 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json() as {
     contactId:           string
     email?:              string
+    firstName?:          string
+    lastName?:           string
     phone?:              string
     status?:             string
     planOverride?:       string
@@ -77,15 +79,49 @@ export async function PATCH(req: NextRequest) {
         .update({ status: 'ENDED', end_date: today })
         .eq('member_id', member._id)
         .neq('status', 'ENDED')
+    } else if (newStatus === 'inactive') {
+      // Always cancel all active memberships when member goes inactive,
+      // even when there's no planOverride (avoids stale ACTIVE records in the memberships table).
+      await supabase
+        .from('memberships')
+        .update({ status: 'CANCELED', end_date: today })
+        .eq('member_id', member._id)
+        .in('status', ['ACTIVE', 'PAUSED'])
     } else if (newPlan) {
       // Recurring membership — upsert a membership row
       await upsertMembership({
         memberId:  member._id,
         planName:  newPlan,
-        status:    newStatus === 'active' ? 'ACTIVE' : newStatus === 'inactive' ? 'CANCELED' : 'ACTIVE',
+        status:    'ACTIVE',
         startDate: today,
         endDate:   '',
       })
+    }
+  }
+
+  // Sync Stripe customer when identity fields change
+  if (member.stripeCustomerId) {
+    try {
+      const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+      if (stripeKey) {
+        const { default: Stripe } = await import('stripe')
+        const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
+
+        const customerUpdate: Record<string, string> = {}
+        if (patch.email) customerUpdate.email = patch.email.toLowerCase()
+
+        const newFirst = patch.firstName ?? member.firstName
+        const newLast  = patch.lastName  ?? member.lastName
+        const newName  = `${newFirst} ${newLast}`.trim()
+        const oldName  = `${member.firstName} ${member.lastName}`.trim()
+        if (newName && newName !== oldName) customerUpdate.name = newName
+
+        if (Object.keys(customerUpdate).length > 0) {
+          await stripe.customers.update(member.stripeCustomerId, customerUpdate)
+        }
+      }
+    } catch (e) {
+      console.error('[update-member] Stripe customer sync error:', e instanceof Error ? e.message : e)
     }
   }
 
