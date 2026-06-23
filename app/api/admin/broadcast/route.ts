@@ -51,20 +51,24 @@ function wrapHtml(firstName: string, body: string) {
 </div>`
 }
 
+function hasValidEmail(c: Awaited<ReturnType<typeof getContacts>>[number]) {
+  return !!(c.email && !c.email.includes('@bodyforme.placeholder') && !c.email.includes('@bodyforme.internal'))
+}
+
 function filterRecipients(contacts: Awaited<ReturnType<typeof getContacts>>, segment: Segment) {
-  const now          = Date.now()
+  const now           = Date.now()
   const thirtyDaysAgo = now - 30 * 86400000
 
   return contacts.filter(c => {
-    // Must have a real email and be active
-    if (!c.email || c.email.includes('@bodyforme.placeholder') || c.email.includes('@bodyforme.internal')) return false
-    if (c.memberStatus !== 'active') return false
+    if (!hasValidEmail(c)) return false
 
     switch (segment) {
       case 'all':
-      case 'active-members':
         return true
+      case 'active-members':
+        return c.memberStatus === 'active'
       case 'expiring-soon': {
+        if (c.memberStatus !== 'active') return false
         const expiry = c.endDate ?? c.nextBillingDate
         if (!expiry) return false
         const days = Math.ceil((new Date(expiry).getTime() - now) / 86400000)
@@ -118,8 +122,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: err, sent }, { status: res.status })
       }
 
-      const data = await res.json()
-      sent += Array.isArray(data) ? data.length : chunk.length
+      const data = await res.json() as { data?: { id: string }[] }
+      sent += data.data?.length ?? chunk.length
     }
 
     return NextResponse.json({ ok: true, sent, failed: 0, total: recipients.length })
