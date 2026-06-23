@@ -25,6 +25,10 @@ const PLAN_GROUPS = [
     plans: ['weekly-unlimited', 'weekly-4', 'weekly-3'],
   },
   {
+    label: 'Monthly membership',
+    plans: ['monthly-unlimited'],
+  },
+  {
     label: 'Class packs',
     plans: ['casual', '10pack', '20pack', '50pack'],
   },

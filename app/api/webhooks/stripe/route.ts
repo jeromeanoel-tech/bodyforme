@@ -111,7 +111,12 @@ export async function POST(req: NextRequest) {
       }
 
       // ── Standard sign-up checkout ─────────────────────────────────────────
-      const email     = (obj.customer_email as string) ?? ''
+      // customer_email is null when checkout was created with an existing customer ID
+      // (all in-app purchases for members who already have a Stripe customer).
+      // Fall back to customer_details.email (always present after checkout completes),
+      // then to meta.memberId for the member_app flow.
+      const checkoutDetails  = (obj.customer_details as Record<string, string> | null)
+      const email     = (obj.customer_email as string) || checkoutDetails?.email || ''
       const firstName = meta.firstName ?? ''
       const lastName  = meta.lastName  ?? ''
       const planKey   = meta.plan ?? ''
@@ -139,33 +144,34 @@ export async function POST(req: NextRequest) {
         membershipEndDate = d.toISOString().slice(0, 10)
       }
 
-      // Activate member account and set plan
-      if (email) {
-        const stripeCustomerId = (obj.customer as string) ?? ''
-        const member = await getMemberByEmail(email)
-        if (member) {
-          await updateMemberCredential(member._id, {
-            status:             'active',
-            stripeCustomerId,
-            planOverride:       planName,
-            creditBalance:      creditSeed > 0 ? creditSeed : member.creditBalance,
-            ...(membershipEndDate ? { membershipEndDate } : {}),
+      // Look up member: prefer memberId from metadata (member_app flow),
+      // fall back to email (public sign-up flow).
+      const stripeCustomerId = (obj.customer as string) ?? ''
+      const memberId = meta.memberId ?? ''
+      let member = memberId ? await getMemberById(memberId) : null
+      if (!member && email) member = await getMemberByEmail(email)
+
+      if (member) {
+        await updateMemberCredential(member._id, {
+          status:             'active',
+          stripeCustomerId,
+          planOverride:       planName,
+          creditBalance:      creditSeed > 0 ? creditSeed : member.creditBalance,
+          ...(membershipEndDate ? { membershipEndDate } : {}),
+        })
+
+        // Sync memberships table — only for recurring plans, not packs/casual
+        const today = new Date().toISOString().slice(0, 10)
+        const isPack = CREDIT_PLANS.some(p => planName.toLowerCase().includes(p.toLowerCase()))
+        if (!isPack) {
+          await upsertMembership({
+            memberId:  member._id,
+            planName,
+            status:    'ACTIVE',
+            startDate: today,
+            endDate:   membershipEndDate ?? '',
           })
-
-          // Sync memberships table — only for recurring plans, not packs/casual
-          const today = new Date().toISOString().slice(0, 10)
-          const isPack = CREDIT_PLANS.some(p => planName.toLowerCase().includes(p.toLowerCase()))
-          if (!isPack) {
-            await upsertMembership({
-              memberId:  member._id,
-              planName,
-              status:    'ACTIVE',
-              startDate: today,
-              endDate:   membershipEndDate ?? '',
-            })
-          }
         }
-
       }
 
       const isRenewal = meta.source === 'member_app'
@@ -412,6 +418,9 @@ export async function POST(req: NextRequest) {
 
       await updateMemberCredential(newSubMember._id, {
         status: 'active',
+        // Set planOverride here so member's plan name is correct even if
+        // checkout.session.completed couldn't resolve it (e.g. customer_email was null)
+        ...(newSubPlanName ? { planOverride: newSubPlanName } : {}),
         ...(newSubEndDate ? { membershipEndDate: newSubEndDate, nextBillingDate: newSubEndDate } : {}),
       })
 
