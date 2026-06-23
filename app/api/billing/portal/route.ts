@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
   const returnUrl = `${req.nextUrl.origin}/app/membership`
 
   const res = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {

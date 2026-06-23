@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/adminSession'
-import { getSupabase, updateMemberCredential } from '@/lib/db'
+import { updateMemberCredential } from '@/lib/db'
+import { supabase } from '@/lib/supabase'
 
 export async function POST() {
   const session = await getAdminSession()
   if (!session) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
   const { default: Stripe } = await import('stripe')
   const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
   // Fetch all active members without a Stripe customer ID
-  const { data: rows, error } = await getSupabase()
+  const { data: rows, error } = await supabase
     .from('members')
     .select('id, first_name, last_name, email, stripe_customer_id')
     .eq('status', 'active')

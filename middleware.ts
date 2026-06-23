@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
-const SECRET = () => new TextEncoder().encode(process.env.JWT_SECRET ?? 'dev-secret-do-not-use-in-production')
+const SECRET = () => {
+  const s = process.env.JWT_SECRET
+  if (!s) throw new Error('JWT_SECRET is not configured')
+  return new TextEncoder().encode(s)
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -21,15 +25,10 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith('/app') && !pathname.startsWith('/app/login') && !pathname.startsWith('/app/install') && !pathname.startsWith('/app/forgot-password') && !pathname.startsWith('/app/reset-password')) {
     const token = req.cookies.get('bf_member')?.value
     if (!token) return NextResponse.redirect(new URL('/app/login', req.url))
-    // Verify JWT — if JWT_SECRET unavailable in edge, fall back to cookie-present check
     try {
       await jwtVerify(token, SECRET())
     } catch {
-      // JWT_SECRET may be unavailable in edge runtime on Vercel — fall through to
-      // server-side getSession() in (tabs)/layout.tsx which runs in Node.js and
-      // always has access to env vars. Token presence check above already handles
-      // the no-cookie case.
-      return NextResponse.next()
+      return NextResponse.redirect(new URL('/app/login', req.url))
     }
   }
 

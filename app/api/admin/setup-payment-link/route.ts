@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const session = await getAdminSession()
   if (!session) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
   const { default: Stripe } = await import('stripe')
   const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
@@ -40,10 +40,11 @@ export async function POST(req: NextRequest) {
     success_url:          `${BASE}/app/setup-payment/success`,
     cancel_url:           `${BASE}/app/setup-payment`,
     metadata:             { memberId: member._id },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     custom_text: {
       submit: { message: 'By providing your bank details you authorise BodyForme Pilates to debit your account for your membership.' },
     },
-  })
+  } as any)
 
   return NextResponse.json({ url: checkout.url })
 }

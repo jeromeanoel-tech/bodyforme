@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const { email } = await req.json() as { email: string }
     if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
 
-    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
     if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
 
     const { default: Stripe } = await import('stripe')

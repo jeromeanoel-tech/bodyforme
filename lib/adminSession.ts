@@ -10,7 +10,11 @@ export type AdminUser = {
 export const ADMIN_COOKIE = 'bf_admin'
 export const ADMIN_MAX_AGE = 60 * 60 * 24 * 7  // 7 days
 
-const secret = () => new TextEncoder().encode(process.env.JWT_SECRET ?? 'dev-secret-change-me')
+const secret = () => {
+  const s = process.env.JWT_SECRET
+  if (!s) throw new Error('JWT_SECRET is required')
+  return new TextEncoder().encode(s)
+}
 
 export async function signAdminSession(user: AdminUser): Promise<string> {
   return new SignJWT({ ...user })

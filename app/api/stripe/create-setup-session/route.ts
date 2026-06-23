@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
 import { getSession } from '@/lib/session'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(), { apiVersion: '2024-04-10' as never })
 const BASE   = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
 
 export async function POST(req: NextRequest) {
@@ -44,10 +44,11 @@ export async function POST(req: NextRequest) {
     success_url:          `${BASE}/app/setup-payment/success`,
     cancel_url:           `${BASE}/app/setup-payment`,
     metadata:             { memberId: member._id },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     custom_text: {
       submit: { message: 'By providing your bank details you authorise BodyForme Pilates to debit your account for your membership.' },
     },
-  })
+  } as any)
 
   return NextResponse.json({ url: checkoutSession.url })
 }

@@ -17,13 +17,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 
-  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
   if (!stripeKey) return NextResponse.json({ error: 'Payment not configured' }, { status: 500 })
 
   const member = await getMemberById(auth.id)
   if (!member) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
 
-  const base = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n/g, '').trim()
+  const base = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
   const successUrl = `${base}/app/membership?purchase=success`
   const cancelUrl  = `${base}/app/membership`
 

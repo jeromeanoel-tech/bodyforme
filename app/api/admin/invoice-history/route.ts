@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ invoices: [] })
     }
 
-    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
     if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
 
     const { default: Stripe } = await import('stripe')

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan — only subscription plans can use direct debit' }, { status: 400 })
     }
 
-    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
     if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
 
     const { default: Stripe } = await import('stripe')
@@ -54,12 +54,13 @@ export async function POST(req: NextRequest) {
       default_payment_method:  paymentMethodId,
       collection_method:       'charge_automatically',
       items: [{
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         price_data: {
           currency:     'aud',
           unit_amount:  plan.amount,
           product_data: { name: plan.name },
           recurring:    { interval: plan.billingInterval ?? 'week' },
-        },
+        } as any,
       }],
       metadata: {
         planKey,

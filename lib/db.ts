@@ -2,7 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'node:crypto'
 
 let _supabase: ReturnType<typeof createClient> | null = null
-function getSupabase() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getSupabase(): any {
   if (!_supabase) {
     _supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -147,7 +148,7 @@ export async function getStaff(): Promise<Staff[]> {
     .neq('instructor_name', '')
     .order('instructor_name')
 
-  const names = [...new Set((data ?? []).map((r: { instructor_name: string }) => r.instructor_name))]
+  const names = [...new Set((data ?? []).map((r: { instructor_name: string }) => r.instructor_name))] as string[]
   return names.map(name => ({ id: slug(name), name, resourceId: slug(name) }))
 }
 

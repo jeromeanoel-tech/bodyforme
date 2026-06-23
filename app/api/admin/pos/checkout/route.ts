@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getAdminSession } from '@/lib/adminSession'
 
-const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim(), {
-  apiVersion: '2026-04-22.dahlia',
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(), {
+  apiVersion: '2026-04-22.dahlia' as never,
 })
 
 export type CheckoutItem = {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
   }
 
-  const base = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n/g, '').trim()
+  const base = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
   let session: Awaited<ReturnType<typeof stripe.checkout.sessions.create>>
   try {

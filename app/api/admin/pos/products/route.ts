@@ -4,8 +4,8 @@ import { getAdminSession } from '@/lib/adminSession'
 
 export const dynamic = 'force-dynamic'
 
-const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim(), {
-  apiVersion: '2026-04-22.dahlia',
+const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(), {
+  apiVersion: '2026-04-22.dahlia' as never,
 })
 
 export type PosProduct = {

@@ -58,6 +58,9 @@ export async function POST(req: NextRequest) {
   if (!sess) {
     return NextResponse.json({ error: 'Class not found.' }, { status: 404 })
   }
+  if (new Date(sess.start_time) < new Date()) {
+    return NextResponse.json({ error: 'This class has already started.' }, { status: 409 })
+  }
   if (sess.status === 'CANCELLED') {
     return NextResponse.json({ error: 'This class has been cancelled.' }, { status: 409 })
   }

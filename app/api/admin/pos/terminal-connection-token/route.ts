@@ -3,8 +3,8 @@ import Stripe from 'stripe'
 import { getAdminSession } from '@/lib/adminSession'
 
 const stripe = new Stripe(
-  (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim(),
-  { apiVersion: '2026-04-22.dahlia' }
+  (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(),
+  { apiVersion: '2026-04-22.dahlia' as never }
 )
 
 export async function POST() {

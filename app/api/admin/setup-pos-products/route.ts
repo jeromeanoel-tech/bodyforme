@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/adminSession'
 
-const STRIPE_KEY = () => (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+const STRIPE_KEY = () => (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
 
 async function stripePost(path: string, params: Record<string, string>) {
   const body = new URLSearchParams(params)

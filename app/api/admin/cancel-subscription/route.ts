@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const { email } = await req.json() as { email: string }
     if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
 
-    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
     if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
 
     const { default: Stripe } = await import('stripe')
@@ -41,18 +41,20 @@ export async function POST(req: NextRequest) {
 
     let cancelled = 0
     for (const sub of subs.data) {
-      await stripe.subscriptions.cancel(sub.id)
+      // Schedule cancellation at period end — member retains access until their paid period expires
+      await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true })
       cancelled++
     }
 
-    // Also check trialling
+    // Also check trialling — trialling subs haven't been charged, cancel immediately
     const trialling = await stripe.subscriptions.list({
       customer: member.stripeCustomerId,
       status:   'trialing',
       limit:    10,
     })
     for (const sub of trialling.data) {
-      await stripe.subscriptions.cancel(sub.id)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (stripe.subscriptions as any).cancel(sub.id)
       cancelled++
     }
 

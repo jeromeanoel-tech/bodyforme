@@ -102,7 +102,7 @@ export async function PATCH(req: NextRequest) {
   // Sync Stripe customer when identity fields change
   if (member.stripeCustomerId) {
     try {
-      const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+      const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
       if (stripeKey) {
         const { default: Stripe } = await import('stripe')
         const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+
+export const maxDuration = 30
 import { signupPlans } from '@/lib/content'
 import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS, recordStripeEvent } from '@/lib/db'
 
@@ -52,10 +54,10 @@ export async function POST(req: NextRequest) {
         // Notify studio that a member has set up their debit
         const member = memberId ? await getMemberById(memberId) : null
         if (member) {
-          await sendEmail(STUDIO_EMAIL, 'custom', {
+          sendEmail(STUDIO_EMAIL, 'custom', {
             subject: `Direct debit set up — ${member.firstName} ${member.lastName}`,
             html: `<p>${member.firstName} ${member.lastName} (${member.email}) has completed their BECS direct debit setup. Their bank details are now saved in Stripe.</p>`,
-          })
+          }).catch(() => {})
         }
         break
       }
@@ -167,17 +169,17 @@ export async function POST(req: NextRequest) {
 
       // Skip welcome email for renewals (member already has an account)
       if (email && firstName && planKey !== 'free-trial' && !isRenewal) {
-        await sendEmail(email, 'welcome', { firstName }).catch(() => {})
+        sendEmail(email, 'welcome', { firstName }).catch(() => {})
       }
 
-      await sendEmail(STUDIO_EMAIL, 'custom', {
+      sendEmail(STUDIO_EMAIL, 'custom', {
         subject: isRenewal
           ? `Membership renewed — ${fullName || email} (${planName})`
           : `New sign-up — ${fullName || email} (${planName})`,
         html: isRenewal
           ? `<h2>Membership Renewed via Member App</h2><table cellpadding="6"><tr><td><strong>Name</strong></td><td>${fullName}</td></tr><tr><td><strong>Email</strong></td><td>${email}</td></tr><tr><td><strong>Plan</strong></td><td>${planName}</td></tr></table>`
           : `<h2>New Sign-Up via Stripe Checkout</h2><table cellpadding="6"><tr><td><strong>Name</strong></td><td>${fullName}</td></tr><tr><td><strong>Email</strong></td><td>${email}</td></tr><tr><td><strong>Plan</strong></td><td>${planName}</td></tr><tr><td><strong>Phone</strong></td><td>${meta.phone ?? ''}</td></tr><tr><td><strong>Address</strong></td><td>${[meta.address, meta.suburb, meta.state, meta.postcode].filter(Boolean).join(', ')}</td></tr></table>`,
-      })
+      }).catch(() => {})
       break
     }
 
@@ -241,14 +243,14 @@ export async function POST(req: NextRequest) {
 
       // Notify member
       if (email) {
-        await sendEmail(email, 'payment-failed', { firstName, planName })
+        sendEmail(email, 'payment-failed', { firstName, planName }).catch(() => {})
       }
 
       // Alert studio so they can follow up
-      await sendEmail(STUDIO_EMAIL, 'custom', {
+      sendEmail(STUDIO_EMAIL, 'custom', {
         subject: `Payment failed — ${firstName || email}`,
         html: `<p>A membership payment failed for <strong>${firstName || email}</strong> (${email}).</p><p>Plan: ${planName}</p><p>Their status has been set to <strong>past_due</strong>. Please follow up in Stripe and contact the member.</p>`,
-      })
+      }).catch(() => {})
       break
     }
 
@@ -313,10 +315,10 @@ export async function POST(req: NextRequest) {
       if (memberId) {
         const member = await getMemberById(memberId)
         if (member) {
-          await sendEmail(STUDIO_EMAIL, 'custom', {
+          sendEmail(STUDIO_EMAIL, 'custom', {
             subject: `Direct debit set up — ${member.firstName} ${member.lastName}`,
             html: `<p>${member.firstName} ${member.lastName} (${member.email}) has completed their BECS direct debit setup. Their bank details are now saved in Stripe as the default payment method.</p>`,
-          })
+          }).catch(() => {})
         }
       }
       break

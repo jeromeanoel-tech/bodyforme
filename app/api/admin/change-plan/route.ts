@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     if (!member) return NextResponse.json({ error: 'Member not found' }, { status: 404 })
     if (!member.stripeCustomerId) return NextResponse.json({ error: 'No Stripe customer on this member' }, { status: 400 })
 
-    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+    const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
     if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
 
     const { default: Stripe } = await import('stripe')
