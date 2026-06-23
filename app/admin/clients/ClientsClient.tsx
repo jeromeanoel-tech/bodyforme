@@ -4,8 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import type { Contact, ContactBooking, Membership, MemberCredential } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 import { StripeSetupForm } from '@/components/StripeSetupForm'
-import { AdminBecsForm } from '@/components/AdminBecsForm'
-import { signupPlans, planKeyByName } from '@/lib/content'
+import { StripeSubscriptionPanel } from '@/components/StripeSubscriptionPanel'
 
 type Props = {
   contacts: Contact[]
@@ -1318,16 +1317,6 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   const [saved, setSaved]     = useState(false)
   const [editing, setEditing] = useState(false)
   const [adjSaving, setAdjSaving] = useState(false)
-  const [payOpen,         setPayOpen]         = useState(false)
-  const [payClientSecret, setPayClientSecret] = useState('')
-  const [payLoading,      setPayLoading]      = useState(false)
-  const [payError,        setPayError]        = useState('')
-  const [payDone,         setPayDone]         = useState(false)
-  const [cancelConfirm,  setCancelConfirm]  = useState(false)
-  const [cancelLoading,  setCancelLoading]  = useState(false)
-  const [cancelError,    setCancelError]    = useState('')
-  const [stripeCreating, setStripeCreating] = useState(false)
-  const [selectedPayPlanKey, setSelectedPayPlanKey] = useState('')
 
   const [pauseOpen,   setPauseOpen]   = useState(false)
   const [pauseFrom,   setPauseFrom]   = useState('')
@@ -1365,45 +1354,6 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     }
   }
 
-  async function openPaymentSetup() {
-    if (!contact.email) return
-    setPayOpen(true); setPayLoading(true); setPayError(''); setPayClientSecret(''); setPayDone(false); setSelectedPayPlanKey('')
-    try {
-      const res  = await fetch('/api/admin/create-setup-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: contact.email }),
-      })
-      let data: Record<string, string> = {}
-      try { data = await res.json() } catch { /* non-JSON body */ }
-      if (!res.ok) { setPayError(data.error ?? `Server error ${res.status}`); setPayLoading(false); return }
-      if (!data.clientSecret) { setPayError('No client secret returned — check Stripe config'); setPayLoading(false); return }
-      setPayClientSecret(data.clientSecret)
-    } catch (err) {
-      setPayError(`Network error: ${err instanceof Error ? err.message : String(err)}`)
-    }
-    setPayLoading(false)
-  }
-
-  async function cancelSubscription() {
-    if (!contact.email) return
-    setCancelLoading(true); setCancelError('')
-    try {
-      const res = await fetch('/api/admin/cancel-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: contact.email }),
-      })
-      let data: Record<string, string> = {}
-      try { data = await res.json() } catch { /* non-JSON */ }
-      if (!res.ok) { setCancelError(data.error ?? `Server error ${res.status}`); setCancelLoading(false); return }
-      if (member) onMemberUpdate({ ...member, status: 'inactive', planOverride: '' } as MemberCredential)
-      setCancelConfirm(false)
-    } catch (err) {
-      setCancelError(`Network error: ${err instanceof Error ? err.message : String(err)}`)
-    }
-    setCancelLoading(false)
-  }
 
   useEffect(() => {
     if (member) setForm({
@@ -1460,32 +1410,6 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     setTimeout(() => setSaved(false), 2000)
   }
 
-  const stripeUrl = member?.stripeCustomerId
-    ? `https://dashboard.stripe.com/customers/${member.stripeCustomerId}`
-    : null
-
-  // Resolve plan key from human-readable name stored in planOverride (e.g. "3 Per Week" → "weekly-3")
-  const memberPlanKey   = planKeyByName(member?.planOverride ?? '')
-  const memberPlanMeta  = memberPlanKey ? signupPlans[memberPlanKey] : null
-  const isSubscription  = memberPlanMeta?.mode === 'subscription'
-  // If no subscription plan set, use whatever Suzanne picks in the BECS modal
-  const effectivePlanKey  = memberPlanKey || selectedPayPlanKey
-  const effectivePlanMeta = effectivePlanKey ? signupPlans[effectivePlanKey] : null
-
-  async function createStripeCustomer() {
-    if (!member) return
-    setStripeCreating(true)
-    try {
-      const res  = await fetch('/api/admin/create-stripe-customer', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId: member._id }),
-      })
-      const data = await res.json()
-      if (res.ok) onMemberUpdate({ ...member, stripeCustomerId: data.customerId })
-    } finally {
-      setStripeCreating(false)
-    }
-  }
 
   // Only show true recurring memberships in history (filter out packs/casual)
   const recurringMems = memberships.filter(m => !isPack(m.planName))
@@ -1594,133 +1518,14 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                   <span className="text-neutral-700">{fmtDate(member.nextBillingDate)}</span>
                 </div>
               )}
-              {stripeUrl ? (
-                <a href={stripeUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[11.5px] text-indigo-600 hover:text-indigo-800 font-medium pt-1">
-                  Open in Stripe ↗
-                </a>
-              ) : (
-                <button onClick={createStripeCustomer} disabled={stripeCreating}
-                  className="text-left text-[11.5px] text-neutral-400 hover:text-neutral-700 underline pt-1 disabled:opacity-40 bg-transparent border-none p-0 cursor-pointer">
-                  {stripeCreating ? 'Creating…' : 'Create Stripe customer'}
-                </button>
-              )}
-
-              {/* Cancel subscription — only for active subscription plan members */}
-              {contact.email && isSubscription && member.status !== 'inactive' && (
-                <div className="pt-1 border-t border-neutral-200 mt-1">
-                  {cancelConfirm ? (
-                    <div className="space-y-1.5">
-                      <p className="text-[11.5px] text-neutral-700">
-                        Cancel {member.planOverride} and mark inactive?
-                        {member.stripeCustomerId ? ' Stripe subscription will also be cancelled.' : ''}
-                      </p>
-                      {cancelError && <p className="text-[11px] text-red-500">{cancelError}</p>}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={cancelSubscription}
-                          disabled={cancelLoading}
-                          className="h-7 px-3 text-[11.5px] bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-40"
-                        >
-                          {cancelLoading ? 'Cancelling…' : 'Yes, cancel'}
-                        </button>
-                        <button
-                          onClick={() => { setCancelConfirm(false); setCancelError('') }}
-                          className="h-7 px-3 text-[11.5px] border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors"
-                        >
-                          Keep active
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setCancelConfirm(true)}
-                      className="h-7 px-3 text-[11.5px] border border-red-200 text-red-600 rounded-lg hover:border-red-400 hover:bg-red-50 transition-colors"
-                    >
-                      Cancel subscription
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Direct debit setup — any active member with an email */}
-              {contact.email && member.status !== 'inactive' && (
-                <div className="pt-1 border-t border-neutral-200 mt-1">
-                  <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">Direct debit</p>
-                  {payDone ? (
-                    <p className="text-[11.5px] text-green-600 font-medium">Direct debit set up — Stripe subscription created ✓</p>
-                  ) : (
-                    <button onClick={openPaymentSetup} disabled={payLoading}
-                      className="h-7 px-3 text-[11.5px] border border-neutral-200 text-neutral-700 rounded-lg hover:border-black hover:text-black transition-colors disabled:opacity-40">
-                      {payLoading ? 'Loading…' : 'Set up direct debit'}
-                    </button>
-                  )}
-                  {payError && <p className="text-[11px] text-red-500 mt-1">{payError}</p>}
-                </div>
-              )}
-
-              {/* Direct debit modal */}
-              {payOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/40" onClick={() => !payDone && setPayOpen(false)} />
-                  <div className="relative bg-white rounded-xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-auto p-6">
-                    {payDone ? (
-                      <div className="text-center py-4 space-y-3">
-                        <p className="text-2xl font-semibold text-neutral-900">Direct debit set up</p>
-                        <p className="text-[13px] text-neutral-500">
-                          Stripe subscription created for {effectivePlanMeta?.name ?? effectivePlanKey}.
-                          First debit processes in 2–3 business days.
-                        </p>
-                        <button onClick={() => setPayOpen(false)}
-                          className="h-9 px-6 text-sm font-medium bg-black text-white rounded-lg hover:bg-neutral-800">
-                          Done
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-[15px] font-semibold text-neutral-900">Set up direct debit</h3>
-                          <button onClick={() => setPayOpen(false)} className="text-neutral-400 hover:text-neutral-700 text-xl">×</button>
-                        </div>
-                        <p className="text-[12px] text-neutral-500 mb-4">
-                          For {contact.firstName} {contact.lastName}. Enter BSB and account number below. Processed securely by Stripe.
-                        </p>
-                        {/* Plan selector — shown when member has no subscription plan set */}
-                        {!memberPlanKey && (
-                          <div className="mb-4">
-                            <label className="block text-[12px] font-medium text-neutral-700 mb-1">Select plan</label>
-                            <select
-                              value={selectedPayPlanKey}
-                              onChange={e => setSelectedPayPlanKey(e.target.value)}
-                              className="w-full h-9 px-3 text-[13px] border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
-                            >
-                              <option value="">Choose a plan…</option>
-                              <option value="weekly-3">3 Per Week — $45/wk</option>
-                              <option value="weekly-4">4 Per Week — $55/wk</option>
-                              <option value="weekly-unlimited">Unlimited Classes — $62/wk</option>
-                            </select>
-                          </div>
-                        )}
-                        {payLoading && <p className="text-sm text-neutral-400">Loading…</p>}
-                        {payClientSecret && effectivePlanKey && (
-                          <AdminBecsForm
-                            clientSecret={payClientSecret}
-                            planKey={effectivePlanKey}
-                            contactName={`${contact.firstName} ${contact.lastName}`.trim()}
-                            contactEmail={contact.email ?? ''}
-                            onSuccess={() => setPayDone(true)}
-                            onCancel={() => setPayOpen(false)}
-                          />
-                        )}
-                        {payClientSecret && !effectivePlanKey && (
-                          <p className="text-[12px] text-amber-600 mt-2">Select a plan above to continue.</p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* Stripe subscription management */}
+            <StripeSubscriptionPanel
+              member={member}
+              contact={contact}
+              onMemberUpdate={onMemberUpdate}
+            />
 
             {/* Quick presets */}
             {!editing && (
