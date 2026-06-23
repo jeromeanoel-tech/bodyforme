@@ -86,7 +86,7 @@ async function syncSubscription(
       : undefined
 
     const stripeStatus = sub.status
-    const isPaused     = !!(sub as Record<string, unknown>).pause_collection
+    const isPaused     = !!((sub as unknown) as Record<string, unknown>).pause_collection
     const memberStatus =
       stripeStatus === 'past_due' ? 'past_due' :
       isPaused                    ? 'paused'   :

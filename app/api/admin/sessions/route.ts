@@ -97,24 +97,99 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ id: data.id })
 }
 
+function melbTimeParts(iso: string) {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(iso))
+  return {
+    dow:    parts.find(p => p.type === 'weekday')?.value ?? '',
+    hour:   parseInt(parts.find(p => p.type === 'hour')?.value   ?? '0'),
+    minute: parseInt(parts.find(p => p.type === 'minute')?.value ?? '0'),
+  }
+}
+
 export async function PATCH(req: NextRequest) {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  const { id, instructorName } = await req.json()
+
+  const { id, instructorName, startTime, endTime, applyToFuture } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
-  const { error } = await supabase
+  // Fetch original session so we can compute deltas and find sibling sessions
+  const { data: orig, error: origErr } = await supabase
     .from('sessions')
-    .update({ instructor_name: instructorName ?? '' })
+    .select('id, start_time, end_time, service_id')
     .eq('id', id)
+    .single()
+  if (origErr || !orig) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
 
+  // Time delta in minutes (applied to every matched session so Melbourne wall-clock shifts uniformly)
+  let deltaMs = 0
+  let newDurationMs: number | null = null
+  if (startTime) {
+    const [oh, om] = [melbTimeParts(orig.start_time).hour, melbTimeParts(orig.start_time).minute]
+    const [nh, nm] = (startTime as string).split(':').map(Number)
+    deltaMs = ((nh * 60 + nm) - (oh * 60 + om)) * 60000
+    if (endTime) {
+      const [eh, em] = (endTime as string).split(':').map(Number)
+      newDurationMs = ((eh * 60 + em) - (nh * 60 + nm)) * 60000
+    }
+  }
+
+  function shiftTimes(s: { start_time: string; end_time: string }) {
+    const origDur  = new Date(s.end_time).getTime() - new Date(s.start_time).getTime()
+    const newStart = new Date(new Date(s.start_time).getTime() + deltaMs).toISOString()
+    const newEnd   = new Date(new Date(s.start_time).getTime() + deltaMs + (newDurationMs ?? origDur)).toISOString()
+    return { start_time: newStart, end_time: newEnd }
+  }
+
+  const basePatch: Record<string, unknown> = {}
+  if (instructorName !== undefined) basePatch.instructor_name = instructorName
+
+  if (applyToFuture) {
+    const { data: future } = await supabase
+      .from('sessions')
+      .select('id, start_time, end_time')
+      .eq('service_id', orig.service_id)
+      .gte('start_time', new Date().toISOString())
+      .neq('status', 'CANCELLED')
+
+    const origParts = melbTimeParts(orig.start_time)
+    const matching = (future ?? []).filter(s => {
+      const p = melbTimeParts(s.start_time)
+      return p.dow === origParts.dow && p.hour === origParts.hour && p.minute === origParts.minute
+    })
+
+    for (const s of matching) {
+      const update: Record<string, unknown> = { ...basePatch }
+      if (startTime) Object.assign(update, shiftTimes(s))
+      if (Object.keys(update).length > 0) {
+        const { error } = await supabase.from('sessions').update(update).eq('id', s.id)
+        if (error) console.error('Session update error:', s.id, error.message)
+      }
+    }
+
+    revalidatePath('/admin/schedule')
+    revalidatePath('/admin/classes')
+    revalidatePath('/admin/checkin')
+    revalidatePath('/classes')
+    return NextResponse.json({ ok: true, updated: matching.length })
+  }
+
+  // Single-session update
+  const update: Record<string, unknown> = { ...basePatch }
+  if (startTime) Object.assign(update, shiftTimes(orig))
+  if (Object.keys(update).length === 0) return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
+
+  const { error } = await supabase.from('sessions').update(update).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   revalidatePath('/admin/schedule')
   revalidatePath('/admin/classes')
   revalidatePath('/admin/checkin')
-
-  return NextResponse.json({ ok: true })
+  revalidatePath('/classes')
+  return NextResponse.json({ ok: true, updated: 1 })
 }
 
 export async function DELETE(req: NextRequest) {
