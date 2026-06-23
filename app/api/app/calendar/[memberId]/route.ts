@@ -48,7 +48,6 @@ export async function GET(
     .eq('status', 'CONFIRMED')
     .limit(200)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const upcoming = (rows ?? []).filter((r: any) => (r.sessions?.start_time ?? '') >= nowIso)
 
   // Build ICS
@@ -62,7 +61,6 @@ export async function GET(
     'METHOD:PUBLISH',
   ]
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   for (const row of upcoming as any[]) {
     const s = row.sessions
     if (!s?.start_time) continue

@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
       limit:    10,
     })
     for (const sub of trialling.data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (stripe.subscriptions as any).cancel(sub.id)
       cancelled++
     }

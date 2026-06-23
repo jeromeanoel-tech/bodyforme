@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
 
     // Restore credits and email each member
     for (const b of bookings) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const m = (b as any).members
       if (!m) continue
 

@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
         .single()
 
       if (data) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const m = (data as any).members
         if (m) {
           const isInactive  = m.status === 'inactive'

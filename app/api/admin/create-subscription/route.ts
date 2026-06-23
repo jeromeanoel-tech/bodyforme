@@ -54,7 +54,6 @@ export async function POST(req: NextRequest) {
       default_payment_method:  paymentMethodId,
       collection_method:       'charge_automatically',
       items: [{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         price_data: {
           currency:     'aud',
           unit_amount:  plan.amount,

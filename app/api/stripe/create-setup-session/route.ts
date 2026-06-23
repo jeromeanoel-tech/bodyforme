@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
     success_url:          `${BASE}/app/setup-payment/success`,
     cancel_url:           `${BASE}/app/setup-payment`,
     metadata:             { memberId: member._id },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     custom_text: {
       submit: { message: 'By providing your bank details you authorise BodyForme Pilates to debit your account for your membership.' },
     },
