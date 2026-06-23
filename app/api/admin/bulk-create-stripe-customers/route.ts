@@ -11,15 +11,14 @@ export async function POST() {
   const { default: Stripe } = await import('stripe')
   const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
-  // All members without a Stripe customer ID (null or empty string)
   const { data: rows, error } = await supabase
     .from('members')
     .select('id, first_name, last_name, email, stripe_customer_id')
-    .or('stripe_customer_id.is.null,stripe_customer_id.eq.')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const members = rows ?? []
+  // Filter in JS — avoids PostgREST empty-string eq. parsing ambiguity
+  const members = (rows ?? []).filter((m: any) => !m.stripe_customer_id)
   const created:  { id: string; email: string; customerId: string }[] = []
   const reused:   { id: string; email: string; customerId: string }[] = []
   const skipped:  string[] = []

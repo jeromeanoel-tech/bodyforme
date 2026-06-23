@@ -793,9 +793,10 @@ export async function getAdminPasswordOverride(username: string): Promise<string
 // ── Stripe event idempotency ──────────────────────────────────────────────────
 
 export async function recordStripeEvent(eventId: string): Promise<boolean> {
-  // Returns true if newly recorded (process this event), false if already seen (skip)
   const { error } = await getSupabase().from('stripe_events').insert({ event_id: eventId })
-  return !error
+  if (!error) return true
+  if (error.code === '23505') return false  // duplicate — already processed
+  throw new Error(`stripe_events insert failed: ${error.message} (${error.code})`)
 }
 
 // ── Schema (run once via /api/migrate) ───────────────────────────────────────
