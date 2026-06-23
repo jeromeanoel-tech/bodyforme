@@ -5,8 +5,11 @@ export const maxDuration = 30
 import { signupPlans } from '@/lib/content'
 import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS, recordStripeEvent } from '@/lib/db'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-04-10' as never })
-const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
+const stripe = new Stripe(
+  (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(),
+  { apiVersion: '2024-04-10' as never }
+)
+const STRIPE_WEBHOOK_SECRET = (process.env.STRIPE_WEBHOOK_SECRET ?? '').replace(/\\n|\n/g, '').trim()
 
 async function sendEmail(to: string, template: string, vars: Record<string, string>) {
   const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
