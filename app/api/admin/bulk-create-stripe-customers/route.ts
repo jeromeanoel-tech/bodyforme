@@ -11,37 +11,53 @@ export async function POST() {
   const { default: Stripe } = await import('stripe')
   const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
-  // Fetch all active members without a Stripe customer ID
+  // All members without a Stripe customer ID (null or empty string)
   const { data: rows, error } = await supabase
     .from('members')
     .select('id, first_name, last_name, email, stripe_customer_id')
-    .eq('status', 'active')
-    .is('stripe_customer_id', null)
+    .or('stripe_customer_id.is.null,stripe_customer_id.eq.')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const members = rows ?? []
-  const created: string[] = []
-  const skipped: string[] = []
-  const failed:  string[] = []
+  const created:  { id: string; email: string; customerId: string }[] = []
+  const reused:   { id: string; email: string; customerId: string }[] = []
+  const skipped:  string[] = []
+  const failed:   { id: string; email: string; error: string }[] = []
 
   for (const m of members) {
     if (!m.email || m.email.includes('@bodyforme.placeholder') || m.email.includes('@bodyforme.internal')) {
       skipped.push(m.id)
       continue
     }
+
     try {
+      // Check if a Stripe customer already exists for this email — reuse rather than duplicate
+      const existing = await stripe.customers.list({ email: m.email, limit: 1 })
+      if (existing.data.length > 0) {
+        const customerId = existing.data[0].id
+        await updateMemberCredential(m.id, { stripeCustomerId: customerId })
+        reused.push({ id: m.id, email: m.email, customerId })
+        continue
+      }
+
       const customer = await stripe.customers.create({
         email:    m.email,
         name:     `${m.first_name ?? ''} ${m.last_name ?? ''}`.trim(),
         metadata: { memberId: m.id },
       })
       await updateMemberCredential(m.id, { stripeCustomerId: customer.id })
-      created.push(m.id)
-    } catch {
-      failed.push(m.id)
+      created.push({ id: m.id, email: m.email, customerId: customer.id })
+    } catch (err) {
+      failed.push({ id: m.id, email: m.email, error: String(err) })
     }
   }
 
-  return NextResponse.json({ created: created.length, skipped: skipped.length, failed: failed.length })
+  return NextResponse.json({
+    created: created.length,
+    reused:  reused.length,
+    skipped: skipped.length,
+    failed:  failed.length,
+    details: { created, reused, failed },
+  })
 }
