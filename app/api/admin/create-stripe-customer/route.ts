@@ -23,16 +23,28 @@ export async function POST(req: NextRequest) {
   const { default: Stripe } = await import('stripe')
   const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
-  const customer = await stripe.customers.create({
-    email:    member.email,
-    name:     `${member.firstName} ${member.lastName}`.trim(),
-    metadata: { memberId: member._id },
-  })
+  // Search Stripe by email first — avoids creating duplicates for members who
+  // already have a Stripe customer (e.g. imported from MindBody or signed up
+  // via checkout before their DB record was linked).
+  let customerId: string
 
-  await updateMemberCredential(member._id, { stripeCustomerId: customer.id })
+  const existing = await stripe.customers.list({ email: member.email, limit: 1 })
+  if (existing.data.length > 0) {
+    customerId = existing.data[0].id
+  } else {
+    const customer = await stripe.customers.create({
+      email:    member.email,
+      name:     `${member.firstName} ${member.lastName}`.trim(),
+      metadata: { memberId: member._id },
+    })
+    customerId = customer.id
+  }
+
+  await updateMemberCredential(member._id, { stripeCustomerId: customerId })
 
   return NextResponse.json({
-    customerId:   customer.id,
-    dashboardUrl: `https://dashboard.stripe.com/customers/${customer.id}`,
+    customerId,
+    dashboardUrl: `https://dashboard.stripe.com/customers/${customerId}`,
+    linked: existing.data.length > 0,
   })
 }
