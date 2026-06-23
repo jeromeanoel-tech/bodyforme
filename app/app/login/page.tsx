@@ -14,11 +14,12 @@ const T = {
 }
 
 export default function LoginPage() {
-  const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState('')
-  const [showPw,   setShowPw]   = useState(false)
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState('')
+  const [email,      setEmail]      = useState('')
+  const [password,   setPassword]   = useState('')
+  const [showPw,     setShowPw]     = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
+  const [loading,    setLoading]    = useState(false)
+  const [error,      setError]      = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +30,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method:      'POST',
         headers:     { 'Content-Type': 'application/json' },
-        body:        JSON.stringify({ email, password }),
+        body:        JSON.stringify({ email, password, rememberMe }),
         credentials: 'include',
       })
       const data = await res.json()
@@ -108,7 +109,16 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div style={{ textAlign: 'right', marginBottom: 28, marginTop: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, marginTop: 10 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={e => setRememberMe(e.target.checked)}
+                  style={{ width: 14, height: 14, accentColor: T.esp, cursor: 'pointer' }}
+                />
+                <span style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 300, color: T.muted }}>Remember me</span>
+              </label>
               <a href="/app/forgot-password" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, fontWeight: 300, color: T.muted, textDecoration: 'none', borderBottom: `1px solid ${T.rule}` }}>Forgot password?</a>
             </div>
 

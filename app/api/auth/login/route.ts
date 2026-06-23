@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { getMemberByEmail, getAdminPasswordOverride } from '@/lib/db'
-import { signSession, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/session'
+import { signSession, cookieOptions, COOKIE_NAME } from '@/lib/session'
 import { signAdminSession, ADMIN_COOKIE, ADMIN_MAX_AGE } from '@/lib/adminSession'
 
 type StaffRecord = { username: string; passwordHash: string; role: 'admin' | 'staff'; name: string }
@@ -16,7 +16,7 @@ function getStaff(): StaffRecord[] {
 
 export async function POST(req: NextRequest) {
   const ct = req.headers.get('content-type') ?? ''
-  let credential = '', password = '', isForm = false
+  let credential = '', password = '', isForm = false, rememberMe = false
 
   if (ct.includes('application/x-www-form-urlencoded') || ct.includes('multipart/form-data')) {
     const form = await req.formData()
@@ -25,8 +25,9 @@ export async function POST(req: NextRequest) {
     isForm     = true
   } else {
     const body = await req.json()
-    credential = (body.email ?? '').toLowerCase().trim()
-    password   = body.password ?? ''
+    credential  = (body.email ?? '').toLowerCase().trim()
+    password    = body.password ?? ''
+    rememberMe  = !!body.rememberMe
   }
 
   if (!credential || !password) {
@@ -47,14 +48,15 @@ export async function POST(req: NextRequest) {
       email:     member.email,
       firstName: member.firstName,
       lastName:  member.lastName,
-    })
+    }, rememberMe ? '30d' : '7d')
+    const opts = cookieOptions(rememberMe)
     if (isForm) {
       const res = NextResponse.redirect(new URL('/app/schedule', req.url))
-      res.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS)
+      res.cookies.set(COOKIE_NAME, token, opts)
       return res
     }
     const res = NextResponse.json({ ok: true, redirect: '/app/schedule' })
-    res.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS)
+    res.cookies.set(COOKIE_NAME, token, opts)
     return res
   }
 

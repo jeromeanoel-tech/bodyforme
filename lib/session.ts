@@ -14,11 +14,11 @@ export type SessionUser = {
   lastName:  string
 }
 
-export async function signSession(user: SessionUser): Promise<string> {
+export async function signSession(user: SessionUser, expiry = EXPIRY): Promise<string> {
   return new SignJWT({ ...user })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime(EXPIRY)
+    .setExpirationTime(expiry)
     .sign(SECRET)
 }
 
@@ -39,10 +39,16 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export const COOKIE_NAME = COOKIE
-export const COOKIE_OPTIONS = {
-  httpOnly:  true,
-  secure:    process.env.NODE_ENV === 'production',
-  sameSite:  'lax'  as const,
-  maxAge:    60 * 60 * 24 * 7,
-  path:      '/',
+
+export function cookieOptions(rememberMe = false) {
+  return {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    maxAge:   rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7,
+    path:     '/',
+  }
 }
+
+// Keep for backwards compat with any existing callers
+export const COOKIE_OPTIONS = cookieOptions(false)
