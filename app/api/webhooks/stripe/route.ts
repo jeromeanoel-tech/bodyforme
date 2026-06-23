@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
 export const maxDuration = 30
-import { signupPlans } from '@/lib/content'
+import { signupPlans, RECURRING_PLAN_BILLING } from '@/lib/content'
 import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS, recordStripeEvent } from '@/lib/db'
 
 const stripe = new Stripe(
@@ -307,22 +307,66 @@ export async function POST(req: NextRequest) {
 
     case 'setup_intent.succeeded': {
       const si = event.data.object as { customer: string; payment_method: string; metadata: Record<string, string> }
-      const customerId     = si.customer
-      const paymentMethod  = si.payment_method
-      const memberId       = si.metadata?.memberId ?? ''
+      const customerId    = si.customer
+      const paymentMethod = si.payment_method
+      const memberId      = si.metadata?.memberId ?? ''
+
       if (customerId && paymentMethod) {
         await stripe.customers.update(customerId, {
           invoice_settings: { default_payment_method: paymentMethod },
         })
       }
-      if (memberId) {
-        const member = await getMemberById(memberId)
-        if (member) {
-          sendEmail(STUDIO_EMAIL, 'custom', {
-            subject: `Direct debit set up — ${member.firstName} ${member.lastName}`,
-            html: `<p>${member.firstName} ${member.lastName} (${member.email}) has completed their BECS direct debit setup. Their bank details are now saved in Stripe as the default payment method.</p>`,
-          }).catch(() => {})
+
+      const member = memberId
+        ? await getMemberById(memberId)
+        : customerId ? await getMemberByStripeCustomerId(customerId) : null
+
+      // Auto-create subscription if member has a known recurring plan and no active sub yet
+      if (member && customerId && paymentMethod && member.planOverride) {
+        const billing = RECURRING_PLAN_BILLING[member.planOverride.toLowerCase()]
+        if (billing) {
+          const existing = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 })
+          if (!existing.data.length) {
+            try {
+              const sub = await stripe.subscriptions.create({
+                customer:               customerId,
+                default_payment_method: paymentMethod,
+                collection_method:      'charge_automatically',
+                items: [{
+                  price_data: {
+                    currency:     'aud',
+                    unit_amount:  billing.amount,
+                    product_data: { name: member.planOverride },
+                    recurring:    { interval: billing.interval },
+                  } as any,
+                }],
+                metadata: { memberId: member._id, source: 'auto_becs' },
+              })
+              const periodEnd = (sub as any).current_period_end
+              const endDate   = periodEnd ? new Date(periodEnd * 1000).toISOString().slice(0, 10) : undefined
+              await updateMemberCredential(member._id, {
+                status: 'active',
+                ...(endDate ? { membershipEndDate: endDate, nextBillingDate: endDate } : {}),
+              })
+              await upsertMembership({
+                memberId:  member._id,
+                planName:  member.planOverride,
+                status:    'ACTIVE',
+                startDate: new Date().toISOString().slice(0, 10),
+                endDate:   endDate ?? '',
+              })
+            } catch (err) {
+              console.error('[setup_intent.succeeded] auto-subscription failed:', err)
+            }
+          }
         }
+      }
+
+      if (member) {
+        sendEmail(STUDIO_EMAIL, 'custom', {
+          subject: `Direct debit set up — ${member.firstName} ${member.lastName}`,
+          html: `<p>${member.firstName} ${member.lastName} (${member.email}) has completed their BECS direct debit setup. Their bank details are now saved in Stripe as the default payment method.</p>`,
+        }).catch(() => {})
       }
       break
     }

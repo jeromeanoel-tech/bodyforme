@@ -587,6 +587,16 @@ export const signupPlans: Record<string, {
     billingInterval: 'week',
     features:        ['Unlimited classes', 'All class types', 'Weekly direct debit', 'Cancel with 7 days\' notice'],
   },
+  'monthly-unlimited': {
+    name:            'Unlimited – $260/mo',
+    tag:             'Monthly',
+    amount:          26000,
+    period:          '$260 / month',
+    description:     'Unlimited classes. Monthly direct debit, cancel with 7 days\' notice.',
+    mode:            'subscription',
+    billingInterval: 'month',
+    features:        ['Unlimited classes', 'All class types', 'Monthly direct debit', 'Cancel with 7 days\' notice'],
+  },
   'casual': {
     name:        'Casual Class',
     tag:         'Drop-in',
@@ -674,4 +684,17 @@ export const signupPlans: Record<string, {
 export function planKeyByName(name: string): string {
   const lower = name.toLowerCase()
   return Object.keys(signupPlans).find(k => signupPlans[k].name.toLowerCase() === lower) ?? ''
+}
+
+// Maps plan_override values to recurring billing config.
+// Used by setup_intent.succeeded to auto-create subscriptions after BECS setup.
+export const RECURRING_PLAN_BILLING: Record<string, { interval: 'week' | 'month'; amount: number }> = {
+  'unlimited classes':    { interval: 'week',  amount: 6200  },
+  'unlimited':            { interval: 'week',  amount: 6200  },
+  '3 per week':           { interval: 'week',  amount: 4500  },
+  '4 per week':           { interval: 'week',  amount: 5500  },
+  'unlimited – $260/mo':  { interval: 'month', amount: 26000 },
+  'monthly unlimited':    { interval: 'month', amount: 26000 },
+  'silver – $200/mo':     { interval: 'month', amount: 20000 },
+  'bronze – $120/mo':     { interval: 'month', amount: 12000 },
 }

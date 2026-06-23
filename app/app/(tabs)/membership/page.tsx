@@ -153,7 +153,7 @@ export default function MembershipPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('billing') === 'no-account')
-      setBillingMsg('No active Stripe subscription found. Contact the studio to link your billing account.')
+      setBillingMsg('No billing account linked. Please set up your direct debit below to activate recurring payments.')
     if (params.get('billing') === 'error')
       setBillingMsg('Could not open billing portal. Please try again or contact the studio.')
     if (params.get('purchase') === 'success') {
