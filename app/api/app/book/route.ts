@@ -22,11 +22,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'You don\'t have an active membership. Please contact the studio to get started.' }, { status: 403 })
   }
 
-  // Block if prepaid plan has expired
+  const plan       = member.planOverride.toLowerCase()
+  // Treat members with no plan name as credit-based (MindBody imports without plan mapping)
+  const isPackPlan = !member.planOverride || CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
+
+  // Block if membership has expired.
+  // For subscription/unlimited plans: block on end_date regardless.
+  // For credit packs: only block if credits are also exhausted — if they still have classes
+  // left we let them use them even if the pack date has passed.
   if (member.membershipEndDate) {
     const today   = new Date(); today.setHours(0, 0, 0, 0)
     const endDate = new Date(member.membershipEndDate); endDate.setHours(0, 0, 0, 0)
-    if (today > endDate) {
+    if (today > endDate && (!isPackPlan || member.creditBalance <= 0)) {
       return NextResponse.json({ error: 'Your membership has expired. Please contact the studio to renew.' }, { status: 403 })
     }
   }
@@ -34,9 +41,6 @@ export async function POST(req: NextRequest) {
   // Block if on a credit-based plan with insufficient credits.
   // We count pending upcoming bookings (not yet attended) as "reserved" credits
   // so a member can't book more classes than their balance.
-  const plan       = member.planOverride.toLowerCase()
-  // Treat members with no plan name as credit-based (MindBody imports without plan mapping)
-  const isPackPlan = !member.planOverride || CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
   if (isPackPlan) {
     const pending         = await countPendingBookings(session.id)
     const availableCredits = member.creditBalance - pending
