@@ -198,22 +198,7 @@ export function MemberBecsForm({
   onCancel:      () => void
 }) {
   return (
-    <Elements
-      stripe={stripePromise}
-      options={{
-        clientSecret,
-        appearance: {
-          theme: 'stripe' as const,
-          variables: {
-            colorPrimary:    T.esp,
-            colorBackground: T.canvas,
-            colorText:       T.esp,
-            fontFamily:      font,
-            borderRadius:    '0px',
-          },
-        },
-      }}
-    >
+    <Elements stripe={stripePromise}>
       <InnerForm
         clientSecret={clientSecret}
         defaultName={defaultName}

@@ -187,22 +187,7 @@ export function AdminBecsForm({
   onCancel: () => void
 }) {
   return (
-    <Elements
-      stripe={stripePromise}
-      options={{
-        clientSecret,
-        appearance: {
-          theme: 'stripe' as const,
-          variables: {
-            colorPrimary:    '#000000',
-            colorBackground: '#ffffff',
-            colorText:       '#111111',
-            fontFamily:      'ui-sans-serif, system-ui, sans-serif',
-            borderRadius:    '8px',
-          },
-        },
-      }}
-    >
+    <Elements stripe={stripePromise}>
       <InnerForm
         clientSecret={clientSecret}
         planKey={planKey}

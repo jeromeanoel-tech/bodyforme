@@ -5,7 +5,7 @@ import type { Contact, ContactBooking, Membership, MemberCredential } from '@/li
 import { useSettings } from '@/lib/useSettings'
 import { StripeSetupForm } from '@/components/StripeSetupForm'
 import { AdminBecsForm } from '@/components/AdminBecsForm'
-import { signupPlans } from '@/lib/content'
+import { signupPlans, planKeyByName } from '@/lib/content'
 
 type Props = {
   contacts: Contact[]
@@ -200,6 +200,21 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
 
   function resetNewClient() {
     setShowNewClient(false); setNcFirstName(''); setNcLastName(''); setNcEmail(''); setNcPhone(''); setNcPlan(''); setNcError(''); setNcTempPass(''); setNcPayLink(''); setNcClientSecret(''); setNcPayLoading(false)
+  }
+
+  const [bulkStripeRunning, setBulkStripeRunning] = useState(false)
+  const [bulkStripeResult,  setBulkStripeResult]  = useState<string | null>(null)
+
+  async function bulkCreateStripeCustomers() {
+    setBulkStripeRunning(true); setBulkStripeResult(null)
+    try {
+      const res  = await fetch('/api/admin/bulk-create-stripe-customers', { method: 'POST' })
+      const data = await res.json()
+      setBulkStripeResult(`Done — ${data.created} created, ${data.skipped} skipped (no email), ${data.failed} failed`)
+    } catch {
+      setBulkStripeResult('Network error — please try again')
+    }
+    setBulkStripeRunning(false)
   }
 
   const colsRef   = useRef<HTMLDivElement>(null)
@@ -443,6 +458,15 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
               className="h-8 px-3 text-sm bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors font-medium whitespace-nowrap">
               + New Client
             </button>
+            <button
+              onClick={bulkCreateStripeCustomers}
+              disabled={bulkStripeRunning}
+              className="h-8 px-3 text-sm border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors whitespace-nowrap disabled:opacity-40">
+              {bulkStripeRunning ? 'Creating…' : 'Sync → Stripe'}
+            </button>
+            {bulkStripeResult && (
+              <span className="text-[11px] text-neutral-500">{bulkStripeResult}</span>
+            )}
           </div>
         </div>
       </div>
@@ -1302,6 +1326,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   const [cancelConfirm,  setCancelConfirm]  = useState(false)
   const [cancelLoading,  setCancelLoading]  = useState(false)
   const [cancelError,    setCancelError]    = useState('')
+  const [stripeCreating, setStripeCreating] = useState(false)
 
   const [pauseOpen,   setPauseOpen]   = useState(false)
   const [pauseFrom,   setPauseFrom]   = useState('')
@@ -1438,6 +1463,26 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     ? `https://dashboard.stripe.com/customers/${member.stripeCustomerId}`
     : null
 
+  // Resolve plan key from human-readable name stored in planOverride (e.g. "3 Per Week" → "weekly-3")
+  const memberPlanKey  = planKeyByName(member?.planOverride ?? '')
+  const memberPlanMeta = memberPlanKey ? signupPlans[memberPlanKey] : null
+  const isSubscription = memberPlanMeta?.mode === 'subscription'
+
+  async function createStripeCustomer() {
+    if (!member) return
+    setStripeCreating(true)
+    try {
+      const res  = await fetch('/api/admin/create-stripe-customer', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: member._id }),
+      })
+      const data = await res.json()
+      if (res.ok) onMemberUpdate({ ...member, stripeCustomerId: data.customerId })
+    } finally {
+      setStripeCreating(false)
+    }
+  }
+
   // Only show true recurring memberships in history (filter out packs/casual)
   const recurringMems = memberships.filter(m => !isPack(m.planName))
 
@@ -1545,15 +1590,20 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                   <span className="text-neutral-700">{fmtDate(member.nextBillingDate)}</span>
                 </div>
               )}
-              {stripeUrl && (
+              {stripeUrl ? (
                 <a href={stripeUrl} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1 text-[11.5px] text-indigo-600 hover:text-indigo-800 font-medium pt-1">
                   Open in Stripe ↗
                 </a>
+              ) : (
+                <button onClick={createStripeCustomer} disabled={stripeCreating}
+                  className="text-left text-[11.5px] text-neutral-400 hover:text-neutral-700 underline pt-1 disabled:opacity-40 bg-transparent border-none p-0 cursor-pointer">
+                  {stripeCreating ? 'Creating…' : 'Create Stripe customer'}
+                </button>
               )}
 
               {/* Cancel subscription — only for active subscription plan members */}
-              {contact.email && member?.planOverride && signupPlans[member.planOverride]?.mode === 'subscription' && member.status !== 'inactive' && (
+              {contact.email && isSubscription && member.status !== 'inactive' && (
                 <div className="pt-1 border-t border-neutral-200 mt-1">
                   {cancelConfirm ? (
                     <div className="space-y-1.5">
@@ -1590,7 +1640,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
               )}
 
               {/* Direct debit setup — only for weekly subscription plans */}
-              {contact.email && member?.planOverride && signupPlans[member.planOverride]?.mode === 'subscription' && (
+              {contact.email && isSubscription && (
                 <div className="pt-1 border-t border-neutral-200 mt-1">
                   <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">Direct debit</p>
                   {payDone ? (
@@ -1614,7 +1664,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                       <div className="text-center py-4 space-y-3">
                         <p className="text-2xl font-semibold text-neutral-900">Direct debit set up</p>
                         <p className="text-[13px] text-neutral-500">
-                          Stripe subscription created for {signupPlans[member.planOverride]?.name ?? member.planOverride}.
+                          Stripe subscription created for {memberPlanMeta?.name ?? member.planOverride}.
                           First debit processes in 2–3 business days.
                         </p>
                         <button onClick={() => setPayOpen(false)}
@@ -1635,7 +1685,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                         {payClientSecret && (
                           <AdminBecsForm
                             clientSecret={payClientSecret}
-                            planKey={member.planOverride}
+                            planKey={memberPlanKey}
                             contactName={`${contact.firstName} ${contact.lastName}`.trim()}
                             contactEmail={contact.email ?? ''}
                             onSuccess={() => setPayDone(true)}

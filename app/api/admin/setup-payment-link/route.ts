@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-const BASE   = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
 
 export async function POST(req: NextRequest) {
   const session = await getAdminSession()
   if (!session) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n/g, '').trim()
+  const { default: Stripe } = await import('stripe')
+  const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
   const { email } = await req.json() as { email: string }
   if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })

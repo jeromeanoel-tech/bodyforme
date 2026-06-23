@@ -669,3 +669,9 @@ export const signupPlans: Record<string, {
     features:    ['Access the member app', 'Book classes online', 'View your membership', 'Manage your bookings'],
   },
 }
+
+// Resolve a plan key from a human-readable plan name (e.g. "3 Per Week" → "weekly-3")
+export function planKeyByName(name: string): string {
+  const lower = name.toLowerCase()
+  return Object.keys(signupPlans).find(k => signupPlans[k].name.toLowerCase() === lower) ?? ''
+}
