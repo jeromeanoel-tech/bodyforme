@@ -1327,6 +1327,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   const [cancelLoading,  setCancelLoading]  = useState(false)
   const [cancelError,    setCancelError]    = useState('')
   const [stripeCreating, setStripeCreating] = useState(false)
+  const [selectedPayPlanKey, setSelectedPayPlanKey] = useState('')
 
   const [pauseOpen,   setPauseOpen]   = useState(false)
   const [pauseFrom,   setPauseFrom]   = useState('')
@@ -1366,7 +1367,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
 
   async function openPaymentSetup() {
     if (!contact.email) return
-    setPayOpen(true); setPayLoading(true); setPayError(''); setPayClientSecret(''); setPayDone(false)
+    setPayOpen(true); setPayLoading(true); setPayError(''); setPayClientSecret(''); setPayDone(false); setSelectedPayPlanKey('')
     try {
       const res  = await fetch('/api/admin/create-setup-intent', {
         method: 'POST',
@@ -1464,9 +1465,12 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     : null
 
   // Resolve plan key from human-readable name stored in planOverride (e.g. "3 Per Week" → "weekly-3")
-  const memberPlanKey  = planKeyByName(member?.planOverride ?? '')
-  const memberPlanMeta = memberPlanKey ? signupPlans[memberPlanKey] : null
-  const isSubscription = memberPlanMeta?.mode === 'subscription'
+  const memberPlanKey   = planKeyByName(member?.planOverride ?? '')
+  const memberPlanMeta  = memberPlanKey ? signupPlans[memberPlanKey] : null
+  const isSubscription  = memberPlanMeta?.mode === 'subscription'
+  // If no subscription plan set, use whatever Suzanne picks in the BECS modal
+  const effectivePlanKey  = memberPlanKey || selectedPayPlanKey
+  const effectivePlanMeta = effectivePlanKey ? signupPlans[effectivePlanKey] : null
 
   async function createStripeCustomer() {
     if (!member) return
@@ -1639,8 +1643,8 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                 </div>
               )}
 
-              {/* Direct debit setup — only for weekly subscription plans */}
-              {contact.email && isSubscription && (
+              {/* Direct debit setup — any active member with an email */}
+              {contact.email && member.status !== 'inactive' && (
                 <div className="pt-1 border-t border-neutral-200 mt-1">
                   <p className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">Direct debit</p>
                   {payDone ? (
@@ -1656,7 +1660,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
               )}
 
               {/* Direct debit modal */}
-              {payOpen && member?.planOverride && (
+              {payOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center">
                   <div className="absolute inset-0 bg-black/40" onClick={() => !payDone && setPayOpen(false)} />
                   <div className="relative bg-white rounded-xl shadow-2xl w-[480px] max-h-[90vh] overflow-y-auto p-6">
@@ -1664,7 +1668,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                       <div className="text-center py-4 space-y-3">
                         <p className="text-2xl font-semibold text-neutral-900">Direct debit set up</p>
                         <p className="text-[13px] text-neutral-500">
-                          Stripe subscription created for {memberPlanMeta?.name ?? member.planOverride}.
+                          Stripe subscription created for {effectivePlanMeta?.name ?? effectivePlanKey}.
                           First debit processes in 2–3 business days.
                         </p>
                         <button onClick={() => setPayOpen(false)}
@@ -1681,16 +1685,35 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                         <p className="text-[12px] text-neutral-500 mb-4">
                           For {contact.firstName} {contact.lastName}. Enter BSB and account number below. Processed securely by Stripe.
                         </p>
+                        {/* Plan selector — shown when member has no subscription plan set */}
+                        {!memberPlanKey && (
+                          <div className="mb-4">
+                            <label className="block text-[12px] font-medium text-neutral-700 mb-1">Select plan</label>
+                            <select
+                              value={selectedPayPlanKey}
+                              onChange={e => setSelectedPayPlanKey(e.target.value)}
+                              className="w-full h-9 px-3 text-[13px] border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/10"
+                            >
+                              <option value="">Choose a plan…</option>
+                              <option value="weekly-3">3 Per Week — $45/wk</option>
+                              <option value="weekly-4">4 Per Week — $55/wk</option>
+                              <option value="weekly-unlimited">Unlimited Classes — $62/wk</option>
+                            </select>
+                          </div>
+                        )}
                         {payLoading && <p className="text-sm text-neutral-400">Loading…</p>}
-                        {payClientSecret && (
+                        {payClientSecret && effectivePlanKey && (
                           <AdminBecsForm
                             clientSecret={payClientSecret}
-                            planKey={memberPlanKey}
+                            planKey={effectivePlanKey}
                             contactName={`${contact.firstName} ${contact.lastName}`.trim()}
                             contactEmail={contact.email ?? ''}
                             onSuccess={() => setPayDone(true)}
                             onCancel={() => setPayOpen(false)}
                           />
+                        )}
+                        {payClientSecret && !effectivePlanKey && (
+                          <p className="text-[12px] text-amber-600 mt-2">Select a plan above to continue.</p>
                         )}
                       </>
                     )}
