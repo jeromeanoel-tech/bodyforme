@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Your membership is not active. Please contact the studio.' }, { status: 403 })
   }
 
-  // Block members with no active plan
-  if (!member.planOverride) {
+  // Block members with no active plan and no credits remaining
+  if (!member.planOverride && member.creditBalance <= 0) {
     return NextResponse.json({ error: 'You don\'t have an active membership. Please contact the studio to get started.' }, { status: 403 })
   }
 
@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
   // We count pending upcoming bookings (not yet attended) as "reserved" credits
   // so a member can't book more classes than their balance.
   const plan       = member.planOverride.toLowerCase()
-  const isPackPlan = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
+  // Treat members with no plan name as credit-based (MindBody imports without plan mapping)
+  const isPackPlan = !member.planOverride || CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
   if (isPackPlan) {
     const pending         = await countPendingBookings(session.id)
     const availableCredits = member.creditBalance - pending
