@@ -474,7 +474,7 @@ export default function ScheduleClient({
         {/* Error state */}
         {error && !loading && (
           <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 20, color: T.mid, fontStyle: 'italic', marginBottom: 12 }}>Couldn't load schedule</div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 20, color: T.mid, fontStyle: 'italic', marginBottom: 12 }}>Couldn&apos;t load schedule</div>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, color: T.muted, marginBottom: 20 }}>Check your connection and try again.</div>
             <button
               onClick={() => { setError(false); setLoading(true); fetchWeekData(weekOffset).catch(() => setError(true)).finally(() => setLoading(false)) }}
