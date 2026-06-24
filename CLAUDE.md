@@ -39,7 +39,7 @@ Schema defined in `lib/db.ts` → `initDb()`. Migrations in `supabase/migrations
 ## What's built
 
 ### Public site (`app/`)
-Homepage, Classes, Memberships, Free Trial, About, Contact, Terms, Sign-up
+Homepage, Classes (template-based weekly view — not date-sensitive), Memberships, Free Trial, About, Contact, Terms, Sign-up
 
 ### Member app (`app/app/`) — PWA
 Login (email + password), Schedule (book/cancel/waitlist), Bookings history, Membership (plan status + Stripe direct debit setup), Profile, Forgot/Reset password, PWA install guide
@@ -54,7 +54,7 @@ Login (email + password), Schedule (book/cancel/waitlist), Bookings history, Mem
 | Check In | ✅ Built | Search members, mark attendance |
 | Marketing | ✅ Built | Broadcast email to segments, automations tab |
 | Insights | ✅ Built | Analytics by month, plan breakdown, class performance |
-| POS | ✅ Built | In-studio point-of-sale payments |
+| POS | ✅ Built | In-studio one-off payments only (Casual, 10/20/50 pack, 3/6/12 month) |
 | Settings | ✅ Built | Admin preferences |
 | Dashboard | 🔲 Stub | Today's counts, quick links |
 | Staff | 🔲 Stub | Staff list |
@@ -80,6 +80,7 @@ Login (email + password), Schedule (book/cancel/waitlist), Bookings history, Mem
 | 3 Per Week | `weekly-3` | $45/wk | BECS recurring |
 | 4 Per Week | `weekly-4` | $55/wk | BECS recurring |
 | Unlimited Classes | `weekly-unlimited` | $62/wk | BECS recurring |
+| Monthly Unlimited | `monthly-unlimited` | $239/mo | BECS recurring |
 | 7-Day Unlimited | `intro-offer` | $49 | One-off (new members) |
 | Casual Class | `casual` | $32 | Per session |
 | 10 Class Pack | `10pack` | $280 | One-off |
@@ -88,6 +89,8 @@ Login (email + password), Schedule (book/cancel/waitlist), Bookings history, Mem
 | 3 Month Unlimited | `3month` | $669 | One-off |
 | 6 Month Unlimited | `6month` | $1,199 | One-off |
 | 1 Year Unlimited | `12month` | $2,199 | One-off |
+
+**No Bronze or Silver plans — these do not exist.**
 
 ## Stripe subscription flow
 1. Admin opens client drawer → Membership tab → picks plan → "Send to [email]"
@@ -106,7 +109,7 @@ Cormorant Garamond (headings) · DM Sans (body)
 2. **Automation over manual** — webhooks, scripts, API calls before manual steps.
 3. **Plain English** — no jargon. Short analogies welcome.
 4. **Never hardcode secrets** — always `process.env.X`. Never commit `.env`.
-5. **Mobile-first** — test public pages and member app at 390px.
+5. **Mobile-first** — test public pages, member app, AND admin dashboard at 390px. Admin is fully mobile-optimised.
 6. **Commit and push every change automatically** — no confirmation needed.
 7. **Read files before editing** — don't rely on memory of what's there.
 8. **Lazy Stripe import** — `const { default: Stripe } = await import('stripe')` inside handlers. Module-level import crashes Next.js build.
@@ -121,6 +124,10 @@ Cormorant Garamond (headings) · DM Sans (body)
 - **Stripe subscriptions API `price_data`** — requires `product: existingProductId`, NOT inline `product_data`. Find or create the product first.
 - **Resend batch response** — shape is `{ data: [{ id }] }`, not a top-level array.
 - **`ADMIN_CREDENTIALS` JSON** — must be valid JSON with no trailing whitespace. Parsing errors silently return no admins.
+- **Session `service_id` must match title** — the schedule display uses `scheduleToName[session.service_id]`, NOT the session title. If a session is renamed without updating `service_id`, the old service name shows (bracket details like "(Core)" disappear). Run `scripts/fix-service-ids.ts` or use `scripts/resync-schedule.ts` (which now updates service_id automatically).
+- **POS allowlist** — `/api/admin/pos/products/route.ts` has a hardcoded `ALLOWED_PLAN_NAMES` set. Adding a new POS product requires both creating it in Stripe with `pos: true` metadata AND adding its `planName` to the allowlist.
+- **"New" badge on clients** — defaults to 3 days (72h). Configurable in admin Settings (`newMemberDays`).
+- **Public classes page** — uses `schedule_template` table directly, not live sessions. No date sensitivity. Update `getScheduleTemplate()` in `lib/db.ts` if schema changes.
 
 ## What NOT to do
 - Don't use Wix — this project has no dependency on Wix whatsoever.
