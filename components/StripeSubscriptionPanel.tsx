@@ -270,7 +270,7 @@ export function StripeSubscriptionPanel({
     try {
       const res  = await fetch('/api/admin/cancel-subscription', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: contact.email }),
+        body: JSON.stringify({ memberId: member._id }),
       })
       const data = await res.json()
       if (!res.ok) { setActionError(data.error ?? `Server error ${res.status}`); setActionLoading(false); return }
