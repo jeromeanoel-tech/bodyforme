@@ -180,11 +180,18 @@ async function main() {
         console.log(`  CANCEL: ${day} ${hhmm} "${s.title}"`)
         cancelled++
       }
-    } else if (s.title !== canon.className || s.instructor_name !== canon.instructor) {
-      // Slot exists but wrong title or instructor — update in-place
-      await db.from('sessions').update({ title: canon.className, instructor_name: canon.instructor }).eq('id', s.id)
-      console.log(`  UPDATE: ${day} ${hhmm} "${s.title}" → "${canon.className}" / ${s.instructor_name} → ${canon.instructor}`)
-      updated++
+    } else {
+      // Slot exists — ensure title, instructor, and service_id are all correct
+      const correctSvcId = await getOrCreateService(canon.className)
+      const needsUpdate =
+        s.title           !== canon.className  ||
+        s.instructor_name !== canon.instructor ||
+        s.service_id      !== correctSvcId
+      if (needsUpdate) {
+        await db.from('sessions').update({ title: canon.className, instructor_name: canon.instructor, service_id: correctSvcId }).eq('id', s.id)
+        console.log(`  UPDATE: ${day} ${hhmm} "${s.title}" → "${canon.className}" | svc: ${s.service_id !== correctSvcId ? 'fixed' : 'ok'}`)
+        updated++
+      }
     }
   }
 
