@@ -5,11 +5,23 @@ import type { Session, Service, Staff, Booking } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
 type Props = {
-  initialSessions:   Session[]
-  scheduleToService: Record<string, Service>
-  resourceToStaff:   Record<string, Staff>
-  initialWeekOffset: number
-  instructors:       string[]
+  initialSessions:    Session[]
+  scheduleToService:  Record<string, Service>
+  resourceToStaff:    Record<string, Staff>
+  initialWeekOffset:  number
+  instructors:        string[]
+  templateNameBySlot: Record<string, string>
+}
+
+function slotKey(utcIso: string): string {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(utcIso))
+  const day = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() ?? ''
+  const h   = (parts.find(p => p.type === 'hour')?.value   ?? '0').padStart(2, '0')
+  const mi  = (parts.find(p => p.type === 'minute')?.value ?? '0').padStart(2, '0')
+  return `${day}:${h}:${mi}`
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -50,7 +62,7 @@ function isToday(date: Date, now: Date) {
   return date.toDateString() === now.toDateString()
 }
 
-export default function ScheduleClient({ initialSessions, scheduleToService, resourceToStaff, initialWeekOffset, instructors }: Props) {
+export default function ScheduleClient({ initialSessions, scheduleToService, resourceToStaff, initialWeekOffset, instructors, templateNameBySlot }: Props) {
   const [weekOffset,       setWeekOffset]      = useState(initialWeekOffset)
   const [sessions,         setSessions]        = useState(initialSessions)
   const [loadingSessions,  setLoadingSessions] = useState(false)
@@ -134,8 +146,9 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
         if (!search) return true
         const svc   = scheduleToService[s.scheduleId]
         const staff = resourceToStaff[s.staffResourceId]
+        const name = templateNameBySlot[slotKey(s.start)] || s.title || svc?.name || ''
         return (
-          svc?.name.toLowerCase().includes(search.toLowerCase()) ||
+          name.toLowerCase().includes(search.toLowerCase()) ||
           staff?.name.toLowerCase().includes(search.toLowerCase())
         )
       })
@@ -282,7 +295,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
                         <div className="flex items-baseline gap-2 flex-wrap">
                           <span className="text-[11.5px] text-neutral-400 shrink-0">{fmt12(session.start)}</span>
                           <span className={`text-[13px] font-medium truncate ${cancelled ? 'line-through text-neutral-400' : 'text-neutral-800'}`}>
-                            {session.title || svc?.name}
+                            {templateNameBySlot[slotKey(session.start)] || session.title || svc?.name}
                           </span>
                           {cancelled && (
                             <span className="text-[10px] font-semibold bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide shrink-0">
@@ -355,7 +368,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
                       <div className="flex items-center gap-2">
                         <div className={`w-5 h-5 rounded shrink-0 ${cancelled ? 'bg-neutral-300' : 'bg-black'}`} />
                         <span className={`text-[12.5px] font-medium ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-800'}`}>
-                          {session.title || svc?.name}
+                          {templateNameBySlot[slotKey(session.start)] || session.title || svc?.name}
                         </span>
                         {cancelled && (
                           <span className="text-[10px] font-semibold bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide">

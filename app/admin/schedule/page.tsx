@@ -1,4 +1,4 @@
-import { getSessions, getServices, getStaff } from '@/lib/db'
+import { getSessions, getServices, getStaff, getScheduleTemplate } from '@/lib/db'
 import ScheduleClient from './ScheduleClient'
 
 function getInstructors(): string[] {
@@ -33,14 +33,16 @@ export default async function AdminSchedulePage({
   const offset = parseInt(searchParams.week ?? '0', 10) || 0
   const { from, to, monday } = weekRange(offset)
 
-  const [sessions, services, staff] = await Promise.all([
+  const [sessions, services, staff, template] = await Promise.all([
     getSessions(from, to),
     getServices(),
     getStaff(),
+    getScheduleTemplate(),
   ])
 
-  const scheduleToService = Object.fromEntries(services.map(s => [s.scheduleId, s]))
-  const resourceToStaff   = Object.fromEntries(staff.map(s => [s.resourceId, s]))
+  const scheduleToService  = Object.fromEntries(services.map(s => [s.scheduleId, s]))
+  const resourceToStaff    = Object.fromEntries(staff.map(s => [s.resourceId, s]))
+  const templateNameBySlot = Object.fromEntries(template.map(r => [`${r.day}:${r.start}`, r.className]))
 
   return (
     <ScheduleClient
@@ -49,6 +51,7 @@ export default async function AdminSchedulePage({
       resourceToStaff={resourceToStaff}
       initialWeekOffset={offset}
       instructors={getInstructors()}
+      templateNameBySlot={templateNameBySlot}
     />
   )
 }
