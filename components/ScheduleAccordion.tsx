@@ -11,6 +11,7 @@ type Session = {
   capacity: number
   bookedCount: number
   scheduleId: string
+  status?: string
 }
 
 function fmt12(iso: string) {
@@ -53,7 +54,7 @@ export default function ScheduleAccordion({
           return sessions
             .filter(s => {
               const melbDate = new Date(s.start).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-              return melbDate === dayStr && !s.title.toLowerCase().includes('cancel')
+              return melbDate === dayStr && s.status !== 'CANCELLED'
             })
             .sort((a, b) => a.start.localeCompare(b.start))
             .filter(s => {

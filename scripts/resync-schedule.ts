@@ -47,7 +47,7 @@ interface Slot {
 const TIMETABLE: Slot[] = [
   // Monday
   { day: 'monday',    start: '09:30', end: '10:30', className: 'Hot Mat Pilates',                    instructor: 'Suzanne' },
-  { day: 'monday',    start: '17:45', end: '18:45', className: 'Pilates Hot Mat',                    instructor: 'Sammy' },
+  { day: 'monday',    start: '17:45', end: '18:45', className: 'Hot Mat Pilates',                    instructor: 'Sammy' },
   { day: 'monday',    start: '19:00', end: '20:30', className: '90min Bikram (Hot Yoga)',             instructor: 'Gabe' },
   // Tuesday
   { day: 'tuesday',   start: '09:30', end: '10:30', className: 'Arms Abs Glutes',                    instructor: 'Suzanne' },
