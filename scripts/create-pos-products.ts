@@ -43,18 +43,6 @@ const PRODUCTS: { name: string; description: string; amount: number; metadata: M
     metadata: { pos: 'true', memberAction: 'none', creditAmount: '0', planName: '' },
   },
   {
-    name: 'Bronze Membership',
-    description: '4 classes per month',
-    amount: 12000,
-    metadata: { pos: 'true', memberAction: 'set_plan', creditAmount: '0', planName: 'Bronze – $120/mo' },
-  },
-  {
-    name: 'Silver Membership',
-    description: '8 classes per month',
-    amount: 20000,
-    metadata: { pos: 'true', memberAction: 'set_plan', creditAmount: '0', planName: 'Silver – $200/mo' },
-  },
-  {
     name: 'Unlimited Membership',
     description: 'Unlimited classes per month',
     amount: 23900,

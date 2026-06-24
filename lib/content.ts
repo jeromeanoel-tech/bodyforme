@@ -696,6 +696,5 @@ export const RECURRING_PLAN_BILLING: Record<string, { interval: 'week' | 'month'
   'unlimited – $239/mo':  { interval: 'month', amount: 23900 },
   'unlimited – $260/mo':  { interval: 'month', amount: 23900 },
   'monthly unlimited':    { interval: 'month', amount: 23900 },
-  'silver – $200/mo':     { interval: 'month', amount: 20000 },
-  'bronze – $120/mo':     { interval: 'month', amount: 12000 },
+
 }
