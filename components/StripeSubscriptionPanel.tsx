@@ -526,10 +526,10 @@ export function StripeSubscriptionPanel({
               )}
             </>
           ) : (
-            // Checkout — member completes BECS setup + starts subscription
+            // Invoice email — Stripe emails the client directly with the plan pre-loaded
             <>
               <p className="text-[12px] text-neutral-500">
-                Emails {contact.firstName} a secure Stripe Checkout link — they enter their own bank details and start their subscription. Expires in 24 hours.
+                Stripe will email {contact.firstName} directly with the plan details and a Pay Invoice button. They enter their bank details or card on Stripe&apos;s payment page. Future payments are automatic.
               </p>
               <div>
                 <label className="block text-[11px] text-neutral-500 font-medium mb-1">Plan</label>
@@ -554,7 +554,7 @@ export function StripeSubscriptionPanel({
 
           {setupUrl === 'sent' && (
             <div className="flex items-center gap-2 py-2">
-              <span className="text-[13px] text-green-700 font-medium">Email sent to {member.email}</span>
+              <span className="text-[13px] text-green-700 font-medium">Invoice emailed by Stripe to {member.email} ✓</span>
             </div>
           )}
 

@@ -195,11 +195,22 @@ export async function POST(req: NextRequest) {
     case 'invoice.paid': {
       // Recurring subscription renewed — keep end date and status fresh in DB
       const inv = event.data.object as {
-        customer: string
+        customer:           string
+        subscription:       string
+        billing_reason:     string
+        collection_method:  string
         lines: { data: { period: { end: number }; price: { nickname: string | null } }[] }
       }
       const renewedCustomerId = inv.customer
       if (!renewedCustomerId) break
+
+      // After the client pays the first invoice (sent_invoice flow), switch to
+      // charge_automatically so all future renewals are silent direct debits.
+      if (inv.billing_reason === 'subscription_create' && inv.collection_method === 'send_invoice' && inv.subscription) {
+        await stripe.subscriptions.update(inv.subscription, {
+          collection_method: 'charge_automatically',
+        }).catch(e => console.error('[invoice.paid] switch to charge_automatically failed:', e))
+      }
 
       const renewedMember = await getMemberByStripeCustomerId(renewedCustomerId)
       if (!renewedMember) break
