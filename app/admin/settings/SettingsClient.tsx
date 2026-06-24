@@ -101,27 +101,46 @@ export default function SettingsClient() {
   }
 
   return (
-    <div className="h-full flex overflow-hidden">
+    <div className="h-full flex flex-col md:flex-row overflow-hidden">
 
-      {/* Section nav */}
-      <div className="w-48 shrink-0 border-r border-neutral-200 px-3 py-4 space-y-0.5">
-        {NAV.map(n => (
-          <button
-            key={n.key}
-            onClick={() => setSection(n.key)}
-            className={`w-full text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${
-              section === n.key
-                ? 'bg-black text-white font-medium'
-                : 'text-neutral-600 hover:bg-neutral-100'
-            }`}
-          >
-            {n.label}
-          </button>
-        ))}
+      {/* Section nav — horizontal scrolling tabs on mobile, vertical sidebar on desktop */}
+      <div className="md:w-48 shrink-0 border-b md:border-b-0 md:border-r border-neutral-200 md:px-3 md:py-4 md:space-y-0.5">
+        {/* Mobile: horizontal pill tabs */}
+        <div className="md:hidden flex gap-1.5 px-3 py-3 overflow-x-auto">
+          {NAV.map(n => (
+            <button
+              key={n.key}
+              onClick={() => setSection(n.key)}
+              className={`h-9 px-4 text-[13px] rounded-lg border whitespace-nowrap shrink-0 transition-colors touch-manipulation ${
+                section === n.key
+                  ? 'bg-black text-white border-black font-medium'
+                  : 'text-neutral-600 border-neutral-200 bg-white'
+              }`}
+            >
+              {n.label}
+            </button>
+          ))}
+        </div>
+        {/* Desktop: vertical list */}
+        <div className="hidden md:block space-y-0.5">
+          {NAV.map(n => (
+            <button
+              key={n.key}
+              onClick={() => setSection(n.key)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-[13px] transition-colors ${
+                section === n.key
+                  ? 'bg-black text-white font-medium'
+                  : 'text-neutral-600 hover:bg-neutral-100'
+              }`}
+            >
+              {n.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Panel */}
-      <div className="flex-1 overflow-y-auto px-8 py-6 max-w-2xl">
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6 max-w-2xl">
 
         {/* Toast */}
         {saved && (
@@ -479,12 +498,12 @@ function Heading({ title, sub }: { title: string; sub: string }) {
 
 function SettingRow({ label, sub, children }: { label: string; sub: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-6 py-1">
+    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-6 py-1">
       <div className="flex-1">
         <p className="text-[13.5px] font-medium text-neutral-800">{label}</p>
         <p className="text-[12px] text-neutral-400 mt-0.5">{sub}</p>
       </div>
-      <div className="shrink-0 pt-0.5">{children}</div>
+      <div className="shrink-0 sm:pt-0.5">{children}</div>
     </div>
   )
 }

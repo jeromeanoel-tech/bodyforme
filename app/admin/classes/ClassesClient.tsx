@@ -242,12 +242,12 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
 
       {/* Exact duplicate warning */}
       {dupIds.length > 0 && (
-        <div className="shrink-0 flex items-center justify-between px-4 md:px-6 py-3 bg-amber-50 border-b border-amber-200">
+        <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 md:px-6 py-3 bg-amber-50 border-b border-amber-200">
           <p className="text-[12.5px] text-amber-800">
             {dupIds.length} exact duplicate{dupIds.length !== 1 ? 's' : ''} — same day, time and class name added more than once.
           </p>
           <button onClick={cleanDuplicates} disabled={deduping}
-            className="ml-4 shrink-0 h-7 px-3 text-[11.5px] font-medium bg-amber-700 text-white rounded-lg hover:bg-amber-800 disabled:opacity-40 touch-manipulation">
+            className="shrink-0 h-9 px-3 text-[11.5px] font-medium bg-amber-700 text-white rounded-lg hover:bg-amber-800 disabled:opacity-40 touch-manipulation self-start sm:self-auto">
             {deduping ? 'Cleaning…' : 'Remove duplicates'}
           </button>
         </div>
@@ -275,31 +275,35 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
               <div key={row.id}
                 className="flex items-center px-4 md:px-6 py-3 hover:bg-neutral-50 transition-colors group border-t border-neutral-50">
                 {/* Time */}
-                <div className="w-36 shrink-0">
-                  <span className="text-[13px] font-medium text-neutral-800">{fmt12(row.start_time)}</span>
-                  <span className="text-[12px] text-neutral-400"> – {fmt12(row.end_time)}</span>
+                <div className="w-28 md:w-36 shrink-0">
+                  <span className="text-[12px] md:text-[13px] font-medium text-neutral-800">{fmt12(row.start_time)}</span>
+                  <span className="hidden md:inline text-[12px] text-neutral-400"> – {fmt12(row.end_time)}</span>
                 </div>
                 {/* Class name */}
-                <div className="flex-1 min-w-0 px-3">
-                  <span className="text-[14px] text-neutral-900">{row.class_name}</span>
+                <div className="flex-1 min-w-0 px-2 md:px-3">
+                  <span className="text-[13px] md:text-[14px] text-neutral-900">{row.class_name}</span>
+                  {/* Instructor — mobile only, shown below class name */}
+                  {row.instructor && (
+                    <p className="md:hidden text-[11px] text-neutral-400 mt-0.5">{row.instructor}</p>
+                  )}
                 </div>
-                {/* Instructor */}
+                {/* Instructor — desktop only */}
                 <div className="w-28 shrink-0 hidden md:block">
                   <span className="text-[13px] text-neutral-500">{row.instructor || '—'}</span>
                 </div>
-                {/* Actions — visible on hover */}
-                <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Actions — always visible on mobile, hover on desktop */}
+                <div className="flex items-center gap-1.5 shrink-0 md:opacity-0 md:group-hover:opacity-100 md:transition-opacity">
                   <button onClick={() => resyncSlot(row)} disabled={syncing === row.id}
                     title="Force sessions to match this template row (fixes wrong class names)"
-                    className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-blue-400 hover:text-blue-700 disabled:opacity-40 touch-manipulation">
+                    className="hidden md:flex h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-blue-400 hover:text-blue-700 disabled:opacity-40 touch-manipulation items-center">
                     {syncing === row.id ? '…' : 'Sync'}
                   </button>
                   <button onClick={() => openEdit(row)}
-                    className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 touch-manipulation">
+                    className="h-9 md:h-7 px-3 text-[12px] md:text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 touch-manipulation flex items-center">
                     Edit
                   </button>
                   <button onClick={() => setDelRow(row)}
-                    className="h-7 w-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors text-sm touch-manipulation">
+                    className="h-9 w-9 md:h-7 md:w-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors text-sm touch-manipulation">
                     ✕
                   </button>
                 </div>
