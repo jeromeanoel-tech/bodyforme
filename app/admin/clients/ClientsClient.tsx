@@ -348,6 +348,38 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
             onChange={e => setSearch(e.target.value)}
             className="flex-1 h-10 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
           />
+          {/* Filter button — mobile */}
+          <div ref={filterRef} className="relative md:hidden">
+            <button
+              onClick={() => setFilterOpen(o => !o)}
+              disabled={allAvailable.length === 0}
+              className={`h-10 px-3 text-sm border rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-40 touch-manipulation ${
+                filters.length > 0 ? 'bg-black text-white border-black' : 'border-neutral-200 text-neutral-600'
+              }`}
+            >
+              Filter{filters.length > 0 ? ` (${filters.length})` : ''}
+            </button>
+            {filterOpen && availableGroups.length > 0 && (
+              <div className="absolute top-12 right-0 z-30 bg-white border border-neutral-200 rounded-xl shadow-lg py-2 w-64 max-h-80 overflow-y-auto">
+                {availableGroups.map(group => (
+                  <div key={group.heading}>
+                    <p className="px-4 pt-2 pb-1 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+                      {group.heading}
+                    </p>
+                    {group.items.map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => addFilter(f.key)}
+                        className="w-full text-left px-4 py-2.5 text-[13px] text-neutral-700 hover:bg-neutral-50 touch-manipulation"
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setShowNewClient(true)}
             className="h-10 px-3 text-sm bg-black text-white rounded-lg font-medium whitespace-nowrap touch-manipulation"
@@ -358,9 +390,9 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
         {filters.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {filters.map(k => (
-              <span key={k} className="flex items-center gap-1 h-7 px-2.5 text-[11.5px] bg-black text-white rounded-lg">
+              <span key={k} className="flex items-center gap-1 h-8 px-2.5 text-[11.5px] bg-black text-white rounded-lg">
                 {filterLabel(k)}
-                <button onClick={() => removeFilter(k)} className="text-white/60 hover:text-white ml-0.5">×</button>
+                <button onClick={() => removeFilter(k)} className="text-white/60 hover:text-white ml-0.5 w-5 h-5 flex items-center justify-center">×</button>
               </span>
             ))}
           </div>
@@ -998,7 +1030,7 @@ function ClientDrawer({
                 </p>
               </div>
             </div>
-            <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl mt-0.5">×</button>
+            <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl mt-0.5 w-10 h-10 flex items-center justify-center touch-manipulation">×</button>
           </div>
           <div className="flex gap-2 mt-4">
             <ActionBtn label="Book class" onClick={() => { setTab('bookings'); openBookingMode() }} />
@@ -1723,7 +1755,7 @@ function ActionBtn({ label, onClick }: { label: string; onClick?: () => void }) 
   return (
     <button
       onClick={onClick}
-      className="h-7 px-3 text-[12px] border border-neutral-200 rounded-lg text-neutral-600 hover:border-black hover:text-black transition-colors"
+      className="h-9 px-3 text-[12px] border border-neutral-200 rounded-lg text-neutral-600 hover:border-black hover:text-black transition-colors touch-manipulation"
     >
       {label}
     </button>

@@ -114,12 +114,12 @@ export default function MarketingClient() {
     <div className="h-full flex flex-col overflow-hidden">
 
       {/* Tabs */}
-      <div className="shrink-0 flex border-b border-neutral-200 bg-white px-6">
+      <div className="shrink-0 flex border-b border-neutral-200 bg-white px-4 md:px-6">
         {([['send', 'Send email'], ['automations', 'Automations']] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`py-3.5 mr-6 text-[13px] border-b-2 transition-colors ${
+            className={`py-3.5 mr-5 md:mr-6 text-[13px] border-b-2 transition-colors touch-manipulation ${
               tab === key
                 ? 'border-black text-neutral-900 font-medium'
                 : 'border-transparent text-neutral-400 hover:text-neutral-700'
@@ -131,7 +131,7 @@ export default function MarketingClient() {
       </div>
 
       <div className="flex-1 overflow-y-auto bg-neutral-50">
-        <div className="max-w-2xl mx-auto px-6 py-6 space-y-5">
+        <div className="max-w-2xl mx-auto px-4 md:px-6 py-4 md:py-6 space-y-5">
 
           {/* ── Send email tab ── */}
           {tab === 'send' && (
@@ -242,7 +242,7 @@ export default function MarketingClient() {
                   </div>
 
                   {/* Send bar */}
-                  <div className="bg-white border border-neutral-200 rounded-xl px-5 py-4 flex items-center justify-between">
+                  <div className="bg-white border border-neutral-200 rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                       {count !== null && count > 0 ? (
                         <p className="text-[13px] text-neutral-700">
@@ -265,7 +265,7 @@ export default function MarketingClient() {
                     <button
                       onClick={handleSend}
                       disabled={!canSend || sendState === 'sending'}
-                      className="h-9 px-5 text-[13px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 shrink-0"
+                      className="h-11 sm:h-9 px-5 text-[13px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40 shrink-0 touch-manipulation"
                     >
                       {sendState === 'sending' ? 'Sending…' : 'Send email'}
                     </button>

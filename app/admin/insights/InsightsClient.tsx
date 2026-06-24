@@ -190,7 +190,7 @@ export default function InsightsClient({ contacts, memberships, sessions, freeTr
                 </div>
                 <span className="text-[22px] font-semibold text-neutral-900">{rate}%</span>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-neutral-100">
+              <div className="grid grid-cols-2 md:grid-cols-4 divide-y divide-neutral-100 md:divide-y-0 md:divide-x">
                 {[
                   { label: 'Registered',   value: registered,      sub: 'all time' },
                   { label: 'Converted',    value: converted,       sub: 'have a plan' },

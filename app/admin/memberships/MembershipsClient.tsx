@@ -548,7 +548,7 @@ function MembershipDrawer({ row, expiringDays, onClose, onStatusChange }: {
                 <p className="text-[12px] text-neutral-500 mt-0.5">{row.email || row.phone || '—'}</p>
               </div>
             </div>
-            <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl">×</button>
+            <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 text-xl w-10 h-10 flex items-center justify-center touch-manipulation">×</button>
           </div>
         </div>
 
