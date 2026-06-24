@@ -1,5 +1,5 @@
 export type AdminSettings = {
-  newMemberDays:        number   // days before "New" badge disappears on clients
+  newMemberDays:        number   // days (72h = 3) before "New" badge disappears on clients
   expiringDays:         number   // days until expiry that triggers "Expiring soon"
   insightsDefaultRange: '30d' | '90d' | 'all'
   fillRateWarningPct:   number   // fill rate % below which to show low-fill indicator
@@ -7,7 +7,7 @@ export type AdminSettings = {
 }
 
 export const DEFAULT_SETTINGS: AdminSettings = {
-  newMemberDays:        30,
+  newMemberDays:        3,
   expiringDays:         14,
   insightsDefaultRange: '30d',
   fillRateWarningPct:   50,
