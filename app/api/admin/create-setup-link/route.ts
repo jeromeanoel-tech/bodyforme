@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const { default: Stripe } = await import('stripe')
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+    const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
     // Ensure Stripe customer exists
     let customerId = member.stripeCustomerId

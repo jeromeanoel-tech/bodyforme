@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     // Always return success — don't reveal whether username exists
     if (user) {
       const token    = await createAdminPasswordResetToken(user.username)
-      const base     = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+      const base     = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
       const resetUrl = `${base}/admin/reset-password?token=${token}`
       await emailAdminPasswordReset({ username: user.username, name: user.name, resetUrl })
     }

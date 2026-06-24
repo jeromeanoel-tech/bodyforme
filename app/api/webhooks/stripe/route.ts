@@ -12,7 +12,7 @@ const stripe = new Stripe(
 const STRIPE_WEBHOOK_SECRET = (process.env.STRIPE_WEBHOOK_SECRET ?? '').replace(/\\n|\n/g, '').trim()
 
 async function sendEmail(to: string, template: string, vars: Record<string, string>) {
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+  const base = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
   await fetch(`${base}/api/email/send`, {
     method: 'POST',
     headers: {
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   const obj = event.data.object as Record<string, unknown>
 
   const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
-  const BASE_URL     = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+  const BASE_URL     = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
   switch (event.type) {
     case 'checkout.session.completed': {

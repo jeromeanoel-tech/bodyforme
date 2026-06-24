@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
 const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
-const BASE           = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+const BASE           = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
 type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'migration' | 'dd-payment-setup' | 'member-onboarding' | 'custom'
 

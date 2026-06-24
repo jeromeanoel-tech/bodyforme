@@ -4,7 +4,7 @@ import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
 import { getSession } from '@/lib/session'
 
 const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(), { apiVersion: '2024-04-10' as never })
-const BASE   = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+const BASE   = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
 export async function POST(req: NextRequest) {
   const session = await getSession()

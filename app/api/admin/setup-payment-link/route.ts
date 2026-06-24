@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMemberByEmail, updateMemberCredential } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 
-const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+const BASE = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
 export async function POST(req: NextRequest) {
   const session = await getAdminSession()
