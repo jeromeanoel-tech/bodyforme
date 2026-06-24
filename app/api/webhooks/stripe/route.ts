@@ -345,16 +345,22 @@ export async function POST(req: NextRequest) {
           const existing = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 })
           if (!existing.data.length) {
             try {
+              // subscriptions.create price_data needs an existing product ID
+              const productList = await stripe.products.list({ active: true, limit: 100 })
+              let becsProduct = productList.data.find(p => p.name === member.planOverride)
+              if (!becsProduct) {
+                becsProduct = await stripe.products.create({ name: member.planOverride })
+              }
               const sub = await stripe.subscriptions.create({
                 customer:               customerId,
                 default_payment_method: paymentMethod,
                 collection_method:      'charge_automatically',
                 items: [{
                   price_data: {
-                    currency:     'aud',
-                    unit_amount:  billing.amount,
-                    product_data: { name: member.planOverride },
-                    recurring:    { interval: billing.interval },
+                    currency:    'aud',
+                    product:     becsProduct.id,
+                    unit_amount: billing.amount,
+                    recurring:   { interval: billing.interval },
                   } as any,
                 }],
                 metadata: { memberId: member._id, source: 'auto_becs' },

@@ -67,6 +67,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan — must be a subscription plan' }, { status: 400 })
     }
 
+    // subscriptions.create price_data requires an existing product ID, not inline product_data.
+    // Find the product by name; create it if it doesn't exist yet.
+    const productList = await stripe.products.list({ active: true, limit: 100 })
+    let product = productList.data.find(p => p.name === plan.name)
+    if (!product) {
+      product = await stripe.products.create({ name: plan.name })
+    }
+
     // Stripe creates the invoice, finalises it, and emails the client automatically.
     // The hosted invoice page (invoice.stripe.com) shows the plan details and accepts
     // both BECS direct debit and card. After first payment the webhook switches
@@ -81,10 +89,10 @@ export async function POST(req: NextRequest) {
       } as any,
       items: [{
         price_data: {
-          currency:     'aud',
-          product_data: { name: plan.name },
-          unit_amount:  plan.amount,
-          recurring:    { interval: plan.billingInterval ?? 'week' },
+          currency:    'aud',
+          product:     product.id,
+          unit_amount: plan.amount,
+          recurring:   { interval: plan.billingInterval ?? 'week' },
         } as any,
       }],
       metadata: {
