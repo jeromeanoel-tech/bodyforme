@@ -57,8 +57,8 @@ const PRODUCTS: { name: string; description: string; amount: number; metadata: M
   {
     name: 'Unlimited Membership',
     description: 'Unlimited classes per month',
-    amount: 26000,
-    metadata: { pos: 'true', memberAction: 'set_plan', creditAmount: '0', planName: 'Unlimited – $260/mo' },
+    amount: 23900,
+    metadata: { pos: 'true', memberAction: 'set_plan', creditAmount: '0', planName: 'Unlimited – $239/mo' },
   },
 ]
 
