@@ -47,6 +47,34 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
   const [delRow,    setDelRow]    = useState<TemplateRow | null>(null)
   const [deleting,  setDeleting]  = useState(false)
 
+  // Dedup state
+  const [deduping,  setDeduping]  = useState(false)
+  const [syncing,   setSyncing]   = useState<string | null>(null)
+
+  // Exact duplicates (same day+time+name) — safe to auto-remove
+  const dupIds: string[] = (() => {
+    const seen = new Set<string>()
+    const dup: string[] = []
+    for (const r of rows) {
+      const key = `${r.day}|${r.start_time}|${r.class_name.toLowerCase().trim()}`
+      if (seen.has(key)) dup.push(r.id)
+      else seen.add(key)
+    }
+    return dup
+  })()
+
+  // Time-slot conflicts (same day+time, different class name) — need manual resolution
+  const conflictTimes: string[] = (() => {
+    const seen = new Set<string>()
+    const conflicts = new Set<string>()
+    for (const r of rows) {
+      const key = `${r.day}|${r.start_time}`
+      if (seen.has(key)) conflicts.add(key)
+      else seen.add(key)
+    }
+    return Array.from(conflicts)
+  })()
+
   function openEdit(row: TemplateRow) {
     setEditRow(row)
     setEditForm({ day: row.day, start_time: row.start_time, end_time: row.end_time, class_name: row.class_name, instructor: row.instructor })
@@ -106,6 +134,40 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
     if (!res.ok) { setDeleting(false); return }
     setRows(prev => prev.filter(r => r.id !== delRow.id))
     setDelRow(null); setDeleting(false)
+  }
+
+  async function resyncSlot(row: TemplateRow) {
+    setSyncing(row.id)
+    await fetch('/api/admin/schedule-template', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: row.id, day: row.day, start_time: row.start_time, end_time: row.end_time,
+        class_name: row.class_name, instructor: row.instructor, resync: true,
+      }),
+    })
+    setSyncing(null)
+  }
+
+  async function cleanDuplicates() {
+    setDeduping(true)
+    for (const id of dupIds) {
+      const row = rows.find(r => r.id === id)
+      if (!row) continue
+      await fetch('/api/admin/schedule-template', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: row.id, day: row.day, start_time: row.start_time, class_name: row.class_name }),
+      })
+    }
+    setRows(prev => {
+      const seen = new Set<string>()
+      return prev.filter(r => {
+        const key = `${r.day}|${r.start_time}|${r.class_name.toLowerCase().trim()}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+    })
+    setDeduping(false)
   }
 
   function sortRows(r: TemplateRow[]) {
@@ -178,6 +240,28 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
         </button>
       </div>
 
+      {/* Exact duplicate warning */}
+      {dupIds.length > 0 && (
+        <div className="shrink-0 flex items-center justify-between px-4 md:px-6 py-3 bg-amber-50 border-b border-amber-200">
+          <p className="text-[12.5px] text-amber-800">
+            {dupIds.length} exact duplicate{dupIds.length !== 1 ? 's' : ''} — same day, time and class name added more than once.
+          </p>
+          <button onClick={cleanDuplicates} disabled={deduping}
+            className="ml-4 shrink-0 h-7 px-3 text-[11.5px] font-medium bg-amber-700 text-white rounded-lg hover:bg-amber-800 disabled:opacity-40 touch-manipulation">
+            {deduping ? 'Cleaning…' : 'Remove duplicates'}
+          </button>
+        </div>
+      )}
+
+      {/* Time-slot conflict warning */}
+      {conflictTimes.length > 0 && (
+        <div className="shrink-0 px-4 md:px-6 py-3 bg-red-50 border-b border-red-200">
+          <p className="text-[12.5px] text-red-800">
+            {conflictTimes.length} time slot{conflictTimes.length !== 1 ? 's have' : ' has'} two different classes scheduled — delete the wrong one using ✕, then click <strong>Sync</strong> on the correct row to fix the live timetable.
+          </p>
+        </div>
+      )}
+
       {/* Template list grouped by day */}
       <div className="flex-1 overflow-y-auto divide-y divide-neutral-100">
         {DAY_ORDER.filter(d => byDay[d].length > 0).map(day => (
@@ -205,6 +289,11 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
                 </div>
                 {/* Actions — visible on hover */}
                 <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => resyncSlot(row)} disabled={syncing === row.id}
+                    title="Force sessions to match this template row (fixes wrong class names)"
+                    className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-blue-400 hover:text-blue-700 disabled:opacity-40 touch-manipulation">
+                    {syncing === row.id ? '…' : 'Sync'}
+                  </button>
                   <button onClick={() => openEdit(row)}
                     className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 touch-manipulation">
                     Edit

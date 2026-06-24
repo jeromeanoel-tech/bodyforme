@@ -15,9 +15,12 @@ type Session = {
 
 function fmt12(iso: string) {
   if (!iso) return ''
-  const [, time] = iso.split('T')
-  const [h, m] = time.split(':').map(Number)
-  return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`
+  return new Date(iso).toLocaleTimeString('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    hour:     'numeric',
+    minute:   '2-digit',
+    hour12:   true,
+  })
 }
 
 function dayLabel(iso: string) {
@@ -43,12 +46,15 @@ export default function ScheduleAccordion({
   return (
     <div>
       {days.map((day) => {
-        const dayStr = day.toISOString().slice(0, 10)
+        const dayStr  = new Date(day).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
         const isToday = dayStr === todayStr
         const daySessions = (() => {
           const seen = new Set<string>()
           return sessions
-            .filter(s => s.start.startsWith(dayStr) && !s.title.toLowerCase().includes('cancel'))
+            .filter(s => {
+              const melbDate = new Date(s.start).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
+              return melbDate === dayStr && !s.title.toLowerCase().includes('cancel')
+            })
             .sort((a, b) => a.start.localeCompare(b.start))
             .filter(s => {
               const name = (scheduleToName?.[s.scheduleId] ?? s.title).toLowerCase()

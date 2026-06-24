@@ -61,7 +61,11 @@ export default async function ClassesPage() {
   const today = new Date(y, mo - 1, dy)
   const days  = getWeekDays(today)
   const pad   = (d: Date) => d.toISOString().slice(0, 10)
-  const from  = `${pad(days[0])}T00:00:00`
+  // Expand from by 1 day: morning sessions (e.g. 9:30am AEST) are stored as
+  // the previous UTC date (23:30Z), so Monday sessions would be missed without this.
+  const fromExpanded = new Date(days[0])
+  fromExpanded.setDate(fromExpanded.getDate() - 1)
+  const from  = `${pad(fromExpanded)}T00:00:00`
   const to    = `${pad(days[6])}T23:59:59`
 
   let sessions: Session[] = []
@@ -129,12 +133,15 @@ export default async function ClassesPage() {
         <div className="sched-wrap desk-only">
         <div className="sched-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
           {days.map((day, di) => {
-            const dayStr = day.toISOString().slice(0, 10)
+            const dayStr  = day.toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
             const isToday = dayStr === todayStr
             const daySessions = (() => {
               const seen = new Set<string>()
               return sessions
-                .filter(s => s.start.startsWith(dayStr) && s.status !== 'CANCELLED')
+                .filter(s => {
+                  const melbDate = new Date(s.start).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
+                  return melbDate === dayStr && s.status !== 'CANCELLED'
+                })
                 .sort((a, b) => a.start.localeCompare(b.start))
                 .filter(s => {
                   const key = `${s.start.slice(0, 16)}|${(scheduleToName[s.scheduleId] ?? s.title).toLowerCase()}`

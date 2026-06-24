@@ -33,15 +33,13 @@ function melbToUtc(melbDateStr: string, hhmm: string): string {
 
 /**
  * Find all future non-cancelled sessions matching a template slot.
- * Matches on Melbourne weekday name + Melbourne wall-clock start time + class title.
+ * When forceByTime=true, matches only on Melbourne weekday + start time (ignores class title).
+ * This is used for resync, where the title in sessions may differ from the template.
  */
-async function matchingSessions(day: string, startHHMM: string, className: string) {
-  const { data } = await supabase
-    .from('sessions')
-    .select('id, start_time, end_time')
-    .eq('title', className)
-    .neq('status', 'CANCELLED')
-    .gt('start_time', new Date().toISOString())
+async function matchingSessions(day: string, startHHMM: string, className: string, forceByTime = false) {
+  const base = supabase.from('sessions').select('id, title, start_time, end_time')
+    .neq('status', 'CANCELLED').gt('start_time', new Date().toISOString())
+  const { data } = await (forceByTime ? base : base.eq('title', className))
 
   return (data ?? []).filter(s => {
     const parts = new Intl.DateTimeFormat('en-AU', {
@@ -142,7 +140,7 @@ export async function PUT(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
-  const { id, day, start_time, end_time, class_name, instructor } = body
+  const { id, day, start_time, end_time, class_name, instructor, resync } = body
   // "old_*" are the original values before the edit — used to find existing sessions
   const { old_day, old_start_time, old_end_time, old_class_name } = body
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
@@ -154,12 +152,31 @@ export async function PUT(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Propagate to matching future sessions
+  if (resync) {
+    // Find ALL future sessions at this day+time regardless of title
+    const allAtThisTime = await matchingSessions(day, start_time, '', true)
+    const toUpdate = allAtThisTime.filter(s => s.title === class_name)
+    const toCancel = allAtThisTime.filter(s => s.title !== class_name)
+    // Rename any already correctly-titled sessions (update instructor)
+    for (const s of toUpdate) {
+      await supabase.from('sessions').update({ instructor_name: instructor }).eq('id', s.id)
+    }
+    // Cancel sessions with wrong class name at this time slot
+    if (toCancel.length > 0) {
+      await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', toCancel.map(s => s.id))
+    }
+    // Seed the correct class for any weeks that are now missing sessions
+    await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
+    return NextResponse.json({ row: data, resynced: allAtThisTime.length, cancelled: toCancel.length })
+  }
+
   const sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, old_class_name ?? class_name)
   const timeChanged = start_time !== old_start_time || end_time !== old_end_time
+  const nameChanged = class_name !== (old_class_name ?? class_name)
 
   for (const s of sessions) {
     const update: Record<string, unknown> = { instructor_name: instructor }
+    if (nameChanged) update.title = class_name
     if (timeChanged) {
       const melbDate = getMelbDate(new Date(s.start_time))
       update.start_time = melbToUtc(melbDate, start_time)
@@ -167,6 +184,9 @@ export async function PUT(req: NextRequest) {
     }
     await supabase.from('sessions').update(update).eq('id', s.id)
   }
+
+  // Ensure sessions exist for the next 12 weeks under the current class name
+  await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
 
   return NextResponse.json({ row: data, updated: sessions.length })
 }
