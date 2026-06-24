@@ -67,8 +67,10 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
   first.setUTCDate(first.getUTCDate() + daysUntil)
 
   // Get or create service record
-  const { data: svc } = await supabase.from('services').select('id').eq('name', className).maybeSingle()
-  let serviceId = svc?.id
+  // Use limit(1) not maybeSingle() — maybeSingle errors when >1 row exists,
+  // which would silently create yet another duplicate service record.
+  const { data: svcRows } = await supabase.from('services').select('id').eq('name', className).limit(1)
+  let serviceId = svcRows?.[0]?.id
   if (!serviceId) {
     const { data: newSvc } = await supabase.from('services')
       .insert({ name: className, description: '', duration: 60, capacity: 20 })

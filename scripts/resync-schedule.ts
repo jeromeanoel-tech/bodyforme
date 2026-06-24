@@ -119,8 +119,10 @@ const svcCache = new Map<string, string>()
 
 async function getOrCreateService(name: string): Promise<string> {
   if (svcCache.has(name)) return svcCache.get(name)!
-  const { data: ex } = await db.from('services').select('id').eq('name', name).maybeSingle()
-  if (ex) { svcCache.set(name, ex.id); return ex.id }
+  // Use limit(1) not maybeSingle() — maybeSingle errors if >1 row exists,
+  // which would silently fall through to create yet another duplicate service.
+  const { data: rows } = await db.from('services').select('id').eq('name', name).limit(1)
+  if (rows && rows.length > 0) { svcCache.set(name, rows[0].id); return rows[0].id }
   const { data: nw } = await db.from('services')
     .insert({ name, description: '', duration: 60, capacity: 20 }).select('id').single()
   if (!nw) throw new Error(`Could not create service "${name}"`)
