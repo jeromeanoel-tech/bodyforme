@@ -26,6 +26,15 @@ export type Service = {
   scheduleId: string
 }
 
+export type TemplateRow = {
+  id: string
+  day: string       // lowercase: "monday" … "sunday"
+  start: string     // "HH:MM"
+  end: string       // "HH:MM"
+  className: string
+  instructor: string
+}
+
 export type Session = {
   id: string
   title: string
@@ -153,6 +162,24 @@ export async function getStaff(): Promise<Staff[]> {
 }
 
 // ── Services ──────────────────────────────────────────────────────────────────
+
+export async function getScheduleTemplate(): Promise<TemplateRow[]> {
+  const DAY_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+  const { data } = await getSupabase().from('schedule_template').select('id, day, start_time, end_time, class_name, instructor')
+  return (data ?? [])
+    .map((r: { id: string; day: string; start_time: string; end_time: string; class_name: string; instructor: string }) => ({
+      id:         r.id,
+      day:        r.day,
+      start:      r.start_time,
+      end:        r.end_time,
+      className:  r.class_name,
+      instructor: r.instructor ?? '',
+    }))
+    .sort((a: TemplateRow, b: TemplateRow) => {
+      const d = DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day)
+      return d !== 0 ? d : a.start.localeCompare(b.start)
+    })
+}
 
 export async function getServices(): Promise<Service[]> {
   const { data } = await getSupabase().from('services').select('id, name').order('name')

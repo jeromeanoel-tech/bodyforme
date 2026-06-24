@@ -6,14 +6,14 @@ import ScheduleAccordion from '@/components/ScheduleAccordion'
 import Link from 'next/link'
 import { classTypes, classesPage, studio } from '@/lib/content'
 type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
-import { getSessions, getServices, type Session, type Service } from '@/lib/db'
+import { getScheduleTemplate, type TemplateRow } from '@/lib/db'
 
 export const metadata = {
   title: 'Classes & Schedule | BodyForme Pilates',
   description: 'Browse the BodyForme weekly timetable. Hot Pilates, Bikram, Hot HIIT, Tabata, Yin Yoga, Special Forces and more in Doncaster.',
 }
 
-export const revalidate = 60
+export const revalidate = 3600
 
 const COLOR_MAP: Record<string, string> = {
   'bikram':     'var(--sage)',
@@ -34,49 +34,33 @@ function classColor(name: string): string {
   return 'var(--rule)'
 }
 
-function fmt12(iso: string) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleTimeString('en-AU', {
-    timeZone: 'Australia/Melbourne',
-    hour:     'numeric',
-    minute:   '2-digit',
-    hour12:   true,
-  })
+function fmt12(hhmm: string) {
+  if (!hhmm) return ''
+  const [h, m] = hhmm.split(':').map(Number)
+  const period = h < 12 ? 'am' : 'pm'
+  const h12    = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`
 }
 
-function getWeekDays(date: Date): Date[] {
-  const start = new Date(date)
-  const day   = start.getDay()
-  start.setDate(start.getDate() - (day === 0 ? 6 : day - 1)) // Mon
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(start)
-    d.setDate(start.getDate() + i)
-    return d
-  })
+const DAY_LABELS: Record<string, string> = {
+  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
+  thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
 }
+
+const DAYS_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
 
 export default async function ClassesPage() {
-  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-  const [y, mo, dy] = todayStr.split('-').map(Number)
-  const today = new Date(y, mo - 1, dy)
-  const days  = getWeekDays(today)
-  const pad   = (d: Date) => d.toISOString().slice(0, 10)
-  // Expand from by 1 day: morning sessions (e.g. 9:30am AEST) are stored as
-  // the previous UTC date (23:30Z), so Monday sessions would be missed without this.
-  const fromExpanded = new Date(days[0])
-  fromExpanded.setDate(fromExpanded.getDate() - 1)
-  const from  = `${pad(fromExpanded)}T00:00:00`
-  const to    = `${pad(days[6])}T23:59:59`
-
-  let sessions: Session[] = []
-  let services: Service[] = []
+  let rows: TemplateRow[] = []
   try {
-    ;[sessions, services] = await Promise.all([getSessions(from, to), getServices()])
+    rows = await getScheduleTemplate()
   } catch {
     // fail gracefully — show empty timetable
   }
 
-  const scheduleToName = Object.fromEntries(services.map(s => [s.scheduleId, s.name]))
+  // Group rows by day
+  const byDay: Record<string, TemplateRow[]> = {}
+  for (const day of DAYS_ORDER) byDay[day] = []
+  for (const r of rows) if (DAYS_ORDER.includes(r.day)) byDay[r.day].push(r)
 
   return (
     <div className="site-body">
@@ -115,9 +99,7 @@ export default async function ClassesPage() {
       <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 48px 80px' }}>
         <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: '28px', fontWeight: 400, color: 'var(--esp)', margin: 0 }}>
-            {days[0].toLocaleDateString('en-AU', { day: 'numeric', month: 'long' })}
-            {' – '}
-            {days[6].toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}
+            Weekly timetable
           </h2>
           <Link
             href={studio.bookingUrl}
@@ -132,37 +114,15 @@ export default async function ClassesPage() {
         {/* Desktop: 7-col day grid */}
         <div className="sched-wrap desk-only">
         <div className="sched-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
-          {days.map((day, di) => {
-            const dayStr  = day.toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-            const isToday = dayStr === todayStr
-            const daySessions = (() => {
-              const seen = new Set<string>()
-              return sessions
-                .filter(s => {
-                  const melbDate = new Date(s.start).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-                  return melbDate === dayStr && s.status !== 'CANCELLED'
-                })
-                .sort((a, b) => a.start.localeCompare(b.start))
-                .filter(s => {
-                  const key = `${s.start.slice(0, 16)}|${(scheduleToName[s.scheduleId] ?? s.title).toLowerCase()}`
-                  if (seen.has(key)) return false
-                  seen.add(key)
-                  return true
-                })
-            })()
+          {DAYS_ORDER.map((day) => {
+            const daySessions = byDay[day] ?? []
 
             return (
-              <div key={di} style={{ background: isToday ? 'var(--canvas)' : 'var(--linen)', display: 'flex', flexDirection: 'column' }}>
+              <div key={day} style={{ background: 'var(--linen)', display: 'flex', flexDirection: 'column' }}>
                 {/* Day header */}
                 <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--rule)', textAlign: 'left' }}>
-                  <span style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>
-                    {day.toLocaleDateString('en-AU', { weekday: 'short' })}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '26px', fontWeight: 300, color: isToday ? 'var(--brown)' : 'var(--text)', lineHeight: 1 }}>
-                    {day.getDate()}
-                    {isToday && (
-                      <span style={{ fontSize: '8px', letterSpacing: '.12em', textTransform: 'uppercase', background: 'var(--brown)', color: 'var(--canvas)', padding: '2px 6px', fontWeight: 500, marginLeft: '6px', verticalAlign: 'middle' }}>Today</span>
-                    )}
+                  <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '18px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1 }}>
+                    {DAY_LABELS[day]}
                   </span>
                 </div>
 
@@ -173,35 +133,27 @@ export default async function ClassesPage() {
                       <span style={{ width: '16px', height: '1px', background: 'var(--rule)', display: 'inline-block' }} />
                     </div>
                   ) : (
-                    daySessions.map(s => {
-                      const name = scheduleToName[s.scheduleId] ?? s.title
-                      const color = classColor(name)
-                      const isFull = s.bookedCount >= s.capacity
-                      const isLow  = !isFull && s.capacity - s.bookedCount <= 3
+                    daySessions.map(r => {
+                      const color = classColor(r.className)
                       return (
                         <div
-                          key={s.id}
-                          style={{ background: 'var(--canvas)', padding: '14px 16px', cursor: 'pointer', transition: 'background .15s', borderLeft: `3px solid ${color}` }}
+                          key={r.id}
+                          style={{ background: 'var(--canvas)', padding: '14px 16px', borderLeft: `3px solid ${color}` }}
                         >
                           <div style={{ fontSize: '10px', letterSpacing: '.08em', color: 'var(--muted)', marginBottom: '5px', fontWeight: 400 }}>
-                            {fmt12(s.start)}
+                            {fmt12(r.start)}
                           </div>
                           <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '14px', fontWeight: 400, color: 'var(--text)', lineHeight: 1.25, marginBottom: '8px' }}>
-                            {name}
+                            {r.className}
                           </div>
-                          <div style={{ fontSize: '10px', color: isFull ? 'var(--muted)' : isLow ? 'var(--rust)' : 'var(--muted)', letterSpacing: '.04em', textDecoration: isFull ? 'line-through' : 'none' }}>
-                            {isFull ? 'Full' : `${s.capacity - s.bookedCount} spots left`}
-                          </div>
-                          {!isFull && (
-                            <a
-                              href={studio.bookingUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ marginTop: '10px', display: 'block', width: '100%', fontSize: '9.5px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', textAlign: 'center', color: 'var(--esp)', border: '1px solid var(--rule)', padding: '7px 0', transition: 'all .2s', cursor: 'pointer', background: 'transparent', textDecoration: 'none', fontFamily: 'var(--font-dm-sans)' }}
-                            >
-                              Book
-                            </a>
-                          )}
+                          <a
+                            href={studio.bookingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ display: 'block', width: '100%', fontSize: '9.5px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', textAlign: 'center', color: 'var(--esp)', border: '1px solid var(--rule)', padding: '7px 0', textDecoration: 'none', fontFamily: 'var(--font-dm-sans)' }}
+                          >
+                            Book
+                          </a>
                         </div>
                       )
                     })
@@ -213,14 +165,11 @@ export default async function ClassesPage() {
         </div>
         </div>
 
-        {/* Mobile: accordion — class name + time, expandable */}
+        {/* Mobile: accordion */}
         <div className="mob-only">
           <ScheduleAccordion
-            sessions={sessions}
-            days={days}
-            scheduleToName={scheduleToName}
+            byDay={byDay}
             bookingUrl={studio.bookingUrl}
-            todayStr={todayStr}
           />
         </div>
       </div>
@@ -280,7 +229,7 @@ export default async function ClassesPage() {
                           href={studio.bookingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--canvas)', background: 'var(--esp)', padding: '11px 24px', textDecoration: 'none', transition: 'background .2s' }}
+                          style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--canvas)', background: 'var(--esp)', padding: '11px 24px', textDecoration: 'none', display: 'inline-block', transition: 'background .2s' }}
                         >
                           Book class
                         </Link>

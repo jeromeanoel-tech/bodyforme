@@ -1,120 +1,62 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import type { TemplateRow } from '@/lib/db'
 
-type Session = {
-  id: string
-  title: string
-  start: string
-  end: string
-  capacity: number
-  bookedCount: number
-  scheduleId: string
-  status?: string
+const DAY_LABELS: Record<string, string> = {
+  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
+  thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
 }
 
-function fmt12(iso: string) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleTimeString('en-AU', {
-    timeZone: 'Australia/Melbourne',
-    hour:     'numeric',
-    minute:   '2-digit',
-    hour12:   true,
-  })
-}
+const DAYS_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
 
-function dayLabel(iso: string) {
-  const d = new Date(iso)
-  return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })
+function fmt12(hhmm: string) {
+  if (!hhmm) return ''
+  const [h, m] = hhmm.split(':').map(Number)
+  const period = h < 12 ? 'am' : 'pm'
+  const h12    = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`
 }
 
 export default function ScheduleAccordion({
-  sessions,
-  days,
-  scheduleToName,
+  byDay,
   bookingUrl,
-  todayStr,
 }: {
-  sessions: Session[]
-  days: Date[]
-  scheduleToName: Record<string, string>
+  byDay: Record<string, TemplateRow[]>
   bookingUrl: string
-  todayStr: string
 }) {
-  const [openSession, setOpenSession] = useState<string | null>(null)
+  const [openRow, setOpenRow] = useState<string | null>(null)
 
   return (
     <div>
-      {days.map((day) => {
-        const dayStr  = new Date(day).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-        const isToday = dayStr === todayStr
-        const daySessions = (() => {
-          const seen = new Set<string>()
-          return sessions
-            .filter(s => {
-              const melbDate = new Date(s.start).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-              return melbDate === dayStr && s.status !== 'CANCELLED'
-            })
-            .sort((a, b) => a.start.localeCompare(b.start))
-            .filter(s => {
-              const name = (scheduleToName?.[s.scheduleId] ?? s.title).toLowerCase()
-              const key  = `${s.start.slice(0, 16)}|${name}`
-              if (seen.has(key)) return false
-              seen.add(key)
-              return true
-            })
-        })()
+      {DAYS_ORDER.map((day) => {
+        const rows = byDay[day] ?? []
 
         return (
-          <div key={dayStr} style={{ borderBottom: '1px solid var(--rule)' }}>
+          <div key={day} style={{ borderBottom: '1px solid var(--rule)' }}>
             {/* Day header */}
-            <div style={{
-              padding: '14px 0 10px',
-              display: 'flex',
-              alignItems: 'baseline',
-              gap: '10px',
-            }}>
+            <div style={{ padding: '14px 0 10px' }}>
               <span style={{
                 fontFamily: "'Cormorant Garamond','Times New Roman',serif",
                 fontSize: 22,
                 fontWeight: 300,
-                color: isToday ? 'var(--brown)' : 'var(--esp)',
+                color: 'var(--esp)',
               }}>
-                {day.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric' })}
-              </span>
-              {isToday && (
-                <span style={{
-                  fontSize: 9,
-                  letterSpacing: '.12em',
-                  textTransform: 'uppercase',
-                  background: 'var(--brown)',
-                  color: 'var(--canvas)',
-                  padding: '2px 7px',
-                  fontWeight: 500,
-                }}>Today</span>
-              )}
-              <span style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '.04em' }}>
-                {day.toLocaleDateString('en-AU', { month: 'long' })}
+                {DAY_LABELS[day]}
               </span>
             </div>
 
-            {daySessions.length === 0 ? (
+            {rows.length === 0 ? (
               <div style={{ padding: '12px 0 16px', fontSize: 13, color: 'var(--muted)', fontStyle: 'italic' }}>
                 No classes scheduled
               </div>
             ) : (
-              daySessions.map(s => {
-                const name = scheduleToName[s.scheduleId] ?? s.title
-                const isFull = s.bookedCount >= s.capacity
-                const spotsLeft = s.capacity - s.bookedCount
-                const isOpen = openSession === s.id
-
+              rows.map(r => {
+                const isOpen = openRow === r.id
                 return (
-                  <div key={s.id} style={{ marginBottom: '1px' }}>
-                    {/* Row — always visible */}
+                  <div key={r.id} style={{ marginBottom: '1px' }}>
                     <button
-                      onClick={() => setOpenSession(isOpen ? null : s.id)}
+                      onClick={() => setOpenRow(isOpen ? null : r.id)}
                       style={{
                         width: '100%',
                         display: 'flex',
@@ -139,7 +81,7 @@ export default function ScheduleAccordion({
                         flexShrink: 0,
                         minWidth: 70,
                       }}>
-                        {fmt12(s.start)}
+                        {fmt12(r.start)}
                       </span>
                       <span style={{
                         fontFamily: "'Cormorant Garamond','Times New Roman',serif",
@@ -149,13 +91,8 @@ export default function ScheduleAccordion({
                         lineHeight: 1.2,
                         flex: 1,
                       }}>
-                        {name}
+                        {r.className}
                       </span>
-                      {isFull && (
-                        <span style={{ fontSize: 10, color: isOpen ? 'rgba(244,237,225,.5)' : 'var(--muted)', letterSpacing: '.04em', whiteSpace: 'nowrap' }}>
-                          Full
-                        </span>
-                      )}
                       <span style={{
                         color: isOpen ? 'var(--linen)' : 'var(--brown)',
                         fontSize: 16,
@@ -166,7 +103,6 @@ export default function ScheduleAccordion({
                       }}>›</span>
                     </button>
 
-                    {/* Expanded drawer */}
                     {isOpen && (
                       <div style={{
                         background: 'var(--canvas)',
@@ -174,34 +110,27 @@ export default function ScheduleAccordion({
                         padding: '16px 16px 20px',
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <p style={{ margin: 0, fontSize: 13, color: 'var(--mid)', fontWeight: 300 }}>
-                              {fmt12(s.start)} – {fmt12(s.end)}
-                            </p>
-                            <p style={{ margin: '4px 0 0', fontSize: 12, color: isFull ? 'var(--muted)' : spotsLeft <= 3 ? 'var(--rust)' : 'var(--muted)' }}>
-                              {isFull ? 'Class is full' : `${spotsLeft} ${spotsLeft === 1 ? 'spot' : 'spots'} remaining`}
-                            </p>
-                          </div>
-                          {!isFull && (
-                            <a
-                              href={bookingUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                fontSize: 10,
-                                fontWeight: 500,
-                                letterSpacing: '.14em',
-                                textTransform: 'uppercase',
-                                color: 'var(--linen)',
-                                background: 'var(--brown)',
-                                padding: '11px 20px',
-                                textDecoration: 'none',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              Book →
-                            </a>
-                          )}
+                          <p style={{ margin: 0, fontSize: 13, color: 'var(--mid)', fontWeight: 300 }}>
+                            {fmt12(r.start)} – {fmt12(r.end)}
+                          </p>
+                          <a
+                            href={bookingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 500,
+                              letterSpacing: '.14em',
+                              textTransform: 'uppercase',
+                              color: 'var(--linen)',
+                              background: 'var(--brown)',
+                              padding: '11px 20px',
+                              textDecoration: 'none',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            Book →
+                          </a>
                         </div>
                       </div>
                     )}
