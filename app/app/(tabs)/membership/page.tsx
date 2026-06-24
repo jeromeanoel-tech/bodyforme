@@ -140,6 +140,17 @@ function isPack(plan: string | null) {
   return PACK_PLANS.some(pk => p.includes(pk.toLowerCase())) || p.includes('pack') || p.includes('pass') || p === 'casual' || p === 'intro-offer' || p === 'free trial'
 }
 
+// Recurring plans that are billed via direct debit (not prepaid)
+function isRecurringPlan(plan: string | null): boolean {
+  if (!plan) return false
+  const p = plan.toLowerCase()
+  return (
+    p.includes('per week') || p.includes('weekly') ||
+    p.includes('per month') || p.includes('monthly') ||
+    p === 'unlimited classes' || p.startsWith('unlimited –')
+  )
+}
+
 export default function MembershipPage() {
   const session = useSession()
   const [portalLoading, setPortalLoading] = useState(false)
@@ -262,6 +273,14 @@ export default function MembershipPage() {
     }
   }
 
+  // True when admin has assigned a recurring plan but the member hasn't set up BECS yet
+  const isAwaitingDirectDebit =
+    memberStatus !== null &&
+    memberStatus.status === 'active' &&
+    isRecurringPlan(memberStatus.plan) &&
+    memberStatus.nextBillingDate === null &&
+    memberStatus.membershipEndDate === null
+
   const _ = portalLoading // suppress unused warning
 
   return (
@@ -359,7 +378,7 @@ export default function MembershipPage() {
                     clientSecret={ddClientSecret}
                     defaultName={`${session?.firstName ?? ''} ${session?.lastName ?? ''}`.trim()}
                     defaultEmail={session?.email ?? ''}
-                    onSuccess={() => setDdDone(true)}
+                    onSuccess={() => { setDdDone(true); setTimeout(fetchStatus, 3000) }}
                     onCancel={() => setDdOpen(false)}
                   />
                 )}
@@ -525,8 +544,49 @@ export default function MembershipPage() {
           </div>
         )}
 
+        {/* ── Pending direct debit banner ── */}
+        {isAwaitingDirectDebit && (
+          <div style={{ margin: '20px 20px 0', background: '#f5ede3', border: `1px solid ${T.rule}`, padding: '24px 24px 20px' }}>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.brown, marginBottom: 8 }}>
+              Direct debit required
+            </div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontStyle: 'italic', color: T.esp, lineHeight: 1.2, marginBottom: 12 }}>
+              Set up your bank account to activate billing.
+            </div>
+            <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 20 }}>
+              You&apos;re enrolled on <strong>{memberStatus?.plan}</strong>. Enter your BSB and account number below to activate your membership and start your direct debit.
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              <button
+                onClick={openDirectDebit}
+                style={{
+                  display: 'inline-block', padding: '13px 28px',
+                  background: T.esp, color: T.linen, border: 'none',
+                  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                  fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  cursor: 'pointer',
+                }}
+              >
+                Set up direct debit
+              </button>
+              <a
+                href="mailto:info@bodyforme.com.au"
+                style={{
+                  display: 'inline-block', padding: '13px 28px',
+                  background: 'none', color: T.esp, border: `1px solid ${T.rule}`,
+                  fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                  fontSize: 11, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase',
+                  textDecoration: 'none',
+                }}
+              >
+                Contact studio
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* ── Active member card + actions ── */}
-        {(!memberStatus || (memberStatus.status !== 'inactive' && memberStatus.status !== 'pending')) && (<>
+        {(!memberStatus || (memberStatus.status !== 'inactive' && memberStatus.status !== 'pending' && !isAwaitingDirectDebit)) && (<>
         <div style={{ margin: '20px 20px 0', background: T.esp, padding: '28px 24px 24px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'repeating-linear-gradient(45deg, #fff 0 1px, transparent 1px 6px)' }} />
           <div style={{ position: 'relative' }}>
