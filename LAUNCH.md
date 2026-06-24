@@ -8,7 +8,7 @@
 
 ### Infrastructure
 - [x] Custom domain purchased and configured in Vercel
-- [x] DNS propagated — bodyforme.com.au pointing to Vercel (was still on Wix as of last check)
+- [x] DNS propagated — bodyforme.com.au pointing to Vercel
 - [x] `NEXT_PUBLIC_SUPABASE_URL` set on Vercel
 - [x] `SUPABASE_SECRET_KEY` set on Vercel
 - [x] `JWT_SECRET` set on Vercel
@@ -52,8 +52,6 @@
 
 - [ ] Google Maps embed on contact page — confirm correct address pin
 - [ ] Google review link — confirm correct Google Business Profile URL in re-engagement email template
-- [ ] ClassPass — pending Wix App Market approval, not blocking
-- [ ] Admin session management UI — add/edit/cancel sessions without touching DB directly
 - [x] Forgot password flow — needed for Mind Body members on first login
 - [ ] Instructor photos — deferred until post-reno
 
@@ -73,6 +71,5 @@
 - [x] Conversion funnel in Insights
 - [x] Bulk client select + CSV export in admin
 - [x] Real testimonials (Michelle, Tina, Annabel) — homepage cards + full stories on About page
-- [x] Profile app links updated from old Wix URLs to `/contact`
 - [x] `scripts/import-members.ts` — Mind Body xlsx → Supabase importer
 - [x] `scripts/seed-schedule.ts` — CSV timetable → Supabase sessions

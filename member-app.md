@@ -4,48 +4,50 @@
 
 A Progressive Web App (PWA). Members open a link in Safari on their phone, tap **Share → Add to Home Screen**, and it appears as a full-screen app with the BodyForme icon. No App Store. No download. Works on iPhone and Android.
 
-Live at: `bodyforme.vercel.app/app` (or a custom subdomain like `app.bodyforme.com.au` once the domain is live).
+Live at: `bodyforme.com.au/app`
 
 ---
 
-## Features
+## Features (built)
 
 ### 1. Class schedule & booking
-- Shows the live weekly timetable pulled from Wix Bookings (same data as the public classes page)
+- Shows the live weekly timetable from the Supabase `sessions` table
 - Member taps a class → sees: time, instructor, spots remaining, class type
-- "Book" button deep-links to the Wix Bookings page for that specific session (Wix handles the actual booking — no rebuild needed)
-- Timetable refreshes every 5 minutes
+- "Book" → creates a booking in the `bookings` table, sends confirmation email via Resend
+- "Cancel" → cancels booking, frees the spot (triggers waitlist promotion if applicable)
+- "Join waitlist" → added to `waitlist` table; auto-promoted and emailed when a spot opens
 
 ### 2. My membership
-- Shows the member's current plan (e.g. "4 Per Week · Active")
-- Billing date and amount
-- "Manage payment / cancel" → opens **Stripe Customer Portal** (Stripe hosts this, handles card updates, cancellations, invoice history)
-- If membership is expired or no plan: prompt to sign up → `/sign-up`
+- Shows the member's current plan (e.g. "4 Per Week · Active") from Supabase `memberships` table
+- For weekly BECS members: shows direct debit setup form (`MemberBecsForm.tsx`)
+- Pause self-service — sends email to studio, admin handles manually
+- If no active plan: prompt to visit Sign-up page
 
-### 3. Push notifications
-Sent via **Web Push API** (browser push, works on iPhone iOS 16.4+ added to home screen):
-- **Membership expiring soon** — 7 days before end date, auto-triggered
-- **Payment failed** — triggered by existing `invoice.payment_failed` Stripe webhook
-- **Promotions** — sent manually from admin marketing page (new button: "Send push notification")
-- **New class added** — optional, triggered when a new Wix session is created
+### 3. My bookings
+- List of upcoming and past bookings from `bookings` table
 
 ### 4. Profile
-- First name, last name, email (read from sign-up data)
+- First name, last name, email (from `members` table)
+- Attendance stats
 - Log out
+- Link to PWA install guide
+
+### 5. Forgot/Reset password
+- `/app/forgot-password` → sends reset link via Resend
+- `/app/reset-password?token=...` → sets new password
 
 ---
 
 ## Authentication
 
-Simple **email magic link** (no password):
-1. Member enters email address
-2. App sends a 6-digit OTP code via Resend
-3. Member enters code → authenticated
-4. Session stored in a secure cookie (7-day expiry, httpOnly)
+Email + password. JWT stored in `bf_member` httpOnly cookie (7 days standard, 30 days with "Remember me").
 
-No Supabase. No third-party auth service. Session data stored in **Wix Collections** (member profile linked to their Wix contact ID).
+- `lib/session.ts` — signs/verifies JWT, sets/clears cookie
+- `app/app/login/` — login page with Remember me toggle
+- `/api/auth/login` — validates credentials, issues cookie
+- `/api/auth/logout` — clears cookie
 
-Alternative if Wix Collections proves awkward: encrypted JWT in a cookie, no database needed for auth.
+Session data lives in the `members` table (password hash stored server-side).
 
 ---
 
@@ -55,89 +57,44 @@ Alternative if Wix Collections proves awkward: encrypted JWT in a cookie, no dat
 |-------|-----|
 | Routes | `app/app/` in this Next.js repo — all member app pages live under `/app/*` |
 | PWA shell | `app/app/layout.tsx` sets `display: standalone`, dark viewport, app-style nav |
-| Manifest | `public/manifest.json` — app name, icons, theme colour (`#1a1a1a`), `start_url: /app` |
-| Service worker | `public/sw.js` — handles push notification subscriptions |
-| Push notifications | Web Push API — server sends via `web-push` npm package, subscription stored in Wix Collections |
-| Booking | Deep-link to Wix Bookings URL for each session (not rebuilt) |
-| Membership data | Wix Pricing Plans API (same as admin memberships page) |
-| Payment management | Stripe Customer Portal (Stripe-hosted, zero dev work) |
-| Email OTP | Resend — new template `otp` added to `/api/email/send` |
-| Session auth | `iron-session` or a signed JWT in a httpOnly cookie |
+| Manifest | `public/manifest.json` — app name, icons, theme colour, `start_url: /app` |
+| Data | Supabase Postgres via `lib/db.ts` |
+| Auth | JWT httpOnly cookie via `lib/session.ts` |
+| Email | Resend via `lib/email.ts` |
+| Payments | Stripe BECS via `MemberBecsForm.tsx` + `/api/admin/create-subscription` |
 
 ---
 
 ## Pages / routes
 
 ```
-/app                  → redirect to /app/schedule if logged in, else /app/login
-/app/login            → email entry + OTP verify
-/app/schedule         → weekly timetable (default view / home tab)
-/app/membership       → plan status + Stripe portal link
-/app/profile          → name, email, log out
+/app                    → redirect to /app/schedule if logged in, else /app/login
+/app/login              → email + password + remember me
+/app/schedule           → weekly timetable (default view / home tab)
+/app/bookings           → upcoming + past bookings
+/app/membership         → plan status + BECS setup
+/app/profile            → name, email, stats, log out
+/app/forgot-password    → request reset email
+/app/reset-password     → set new password via token
+/app/install            → PWA install instructions
 ```
 
-Bottom navigation bar: Schedule · Membership · Profile (3 tabs)
-
----
-
-## Push notification flow
-
-1. On first login, app asks permission for push notifications
-2. Browser generates a push subscription (endpoint + keys)
-3. Subscription saved to Wix Collections `MemberPushSubscriptions` (contactId, subscription JSON, createdDate)
-4. To send a push: Next.js API route `/api/push/send` calls `web-push` library with payload
-5. Triggers:
-   - Stripe webhook fires `invoice.payment_failed` → send push + email
-   - Cron job (Vercel Cron, daily at 9am) → check memberships expiring in 7 days → send push
-   - Admin marketing page → "Send push" button → calls `/api/push/send` with segment
-
----
-
-## Admin additions needed
-
-- Marketing page: add "Send push notification" tab alongside broadcast email
-- New API route: `POST /api/push/send` — accepts `{ segment, title, body, url }`
-- New API route: `POST /api/push/subscribe` — saves push subscription from member app
-- New API route: `POST /api/auth/send-otp` — sends OTP email
-- New API route: `POST /api/auth/verify-otp` — checks OTP, sets session cookie
+Bottom navigation bar: Schedule · Bookings · Membership · Profile (4 tabs)
 
 ---
 
 ## iOS "Add to Home Screen" requirements checklist
 
-- [ ] `public/manifest.json` with `display: "standalone"`, correct icons
-- [ ] Icons at 192×192 and 512×512 (PNG, BodyForme logo)
-- [ ] `<meta name="apple-mobile-web-app-capable" content="yes">` in app layout
-- [ ] `<meta name="apple-mobile-web-app-status-bar-style">` set to `black-translucent`
-- [ ] `<link rel="apple-touch-icon">` pointing to 180×180 icon
-- [ ] HTTPS (Vercel provides this ✓)
-- [ ] Push notifications on iOS require iOS 16.4+ AND the app must be added to home screen first
+- [x] `public/manifest.json` with `display: "standalone"`, correct icons
+- [x] Icons at 192×192 and 512×512 (PNG, BodyForme logo)
+- [x] `<meta name="apple-mobile-web-app-capable" content="yes">` in app layout
+- [x] `<meta name="apple-mobile-web-app-status-bar-style">` set to `black-translucent`
+- [x] `<link rel="apple-touch-icon">` pointing to 180×180 icon
+- [x] HTTPS (Vercel provides this ✓)
 
 ---
 
-## Designs
+## Pending / future
 
-Designs provided by owner via Claude Design. Import and implement once shared.
-Design file location: TBC — owner to share Figma URL or Claude Design link.
-
----
-
-## Build order
-
-1. PWA shell + manifest + login (OTP auth)
-2. Schedule tab (read-only timetable + Wix deep-link booking)
-3. Membership tab (plan status + Stripe portal)
-4. Profile tab + log out
-5. Push notification infrastructure (subscribe, store, send)
-6. Admin: push send from marketing page
-7. Cron job for expiry alerts
-8. Icons + splash screens + full iOS PWA polish
-
----
-
-## Open questions
-
-- Will members have a Stripe Customer ID? (Yes — created when they sign up via `/sign-up` flow)
-- Stripe Customer Portal needs to be enabled in the Stripe dashboard (Settings → Customer Portal)
-- Wix Collections: confirm `MemberPushSubscriptions` collection can be created and written via REST API
-- Custom domain `app.bodyforme.com.au` vs path `/app` — decide before launch
+- Push notifications — Web Push API (iOS 16.4+ on home screen). Infrastructure not yet built.
+- Admin: "Send push" from marketing page — not yet built.
