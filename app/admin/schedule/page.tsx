@@ -1,6 +1,13 @@
 import { getSessions, getServices, getStaff } from '@/lib/db'
 import ScheduleClient from './ScheduleClient'
 
+function getInstructors(): string[] {
+  try {
+    const all = JSON.parse(process.env.ADMIN_CREDENTIALS ?? '[]') as { name: string }[]
+    return all.map(u => u.name).filter(Boolean).sort()
+  } catch { return [] }
+}
+
 export const revalidate = 30
 
 function weekRange(offsetWeeks = 0) {
@@ -41,6 +48,7 @@ export default async function AdminSchedulePage({
       scheduleToService={scheduleToService}
       resourceToStaff={resourceToStaff}
       initialWeekOffset={offset}
+      instructors={getInstructors()}
     />
   )
 }

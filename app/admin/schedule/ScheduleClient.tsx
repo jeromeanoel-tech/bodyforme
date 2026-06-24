@@ -9,6 +9,7 @@ type Props = {
   scheduleToService: Record<string, Service>
   resourceToStaff:   Record<string, Staff>
   initialWeekOffset: number
+  instructors:       string[]
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -49,7 +50,7 @@ function isToday(date: Date, now: Date) {
   return date.toDateString() === now.toDateString()
 }
 
-export default function ScheduleClient({ initialSessions, scheduleToService, resourceToStaff, initialWeekOffset }: Props) {
+export default function ScheduleClient({ initialSessions, scheduleToService, resourceToStaff, initialWeekOffset, instructors }: Props) {
   const [weekOffset,       setWeekOffset]      = useState(initialWeekOffset)
   const [sessions,         setSessions]        = useState(initialSessions)
   const [loadingSessions,  setLoadingSessions] = useState(false)
@@ -100,6 +101,10 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
 
   function handleCancelled(id: string) {
     setCancelledIds(s => new Set([...s, id]))
+  }
+
+  function handleInstructorChange(sessionId: string, name: string) {
+    setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, instructor_name: name } : s))
   }
 
   const { monday } = weekRange(weekOffset)
@@ -439,6 +444,8 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
           onClose={() => { setSelectedSession(null); setAutoConfirmCancel(false) }}
           onCancelled={handleCancelled}
           initialConfirmCancel={autoConfirmCancel}
+          instructors={instructors}
+          onInstructorChange={handleInstructorChange}
         />
       )}
     </div>
@@ -448,19 +455,24 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
 // ── Attendee drawer ───────────────────────────────────────────────────────────
 
 function AttendeeDrawer({
-  session, serviceName, staffName, onClose, onCancelled, initialConfirmCancel,
+  session, serviceName, staffName, onClose, onCancelled, initialConfirmCancel, instructors, onInstructorChange,
 }: {
-  session:              Session
-  serviceName:          string
-  staffName?:           string
-  onClose:              () => void
-  onCancelled:          (id: string) => void
+  session:               Session
+  serviceName:           string
+  staffName?:            string
+  onClose:               () => void
+  onCancelled:           (id: string) => void
   initialConfirmCancel?: boolean
+  instructors:           string[]
+  onInstructorChange:    (sessionId: string, name: string) => void
 }) {
-  const [bookings,      setBookings]      = useState<Booking[] | null>(null)
-  const [loading,       setLoading]       = useState(true)
-  const [cancelling,    setCancelling]    = useState(false)
-  const [confirmCancel, setConfirmCancel] = useState(initialConfirmCancel ?? false)
+  const [bookings,       setBookings]       = useState<Booking[] | null>(null)
+  const [loading,        setLoading]        = useState(true)
+  const [cancelling,     setCancelling]     = useState(false)
+  const [confirmCancel,  setConfirmCancel]  = useState(initialConfirmCancel ?? false)
+  const [editInstructor, setEditInstructor] = useState(false)
+  const [instrValue,     setInstrValue]     = useState(staffName ?? '')
+  const [instrSaving,    setInstrSaving]    = useState(false)
 
   useEffect(() => {
     let active = true
@@ -483,6 +495,17 @@ function AttendeeDrawer({
     onClose()
   }
 
+  async function saveInstructor() {
+    setInstrSaving(true)
+    await fetch('/api/admin/sessions', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: session.id, instructorName: instrValue, applyToFuture: false }),
+    })
+    onInstructorChange(session.id, instrValue)
+    setEditInstructor(false)
+    setInstrSaving(false)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/20" onClick={onClose} />
@@ -491,9 +514,30 @@ function AttendeeDrawer({
         <div className="px-5 py-5 border-b border-neutral-200 flex items-start justify-between">
           <div className="flex-1 pr-4">
             <h2 className="font-semibold text-neutral-900">{serviceName}</h2>
-            <p className="text-sm text-neutral-500 mt-0.5">
-              {fmt12(session.start)} · {staffName ?? 'No instructor'} · {session.bookedCount}/{session.capacity} booked
-            </p>
+            {/* Instructor — editable */}
+            {editInstructor ? (
+              <div className="flex items-center gap-2 mt-1.5">
+                <select value={instrValue} onChange={e => setInstrValue(e.target.value)}
+                  className="h-7 px-2 text-[12px] border border-neutral-300 rounded-md outline-none focus:border-black bg-white">
+                  <option value="">— Unassigned —</option>
+                  {instructors.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <button onClick={saveInstructor} disabled={instrSaving}
+                  className="h-7 px-2.5 text-[11px] font-medium bg-black text-white rounded-md disabled:opacity-40 touch-manipulation">
+                  {instrSaving ? '…' : 'Save'}
+                </button>
+                <button onClick={() => { setEditInstructor(false); setInstrValue(staffName ?? '') }}
+                  className="h-7 px-2 text-[11px] text-neutral-500 hover:text-neutral-800 touch-manipulation">
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setEditInstructor(true)}
+                className="flex items-center gap-1.5 mt-1 text-sm text-neutral-500 hover:text-neutral-800 group touch-manipulation">
+                <span>{fmt12(session.start)} · {staffName ?? 'No instructor'} · {session.bookedCount}/{session.capacity} booked</span>
+                <span className="text-[11px] text-neutral-300 group-hover:text-neutral-500 transition-colors">✏</span>
+              </button>
+            )}
             {!confirmCancel ? (
               <button
                 onClick={() => setConfirmCancel(true)}

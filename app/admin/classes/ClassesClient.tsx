@@ -1,394 +1,165 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
-type Service = {
-  id: string
-  name: string
-  description: string
-  duration: number
-  capacity: number
-  upcomingSessions: number
-}
-
-type Session = {
-  id: string
-  title: string
-  instructor_name: string
+type TemplateRow = {
+  id:         string
+  day:        string
   start_time: string
-  end_time: string
-  capacity: number
-  status: string
+  end_time:   string
+  class_name: string
+  instructor: string
 }
 
-function fmt(iso: string) {
-  const d = new Date(iso)
-  const day  = d.toLocaleString('en-AU', { timeZone: 'Australia/Melbourne', weekday: 'short', day: 'numeric', month: 'short' })
-  const time = d.toLocaleTimeString('en-AU', { timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit', hour12: true })
-  return `${day}, ${time}`
+const DAY_ORDER  = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+const DAY_LABELS: Record<string, string> = {
+  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
+  thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
 }
 
-export default function ClassesClient({ initialServices, instructors }: { initialServices: Service[]; instructors: string[] }) {
-  const router = useRouter()
-  const [services,   setServices]   = useState<Service[]>(initialServices)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [sessions,   setSessions]   = useState<Record<string, Session[]>>({})
-  const [loadingId,  setLoadingId]  = useState<string | null>(null)
+function fmt12(hhmm: string) {
+  const [h, m] = hhmm.split(':').map(Number)
+  const suffix = h >= 12 ? 'pm' : 'am'
+  const h12    = h % 12 || 12
+  return `${h12}:${String(m).padStart(2,'0')} ${suffix}`
+}
 
-  const [showNewClass,   setShowNewClass]   = useState(false)
-  const [newName,        setNewName]        = useState('')
-  const [newDescription, setNewDescription] = useState('')
-  const [newDuration,    setNewDuration]    = useState(60)
-  const [newCapacity,    setNewCapacity]    = useState(25)
-  const [savingClass,    setSavingClass]    = useState(false)
-  const [classError,     setClassError]     = useState('')
+const BLANK = { day: 'monday', start_time: '', end_time: '', class_name: '', instructor: '' }
 
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [deletingId,      setDeletingId]      = useState<string | null>(null)
-  const [deleteError,     setDeleteError]     = useState<string>('')
+export default function ClassesClient({ initialRows, instructors }: { initialRows: TemplateRow[]; instructors: string[] }) {
+  const [rows,      setRows]      = useState<TemplateRow[]>(initialRows)
+  const [saving,    setSaving]    = useState(false)
+  const [error,     setError]     = useState('')
 
-  const [editClassId,     setEditClassId]     = useState<string | null>(null)
-  const [editName,        setEditName]        = useState('')
-  const [editDescription, setEditDescription] = useState('')
-  const [editDuration,    setEditDuration]    = useState(60)
-  const [editCapacity,    setEditCapacity]    = useState(25)
-  const [savingEdit,      setSavingEdit]      = useState(false)
-  const [editError,       setEditError]       = useState('')
+  // Add slot modal
+  const [showAdd,   setShowAdd]   = useState(false)
+  const [addForm,   setAddForm]   = useState({ ...BLANK })
+  const [addError,  setAddError]  = useState('')
+  const [adding,    setAdding]    = useState(false)
 
-  const [addSessionFor,    setAddSessionFor]    = useState<Service | null>(null)
-  const [sessionDate,      setSessionDate]      = useState('')
-  const [sessionStartTime, setSessionStartTime] = useState('')
-  const [sessionEndTime,   setSessionEndTime]   = useState('')
-  const [sessionInstructor, setSessionInstructor] = useState('')
-  const [sessionCapacity,  setSessionCapacity]  = useState(25)
-  const [sessionRepeatWeekly, setSessionRepeatWeekly] = useState(false)
-  const [sessionRepeatWeeks,  setSessionRepeatWeeks]  = useState(52)
-  const [savingSession,    setSavingSession]    = useState(false)
-  const [sessionError,     setSessionError]     = useState('')
+  // Edit slot modal
+  const [editRow,   setEditRow]   = useState<TemplateRow | null>(null)
+  const [editForm,  setEditForm]  = useState({ ...BLANK })
+  const [editError, setEditError] = useState('')
+  const [editing,   setEditing]   = useState(false)
 
-  const [deletingSessionId,    setDeletingSessionId]    = useState<string | null>(null)
+  // Delete confirm
+  const [delRow,    setDelRow]    = useState<TemplateRow | null>(null)
+  const [deleting,  setDeleting]  = useState(false)
 
-  const [editSessionId,        setEditSessionId]        = useState<string | null>(null)
-  const [editSessionServiceId, setEditSessionServiceId] = useState<string | null>(null)
-  const [editSessionStart,     setEditSessionStart]     = useState('')
-  const [editSessionEnd,       setEditSessionEnd]       = useState('')
-  const [editSessionInstr,     setEditSessionInstr]     = useState('')
-  const [editSessionApplyAll,  setEditSessionApplyAll]  = useState(true)
-  const [editSessionDow,       setEditSessionDow]       = useState('')
-  const [editSessionClassName, setEditSessionClassName] = useState('')
-  const [editSessionLabel,     setEditSessionLabel]     = useState('')
-  const [savingSessionEdit,    setSavingSessionEdit]    = useState(false)
-  const [sessionEditError,     setSessionEditError]     = useState('')
-
-  function isoToMelbHHMM(iso: string): string {
-    const parts = new Intl.DateTimeFormat('en-AU', {
-      timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit', hour12: false,
-    }).formatToParts(new Date(iso))
-    const h = parts.find(p => p.type === 'hour')?.value   ?? '00'
-    const m = parts.find(p => p.type === 'minute')?.value ?? '00'
-    return `${h.padStart(2,'0')}:${m.padStart(2,'0')}`
-  }
-
-  function requireAuth(res: Response) {
-    if (res.status === 403) {
-      router.push('/admin/login?expired=1')
-      return false
-    }
-    return true
-  }
-
-  async function loadSessions(serviceId: string) {
-    setLoadingId(serviceId)
-    const res  = await fetch(`/api/admin/sessions?serviceId=${serviceId}`)
-    if (!requireAuth(res)) return
-    const data = await res.json()
-    setSessions(prev => ({ ...prev, [serviceId]: data.sessions ?? [] }))
-    setLoadingId(null)
-  }
-
-  function toggleExpand(service: Service) {
-    if (expandedId === service.id) {
-      setExpandedId(null)
-    } else {
-      setExpandedId(service.id)
-      if (!sessions[service.id]) loadSessions(service.id)
-    }
-  }
-
-  async function createClass() {
-    if (!newName.trim()) { setClassError('Class name is required'); return }
-    setSavingClass(true)
-    setClassError('')
-    const res  = await fetch('/api/admin/classes', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ name: newName.trim(), description: newDescription, duration: newDuration, capacity: newCapacity }),
-    })
-    const data = await res.json()
-    if (!res.ok) { setClassError(data.error ?? 'Failed to create class'); setSavingClass(false); return }
-    setServices(prev => [...prev, { id: data.id, name: newName.trim(), description: newDescription, duration: newDuration, capacity: newCapacity, upcomingSessions: 0 }].sort((a, b) => a.name.localeCompare(b.name)))
-    setShowNewClass(false)
-    setNewName('')
-    setNewDescription('')
-    setNewDuration(60)
-    setNewCapacity(10)
-    setSavingClass(false)
-    router.refresh()
-  }
-
-  async function deleteClass(id: string) {
-    setDeletingId(id)
-    setDeleteError('')
-    const res  = await fetch('/api/admin/classes', {
-      method:  'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ id }),
-    })
-    if (!res.ok) {
-      const data = await res.json()
-      setDeleteError(data.error ?? 'Failed to delete class')
-      setDeleteConfirmId(null)
-      setDeletingId(null)
-      return
-    }
-    setServices(prev => prev.filter(s => s.id !== id))
-    setSessions(prev => { const next = { ...prev }; delete next[id]; return next })
-    if (expandedId === id) setExpandedId(null)
-    setDeleteConfirmId(null)
-    setDeletingId(null)
-    router.refresh()
-  }
-
-  function openEditClass(service: Service) {
-    setEditClassId(service.id)
-    setEditName(service.name)
-    setEditDescription(service.description)
-    setEditDuration(service.duration)
-    setEditCapacity(service.capacity)
+  function openEdit(row: TemplateRow) {
+    setEditRow(row)
+    setEditForm({ day: row.day, start_time: row.start_time, end_time: row.end_time, class_name: row.class_name, instructor: row.instructor })
     setEditError('')
   }
 
-  async function saveEditClass() {
-    if (!editName.trim()) { setEditError('Class name is required'); return }
-    setSavingEdit(true)
-    setEditError('')
-    const res  = await fetch('/api/admin/classes', {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ id: editClassId, name: editName.trim(), description: editDescription, duration: editDuration, capacity: editCapacity }),
+  function handleStartTime(time: string, form: typeof BLANK, setForm: (f: typeof BLANK) => void) {
+    const endAlreadySet = form.end_time !== ''
+    setForm({ ...form, start_time: time, ...(!endAlreadySet && time ? { end_time: addHour(time) } : {}) })
+  }
+
+  function addHour(hhmm: string) {
+    const [h, m] = hhmm.split(':').map(Number)
+    return `${String((h + 1) % 24).padStart(2,'0')}:${String(m).padStart(2,'0')}`
+  }
+
+  async function addSlot() {
+    const { day, start_time, end_time, class_name, instructor } = addForm
+    if (!start_time || !end_time || !class_name.trim()) { setAddError('Day, times and class name are required'); return }
+    setAdding(true); setAddError('')
+    const res  = await fetch('/api/admin/schedule-template', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ day, start_time, end_time, class_name: class_name.trim(), instructor }),
     })
     const data = await res.json()
-    if (!res.ok) { setEditError(data.error ?? 'Failed to save'); setSavingEdit(false); return }
-    setServices(prev => prev.map(s => s.id === editClassId
-      ? { ...s, name: editName.trim(), description: editDescription, duration: editDuration, capacity: editCapacity }
-      : s
-    ))
-    setEditClassId(null)
-    setSavingEdit(false)
-    router.refresh()
+    if (!res.ok) { setAddError(data.error ?? 'Failed to add slot'); setAdding(false); return }
+    setRows(prev => sortRows([...prev, data.row]))
+    setShowAdd(false); setAddForm({ ...BLANK }); setAdding(false)
   }
 
-  function openAddSession(service: Service) {
-    setAddSessionFor(service)
-    setSessionDate('')
-    setSessionStartTime('')
-    setSessionEndTime('')
-    setSessionInstructor('')
-    setSessionCapacity(service.capacity)
-    setSessionRepeatWeekly(false)
-    setSessionRepeatWeeks(52)
-    setSessionError('')
-  }
-
-  function handleStartTimeChange(time: string) {
-    setSessionStartTime(time)
-    if (time && addSessionFor) {
-      const [h, m] = time.split(':').map(Number)
-      const end    = new Date(2000, 0, 1, h, m + addSessionFor.duration)
-      const hh     = end.getHours().toString().padStart(2, '0')
-      const mm     = end.getMinutes().toString().padStart(2, '0')
-      setSessionEndTime(`${hh}:${mm}`)
-    }
-  }
-
-  async function createSession() {
-    if (!sessionDate || !sessionStartTime || !sessionEndTime) {
-      setSessionError('Date, start time and end time are required')
-      return
-    }
-    setSavingSession(true)
-    setSessionError('')
-
-    const pad = (n: number) => n.toString().padStart(2, '0')
-    const fmtLocal = (d: Date) =>
-      `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`
-
-    if (sessionRepeatWeekly) {
-      const sessions = Array.from({ length: sessionRepeatWeeks }, (_, i) => {
-        const s = new Date(`${sessionDate}T${sessionStartTime}:00`)
-        const e = new Date(`${sessionDate}T${sessionEndTime}:00`)
-        s.setDate(s.getDate() + i * 7)
-        e.setDate(e.getDate() + i * 7)
-        return { startTime: fmtLocal(s), endTime: fmtLocal(e) }
-      })
-      const res = await fetch('/api/admin/sessions', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          sessions,
-          serviceId:      addSessionFor!.id,
-          serviceName:    addSessionFor!.name,
-          instructorName: sessionInstructor,
-          capacity:       sessionCapacity,
-        }),
-      })
-      if (!requireAuth(res)) return
-      const data = await res.json()
-      if (!res.ok) { setSessionError(data.error ?? 'Failed to add sessions'); setSavingSession(false); return }
-      setServices(prev => prev.map(s => s.id === addSessionFor!.id ? { ...s, upcomingSessions: s.upcomingSessions + sessionRepeatWeeks } : s))
-      await loadSessions(addSessionFor!.id)
-      setSessionDate('')
-      setSessionStartTime('')
-      setSessionEndTime('')
-      setSessionRepeatWeekly(false)
-      setSavingSession(false)
-      router.refresh()
-    } else {
-      const startTime = fmtLocal(new Date(`${sessionDate}T${sessionStartTime}:00`))
-      const endTime   = fmtLocal(new Date(`${sessionDate}T${sessionEndTime}:00`))
-      const res = await fetch('/api/admin/sessions', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          serviceId:      addSessionFor!.id,
-          serviceName:    addSessionFor!.name,
-          instructorName: sessionInstructor,
-          startTime,
-          endTime,
-          capacity:       sessionCapacity,
-        }),
-      })
-      if (!requireAuth(res)) return
-      const data = await res.json()
-      if (!res.ok) { setSessionError(data.error ?? 'Failed to add session'); setSavingSession(false); return }
-      const newSession: Session = {
-        id:              data.id,
-        title:           addSessionFor!.name,
-        instructor_name: sessionInstructor,
-        start_time:      startTime,
-        end_time:        endTime,
-        capacity:        sessionCapacity,
-        status:          'CONFIRMED',
-      }
-      setSessions(prev => ({
-        ...prev,
-        [addSessionFor!.id]: [...(prev[addSessionFor!.id] ?? []), newSession].sort((a, b) => a.start_time.localeCompare(b.start_time)),
-      }))
-      setServices(prev => prev.map(s => s.id === addSessionFor!.id ? { ...s, upcomingSessions: s.upcomingSessions + 1 } : s))
-      setSessionDate('')
-      setSessionStartTime('')
-      setSessionEndTime('')
-      setSavingSession(false)
-      router.refresh()
-    }
-  }
-
-  function openEditSession(serviceId: string, session: Session, serviceName: string) {
-    setEditSessionId(session.id)
-    setEditSessionServiceId(serviceId)
-    setEditSessionStart(isoToMelbHHMM(session.start_time))
-    setEditSessionEnd(isoToMelbHHMM(session.end_time))
-    setEditSessionInstr(session.instructor_name || '')
-    setEditSessionApplyAll(true)
-    setSessionEditError('')
-    setEditSessionLabel(fmt(session.start_time))
-    setEditSessionClassName(serviceName)
-    setEditSessionDow(new Date(session.start_time).toLocaleString('en-AU', {
-      timeZone: 'Australia/Melbourne', weekday: 'long',
-    }))
-  }
-
-  async function saveSessionEdit() {
-    setSavingSessionEdit(true)
-    setSessionEditError('')
-    const res = await fetch('/api/admin/sessions', {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        id:             editSessionId,
-        instructorName: editSessionInstr,
-        startTime:      editSessionStart,
-        endTime:        editSessionEnd,
-        applyToFuture:  editSessionApplyAll,
+  async function saveEdit() {
+    if (!editRow) return
+    const { day, start_time, end_time, class_name, instructor } = editForm
+    if (!start_time || !end_time || !class_name.trim()) { setEditError('Times and class name are required'); return }
+    setEditing(true); setEditError('')
+    const res = await fetch('/api/admin/schedule-template', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: editRow.id, day, start_time, end_time, class_name: class_name.trim(), instructor,
+        old_day: editRow.day, old_start_time: editRow.start_time,
+        old_end_time: editRow.end_time, old_class_name: editRow.class_name,
       }),
     })
-    if (!requireAuth(res)) return
     const data = await res.json()
-    if (!res.ok) { setSessionEditError(data.error ?? 'Failed to save'); setSavingSessionEdit(false); return }
-    if (editSessionServiceId) await loadSessions(editSessionServiceId)
-    setEditSessionId(null)
-    setSavingSessionEdit(false)
-    router.refresh()
+    if (!res.ok) { setEditError(data.error ?? 'Failed to save'); setEditing(false); return }
+    setRows(prev => sortRows(prev.map(r => r.id === editRow.id ? data.row : r)))
+    setEditRow(null); setEditing(false)
   }
 
-  async function deleteSession(serviceId: string, sessionId: string) {
-    setDeletingSessionId(sessionId)
-    await fetch('/api/admin/sessions', {
-      method:  'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ id: sessionId }),
+  async function deleteSlot() {
+    if (!delRow) return
+    setDeleting(true)
+    const res = await fetch('/api/admin/schedule-template', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: delRow.id, day: delRow.day, start_time: delRow.start_time, class_name: delRow.class_name }),
     })
-    setSessions(prev => ({ ...prev, [serviceId]: (prev[serviceId] ?? []).filter(s => s.id !== sessionId) }))
-    setServices(prev => prev.map(s => s.id === serviceId ? { ...s, upcomingSessions: Math.max(0, s.upcomingSessions - 1) } : s))
-    setDeletingSessionId(null)
-    router.refresh()
+    if (!res.ok) { setDeleting(false); return }
+    setRows(prev => prev.filter(r => r.id !== delRow.id))
+    setDelRow(null); setDeleting(false)
   }
 
-  // Shared action buttons (used by both mobile and desktop variants of each service row)
-  function ActionButtons({ service }: { service: Service }) {
+  function sortRows(r: TemplateRow[]) {
+    return [...r].sort((a, b) => {
+      const d = DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day)
+      return d !== 0 ? d : a.start_time.localeCompare(b.start_time)
+    })
+  }
+
+  const byDay = DAY_ORDER.reduce((acc, d) => {
+    acc[d] = rows.filter(r => r.day === d)
+    return acc
+  }, {} as Record<string, TemplateRow[]>)
+
+  function SlotForm({ form, setForm, err }: { form: typeof BLANK; setForm: (f: typeof BLANK) => void; err: string }) {
     return (
-      <>
-        <button
-          onClick={e => { e.stopPropagation(); openAddSession(service) }}
-          className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors touch-manipulation"
-        >
-          + Session
-        </button>
-        <button
-          onClick={e => { e.stopPropagation(); openEditClass(service) }}
-          className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 transition-colors touch-manipulation"
-          title="Edit class"
-        >
-          Edit
-        </button>
-        {deleteConfirmId === service.id ? (
-          <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-            <span className="text-[11px] text-neutral-500">Delete all?</span>
-            <button
-              onClick={() => deleteClass(service.id)}
-              disabled={deletingId === service.id}
-              className="h-6 px-2.5 text-[11px] font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-40 touch-manipulation"
-            >
-              {deletingId === service.id ? '…' : 'Yes'}
-            </button>
-            <button
-              onClick={() => setDeleteConfirmId(null)}
-              className="h-6 px-2 text-[11px] text-neutral-500 hover:text-neutral-800 touch-manipulation"
-            >
-              No
-            </button>
+      <div className="space-y-3">
+        <div>
+          <label className="block text-[12px] font-medium text-neutral-600 mb-1">Day</label>
+          <select value={form.day} onChange={e => setForm({ ...form, day: e.target.value })}
+            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
+            {DAY_ORDER.map(d => <option key={d} value={d}>{DAY_LABELS[d]}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
+            <input type="time" value={form.start_time}
+              onChange={e => handleStartTime(e.target.value, form, setForm)}
+              className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
           </div>
-        ) : (
-          <button
-            onClick={e => { e.stopPropagation(); setDeleteError(''); setDeleteConfirmId(service.id) }}
-            className="h-7 w-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors text-sm touch-manipulation"
-            title="Delete class"
-          >
-            ✕
-          </button>
-        )}
-      </>
+          <div>
+            <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time</label>
+            <input type="time" value={form.end_time}
+              onChange={e => setForm({ ...form, end_time: e.target.value })}
+              className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
+          <input type="text" value={form.class_name} onChange={e => setForm({ ...form, class_name: e.target.value })}
+            placeholder="e.g. Hot Mat Pilates"
+            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+        </div>
+        <div>
+          <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor</label>
+          <select value={form.instructor} onChange={e => setForm({ ...form, instructor: e.target.value })}
+            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
+            <option value="">— Unassigned —</option>
+            {instructors.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+        {err && <p className="text-[12px] text-red-600">{err}</p>}
+      </div>
     )
   }
 
@@ -398,516 +169,126 @@ export default function ClassesClient({ initialServices, instructors }: { initia
       {/* Header */}
       <div className="shrink-0 flex items-center justify-between px-4 md:px-6 py-4 border-b border-neutral-200 bg-white">
         <div>
-          <h1 className="text-[15px] font-semibold text-neutral-900">Classes</h1>
-          <p className="text-[12px] text-neutral-400 mt-0.5">{services.length} class type{services.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-[15px] font-semibold text-neutral-900">Weekly schedule</h1>
+          <p className="text-[12px] text-neutral-400 mt-0.5">{rows.length} recurring class{rows.length !== 1 ? 'es' : ''} · changes apply to all future sessions</p>
         </div>
-        <button
-          onClick={() => setShowNewClass(true)}
-          className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors touch-manipulation"
-        >
-          + New class
+        <button onClick={() => { setAddForm({ ...BLANK }); setAddError(''); setShowAdd(true) }}
+          className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors touch-manipulation">
+          + Add slot
         </button>
       </div>
 
-      {/* Delete error banner */}
-      {deleteError && (
-        <div className="shrink-0 px-4 md:px-6 py-2.5 bg-red-50 border-b border-red-200 flex items-center justify-between gap-3">
-          <p className="text-[12.5px] text-red-700">{deleteError}</p>
-          <button onClick={() => setDeleteError('')} className="text-red-400 hover:text-red-600 text-sm shrink-0">✕</button>
-        </div>
-      )}
-
-      {/* Class list */}
-      <div className="flex-1 overflow-y-auto">
-        {services.length === 0 && (
-          <div className="px-6 py-12 text-center text-sm text-neutral-400">
-            No classes yet. Click &quot;New class&quot; to add one.
-          </div>
-        )}
-
-        {services.map(service => (
-          <div key={service.id} className="border-b border-neutral-100">
-
-            {/* ── Desktop service row (unchanged from original) ── */}
-            <div
-              className="hidden md:flex items-center px-6 py-4 hover:bg-neutral-50 cursor-pointer transition-colors"
-              onClick={() => toggleExpand(service)}
-            >
-              <div className="w-5 h-5 rounded bg-black shrink-0 mr-3" />
-              <div className="flex-1 min-w-0">
-                <p className="text-[16px] font-medium text-neutral-900">{service.name}</p>
-                <p className="text-[14.5px] text-neutral-400 mt-0.5">
-                  {service.duration} min · {service.capacity} capacity
-                  {service.description ? ` · ${service.description}` : ''}
-                </p>
-              </div>
-              <div className="flex items-center gap-3 ml-4 shrink-0" onClick={e => e.stopPropagation()}>
-                <span className="text-[12px] text-neutral-500">{service.upcomingSessions} upcoming</span>
-                <ActionButtons service={service} />
-              </div>
-              <span className={`text-neutral-400 text-xs transition-transform ml-3 shrink-0 ${expandedId === service.id ? 'rotate-180' : ''}`}>▼</span>
+      {/* Template list grouped by day */}
+      <div className="flex-1 overflow-y-auto divide-y divide-neutral-100">
+        {DAY_ORDER.filter(d => byDay[d].length > 0).map(day => (
+          <div key={day}>
+            {/* Day heading */}
+            <div className="px-4 md:px-6 pt-4 pb-1.5">
+              <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">{DAY_LABELS[day]}</span>
             </div>
-
-            {/* ── Mobile service row ── */}
-            <div
-              className="md:hidden px-4 py-4 hover:bg-neutral-50 cursor-pointer transition-colors"
-              onClick={() => toggleExpand(service)}
-            >
-              {/* Top line: icon + name + chevron */}
-              <div className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded bg-black shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-medium text-neutral-900 truncate">{service.name}</p>
-                  <p className="text-[12px] text-neutral-400 mt-0.5">
-                    {service.duration} min · cap {service.capacity}
-                    {service.upcomingSessions > 0 ? ` · ${service.upcomingSessions} upcoming` : ''}
-                  </p>
+            {/* Slots for this day */}
+            {byDay[day].map(row => (
+              <div key={row.id}
+                className="flex items-center px-4 md:px-6 py-3 hover:bg-neutral-50 transition-colors group border-t border-neutral-50">
+                {/* Time */}
+                <div className="w-36 shrink-0">
+                  <span className="text-[13px] font-medium text-neutral-800">{fmt12(row.start_time)}</span>
+                  <span className="text-[12px] text-neutral-400"> – {fmt12(row.end_time)}</span>
                 </div>
-                <span className={`text-neutral-400 text-xs transition-transform shrink-0 ${expandedId === service.id ? 'rotate-180' : ''}`}>▼</span>
-              </div>
-              {/* Action buttons below */}
-              <div className="flex items-center gap-2 mt-2.5 ml-8" onClick={e => e.stopPropagation()}>
-                <ActionButtons service={service} />
-              </div>
-            </div>
-
-            {/* Expanded sessions */}
-            {expandedId === service.id && (
-              <div className="bg-neutral-50 border-t border-neutral-100">
-                {loadingId === service.id ? (
-                  <div className="px-8 py-4 text-[12px] text-neutral-400">Loading sessions…</div>
-                ) : (sessions[service.id] ?? []).length === 0 ? (
-                  <div className="px-8 py-4 text-[12px] text-neutral-400">
-                    No sessions scheduled. Click &quot;+ Session&quot; to add one.
-                  </div>
-                ) : (
-                  <>
-                    {/* ── Mobile: session cards ── */}
-                    <div className="md:hidden divide-y divide-neutral-100">
-                      {(sessions[service.id] ?? []).map(session => (
-                        <div key={session.id} className="px-4 py-3">
-                          <div className="flex items-start gap-3">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-medium text-neutral-800 leading-snug">{fmt(session.start_time)}</p>
-                              <p className="text-[11.5px] text-neutral-500 mt-0.5">
-                                {session.instructor_name || 'Unassigned'} · Cap {session.capacity}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0 mt-0.5">
-                              <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                                session.status === 'CANCELLED'
-                                  ? 'bg-red-50 text-red-600'
-                                  : 'bg-neutral-100 text-neutral-600'
-                              }`}>
-                                {session.status === 'CANCELLED' ? 'Cancelled' : 'Active'}
-                              </span>
-                              <button
-                                onClick={() => openEditSession(service.id, session, service.name)}
-                                className="w-7 h-7 flex items-center justify-center text-neutral-400 hover:text-neutral-800 transition-colors touch-manipulation"
-                                title="Edit session"
-                              >✏</button>
-                              <button
-                                onClick={() => deleteSession(service.id, session.id)}
-                                disabled={deletingSessionId === session.id}
-                                className="w-7 h-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors disabled:opacity-40 touch-manipulation"
-                                title="Delete session"
-                              >
-                                {deletingSessionId === session.id ? '…' : '✕'}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* ── Desktop: original grid table ── */}
-                    <div className="hidden md:block">
-                      <div className="grid px-8 py-2 border-b border-neutral-200" style={{ gridTemplateColumns: '1fr 180px 80px 80px 56px' }}>
-                        <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Date & Time</span>
-                        <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Instructor</span>
-                        <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Capacity</span>
-                        <span className="text-[10.5px] font-semibold text-neutral-400 uppercase tracking-wider">Status</span>
-                        <span />
-                      </div>
-                      {(sessions[service.id] ?? []).map(session => (
-                        <div
-                          key={session.id}
-                          className="grid items-center px-8 py-3 border-b border-neutral-100 last:border-0"
-                          style={{ gridTemplateColumns: '1fr 180px 80px 80px 56px' }}
-                        >
-                          <span className="text-[14.5px] text-neutral-700">{fmt(session.start_time)}</span>
-                          <span className="text-[13px] text-neutral-600">{session.instructor_name || '—'}</span>
-                          <span className="text-[14.5px] text-neutral-600">{session.capacity}</span>
-                          <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full w-fit ${
-                            session.status === 'CANCELLED'
-                              ? 'bg-red-50 text-red-600'
-                              : 'bg-neutral-100 text-neutral-600'
-                          }`}>
-                            {session.status === 'CANCELLED' ? 'Cancelled' : 'Active'}
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={e => { e.stopPropagation(); openEditSession(service.id, session, service.name) }}
-                              className="text-neutral-400 hover:text-neutral-800 transition-colors text-sm touch-manipulation"
-                              title="Edit session"
-                            >✏</button>
-                            <button
-                              onClick={() => deleteSession(service.id, session.id)}
-                              disabled={deletingSessionId === session.id}
-                              className="text-neutral-300 hover:text-red-500 transition-colors text-sm disabled:opacity-40 touch-manipulation"
-                              title="Delete session"
-                            >
-                              {deletingSessionId === session.id ? '…' : '✕'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* New class modal — bottom sheet on mobile, centred on desktop */}
-      {showNewClass && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setShowNewClass(false)} />
-          <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
-            <h2 className="text-[15px] font-semibold text-neutral-900 mb-4">New class</h2>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={e => setNewName(e.target.value)}
-                  placeholder="e.g. Reformer Pilates"
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Description (optional)</label>
-                <input
-                  type="text"
-                  value={newDescription}
-                  onChange={e => setNewDescription(e.target.value)}
-                  placeholder="Short description"
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Duration (min)</label>
-                  <input
-                    type="number"
-                    value={newDuration}
-                    onChange={e => setNewDuration(Number(e.target.value))}
-                    min={15} max={180}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  />
+                {/* Class name */}
+                <div className="flex-1 min-w-0 px-3">
+                  <span className="text-[14px] text-neutral-900">{row.class_name}</span>
                 </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Capacity</label>
-                  <input
-                    type="number"
-                    value={newCapacity}
-                    onChange={e => setNewCapacity(Number(e.target.value))}
-                    min={1} max={100}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  />
+                {/* Instructor */}
+                <div className="w-28 shrink-0 hidden md:block">
+                  <span className="text-[13px] text-neutral-500">{row.instructor || '—'}</span>
                 </div>
-              </div>
-              {classError && <p className="text-[12px] text-red-600">{classError}</p>}
-            </div>
-            <div className="flex justify-end gap-2 mt-5">
-              <button
-                onClick={() => { setShowNewClass(false); setClassError('') }}
-                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={createClass}
-                disabled={savingClass}
-                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
-              >
-                {savingClass ? 'Creating…' : 'Create class'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add session modal — bottom sheet on mobile, centred on desktop */}
-      {addSessionFor && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setAddSessionFor(null)} />
-          <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
-            <h2 className="text-[15px] font-semibold text-neutral-900 mb-1">Add session</h2>
-            <p className="text-[12px] text-neutral-400 mb-4">{addSessionFor.name}</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start date</label>
-                <input
-                  type="date"
-                  value={sessionDate}
-                  onChange={e => setSessionDate(e.target.value)}
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                />
-              </div>
-
-              {/* Repeat weekly toggle */}
-              <div className="flex items-center justify-between border border-neutral-200 rounded-lg px-3 py-2.5">
-                <div>
-                  <p className="text-[12px] font-medium text-neutral-700">Repeat weekly</p>
-                  {sessionRepeatWeekly && (
-                    <p className="text-[11px] text-neutral-400 mt-0.5">
-                      Creates {sessionRepeatWeeks} sessions (~{Math.round(sessionRepeatWeeks / 4.33)} months)
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0 ml-3">
-                  {sessionRepeatWeekly && (
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="number"
-                        value={sessionRepeatWeeks}
-                        onChange={e => setSessionRepeatWeeks(Math.max(1, Math.min(104, Number(e.target.value))))}
-                        min={1} max={104}
-                        className="w-14 h-7 px-2 text-[12px] text-center border border-neutral-200 rounded-lg outline-none focus:border-black"
-                      />
-                      <span className="text-[11px] text-neutral-400">weeks</span>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setSessionRepeatWeekly(v => !v)}
-                    className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${sessionRepeatWeekly ? 'bg-black' : 'bg-neutral-200'}`}
-                  >
-                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${sessionRepeatWeekly ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                {/* Actions — visible on hover */}
+                <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => openEdit(row)}
+                    className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 rounded-lg text-neutral-600 hover:border-neutral-400 hover:text-neutral-900 touch-manipulation">
+                    Edit
+                  </button>
+                  <button onClick={() => setDelRow(row)}
+                    className="h-7 w-7 flex items-center justify-center text-neutral-300 hover:text-red-500 transition-colors text-sm touch-manipulation">
+                    ✕
                   </button>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
-                  <input
-                    type="time"
-                    value={sessionStartTime}
-                    onChange={e => handleStartTimeChange(e.target.value)}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time</label>
-                  <input
-                    type="time"
-                    value={sessionEndTime}
-                    onChange={e => setSessionEndTime(e.target.value)}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor</label>
-                <select
-                  value={sessionInstructor}
-                  onChange={e => setSessionInstructor(e.target.value)}
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white"
-                >
-                  <option value="">— Unassigned —</option>
-                  {instructors.map(name => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Capacity</label>
-                <input
-                  type="number"
-                  value={sessionCapacity}
-                  onChange={e => setSessionCapacity(Number(e.target.value))}
-                  min={1} max={100}
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                />
-              </div>
-              {sessionError && <p className="text-[12px] text-red-600">{sessionError}</p>}
-            </div>
-            <div className="flex justify-end gap-2 mt-5">
-              <button
-                onClick={() => setAddSessionFor(null)}
-                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
-              >
-                Done
-              </button>
-              <button
-                onClick={createSession}
-                disabled={savingSession}
-                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
-              >
-                {savingSession
-                  ? (sessionRepeatWeekly ? `Adding ${sessionRepeatWeeks} sessions…` : 'Adding…')
-                  : sessionRepeatWeekly
-                    ? `Add ${sessionRepeatWeeks} sessions`
-                    : 'Add session'
-                }
-              </button>
-            </div>
-            <p className="text-[11px] text-neutral-400 mt-2 text-right">Add multiple sessions without closing</p>
+            ))}
           </div>
-        </div>
-      )}
+        ))}
 
-      {/* Edit session modal */}
-      {editSessionId && (
+        {rows.length === 0 && (
+          <div className="px-6 py-12 text-center text-sm text-neutral-400">
+            No classes yet. Click &ldquo;+ Add slot&rdquo; to build the weekly schedule.
+          </div>
+        )}
+      </div>
+
+      {/* ── Add slot modal ──────────────────────────────────────────────────── */}
+      {showAdd && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setEditSessionId(null)} />
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowAdd(false)} />
           <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
-            <h2 className="text-[15px] font-semibold text-neutral-900 mb-0.5">Edit session</h2>
-            <p className="text-[12px] text-neutral-400 mb-4">{editSessionClassName} · {editSessionLabel}</p>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
-                  <input
-                    type="time"
-                    value={editSessionStart}
-                    onChange={e => setEditSessionStart(e.target.value)}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time</label>
-                  <input
-                    type="time"
-                    value={editSessionEnd}
-                    onChange={e => setEditSessionEnd(e.target.value)}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor</label>
-                <select
-                  value={editSessionInstr}
-                  onChange={e => setEditSessionInstr(e.target.value)}
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white"
-                >
-                  <option value="">— Unassigned —</option>
-                  {instructors.map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
-              </div>
-              {/* Apply to all toggle */}
-              <div
-                className="flex items-start justify-between border border-neutral-200 rounded-lg px-3 py-3 cursor-pointer"
-                onClick={() => setEditSessionApplyAll(v => !v)}
-              >
-                <div className="pr-3">
-                  <p className="text-[12px] font-medium text-neutral-700">Apply to all future {editSessionDow} sessions</p>
-                  <p className="text-[11px] text-neutral-400 mt-0.5">
-                    {editSessionApplyAll
-                      ? `Updates every upcoming ${editSessionClassName} on ${editSessionDow}s`
-                      : 'Only updates this single session'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors mt-0.5 ${editSessionApplyAll ? 'bg-black' : 'bg-neutral-200'}`}
-                >
-                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${editSessionApplyAll ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                </button>
-              </div>
-              {sessionEditError && <p className="text-[12px] text-red-600">{sessionEditError}</p>}
-            </div>
+            <h2 className="text-[15px] font-semibold text-neutral-900 mb-4">Add recurring slot</h2>
+            <SlotForm form={addForm} setForm={setAddForm} err={addError} />
             <div className="flex justify-end gap-2 mt-5">
-              <button
-                onClick={() => setEditSessionId(null)}
-                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
-              >
+              <button onClick={() => setShowAdd(false)}
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation">
                 Cancel
               </button>
-              <button
-                onClick={saveSessionEdit}
-                disabled={savingSessionEdit}
-                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
-              >
-                {savingSessionEdit ? 'Saving…' : editSessionApplyAll ? 'Update all' : 'Update session'}
+              <button onClick={addSlot} disabled={adding}
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation">
+                {adding ? 'Adding…' : 'Add slot'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Edit class modal */}
-      {editClassId && (
+      {/* ── Edit slot modal ─────────────────────────────────────────────────── */}
+      {editRow && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setEditClassId(null)} />
+          <div className="absolute inset-0 bg-black/30" onClick={() => setEditRow(null)} />
           <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
-            <h2 className="text-[15px] font-semibold text-neutral-900 mb-1">Edit class</h2>
-            <p className="text-[11px] text-neutral-400 mb-4">Capacity changes apply to all future sessions of this class.</p>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Description (optional)</label>
-                <input
-                  type="text"
-                  value={editDescription}
-                  onChange={e => setEditDescription(e.target.value)}
-                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Duration (min)</label>
-                  <input
-                    type="number"
-                    value={editDuration}
-                    onChange={e => setEditDuration(Number(e.target.value))}
-                    min={15} max={180}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Capacity</label>
-                  <input
-                    type="number"
-                    value={editCapacity}
-                    onChange={e => setEditCapacity(Number(e.target.value))}
-                    min={1} max={100}
-                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black"
-                  />
-                </div>
-              </div>
-              {editError && <p className="text-[12px] text-red-600">{editError}</p>}
-            </div>
+            <h2 className="text-[15px] font-semibold text-neutral-900 mb-1">Edit slot</h2>
+            <p className="text-[12px] text-neutral-400 mb-4">Changes apply to all future matching sessions</p>
+            <SlotForm form={editForm} setForm={setEditForm} err={editError} />
             <div className="flex justify-end gap-2 mt-5">
-              <button
-                onClick={() => setEditClassId(null)}
-                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation"
-              >
+              <button onClick={() => setEditRow(null)}
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation">
                 Cancel
               </button>
-              <button
-                onClick={saveEditClass}
-                disabled={savingEdit}
-                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation"
-              >
-                {savingEdit ? 'Saving…' : 'Save changes'}
+              <button onClick={saveEdit} disabled={editing}
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation">
+                {editing ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirm modal ────────────────────────────────────────────── */}
+      {delRow && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setDelRow(null)} />
+          <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[380px] p-6 pb-8 md:pb-6">
+            <h2 className="text-[15px] font-semibold text-neutral-900 mb-2">Remove slot?</h2>
+            <p className="text-[13px] text-neutral-600 mb-1">
+              <strong>{DAY_LABELS[delRow.day]}</strong> {fmt12(delRow.start_time)} · {delRow.class_name}
+            </p>
+            <p className="text-[12px] text-neutral-400 mb-5">
+              All future sessions for this slot will be cancelled. Sessions with existing bookings are not affected.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setDelRow(null)}
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation">
+                Cancel
+              </button>
+              <button onClick={deleteSlot} disabled={deleting}
+                className="h-8 px-4 text-[14.5px] font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-40 touch-manipulation">
+                {deleting ? 'Removing…' : 'Remove slot'}
               </button>
             </div>
           </div>
