@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMemberById } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 import { signupPlans } from '@/lib/content'
+import { emailSetupLink, emailUpdatePaymentLink } from '@/lib/email'
 
 // Creates a Stripe-hosted link Suzanne can send to the member.
 // mode=subscription → Checkout Session (member completes BECS setup + starts subscription)
@@ -53,7 +54,8 @@ export async function POST(req: NextRequest) {
         customer:   customerId,
         return_url: `${baseUrl}/admin/clients`,
       })
-      return NextResponse.json({ url: portalSession.url })
+      await emailUpdatePaymentLink({ to: member.email, firstName: member.firstName, portalUrl: portalSession.url })
+      return NextResponse.json({ sent: true })
     }
 
     // subscription mode — Checkout Session for the member to complete BECS + start sub
@@ -88,7 +90,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return NextResponse.json({ url: checkoutSession.url })
+    await emailSetupLink({ to: member.email, firstName: member.firstName, checkoutUrl: checkoutSession.url!, planName: plan.name })
+    return NextResponse.json({ sent: true })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[create-setup-link] error:', msg)

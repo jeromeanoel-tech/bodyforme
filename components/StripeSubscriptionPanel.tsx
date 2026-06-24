@@ -205,7 +205,7 @@ export function StripeSubscriptionPanel({
       })
       const data = await res.json()
       if (!res.ok) { setActionError(data.error ?? `Server error ${res.status}`); setActionLoading(false); return }
-      setSetupUrl(data.url)
+      setSetupUrl('sent')
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Network error')
     }
@@ -516,12 +516,12 @@ export function StripeSubscriptionPanel({
             // Customer Portal — member updates their own bank details
             <>
               <p className="text-[12px] text-neutral-500">
-                This generates a secure Stripe Customer Portal link. Copy it and send to {contact.firstName} — they will be able to update their own bank details.
+                Sends {contact.firstName} a secure link to update their own bank details directly with Stripe.
               </p>
               {!setupUrl && (
                 <button onClick={() => generateSetupLink('portal')} disabled={actionLoading}
                   className="h-8 px-4 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40">
-                  {actionLoading ? 'Generating…' : 'Generate link'}
+                  {actionLoading ? 'Sending…' : `Send to ${member.email}`}
                 </button>
               )}
             </>
@@ -529,7 +529,7 @@ export function StripeSubscriptionPanel({
             // Checkout — member completes BECS setup + starts subscription
             <>
               <p className="text-[12px] text-neutral-500">
-                This generates a secure Stripe Checkout link. Send it to {contact.firstName} — they will enter their own bank details and start their subscription. Stripe requires customers to enter their own direct debit details.
+                Emails {contact.firstName} a secure Stripe Checkout link — they enter their own bank details and start their subscription. Expires in 24 hours.
               </p>
               <div>
                 <label className="block text-[11px] text-neutral-500 font-medium mb-1">Plan</label>
@@ -544,7 +544,7 @@ export function StripeSubscriptionPanel({
               {!setupUrl && (
                 <button onClick={() => generateSetupLink('subscription')} disabled={!actionPlan || actionLoading}
                   className="h-8 px-4 text-[12px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40">
-                  {actionLoading ? 'Generating…' : 'Generate link'}
+                  {actionLoading ? 'Sending…' : `Send to ${member.email}`}
                 </button>
               )}
             </>
@@ -552,17 +552,9 @@ export function StripeSubscriptionPanel({
 
           {actionError && <p className="text-[11.5px] text-red-600">{actionError}</p>}
 
-          {setupUrl && (
-            <div className="space-y-2">
-              <div className="flex gap-2 items-center">
-                <input readOnly value={setupUrl}
-                  className="flex-1 h-8 px-2 text-[11px] border border-neutral-200 rounded-lg bg-neutral-50 text-neutral-600 font-mono overflow-hidden" />
-                <button onClick={copyLink}
-                  className="h-8 px-3 text-[11.5px] font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:border-black whitespace-nowrap">
-                  {copied ? 'Copied ✓' : 'Copy link'}
-                </button>
-              </div>
-              <p className="text-[10.5px] text-neutral-400">Copy this link and send it to the member via email or WhatsApp. It expires after 24 hours.</p>
+          {setupUrl === 'sent' && (
+            <div className="flex items-center gap-2 py-2">
+              <span className="text-[13px] text-green-700 font-medium">Email sent to {member.email}</span>
             </div>
           )}
 

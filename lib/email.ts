@@ -1,6 +1,6 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM = 'BodyForme Studio <hello@bodyforme.com.au>'
-const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au'
+const BASE = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
 // ── Layout helpers ────────────────────────────────────────────────────────────
 
@@ -241,5 +241,37 @@ export async function emailRetention90(opts: {
     RULE +
     p('If you\'d like to pause or have questions about your membership, just reply — we\'re always happy to chat.', true) +
     signoff('Warmly,')
+  ))
+}
+
+export async function emailSetupLink(opts: {
+  to: string; firstName: string; checkoutUrl: string; planName: string
+}) {
+  const { to, firstName, checkoutUrl, planName } = opts
+  await sendEmail(to, 'Set up your BodyForme membership', wrap(
+    eyebrow('Membership set-up') +
+    heading('You\'re almost in') +
+    p(`Hi ${firstName},`) +
+    p(`We\'ve reserved a <strong>${planName}</strong> membership for you. Click the button below to enter your bank details and start your subscription — it takes about two minutes.`) +
+    cta('Set up my membership', checkoutUrl) +
+    RULE +
+    p('This link is unique to you and expires in 24 hours. If you have any questions, just reply to this email or call us on (03) 9850 2221.', true) +
+    signoff('See you on the mat,')
+  ))
+}
+
+export async function emailUpdatePaymentLink(opts: {
+  to: string; firstName: string; portalUrl: string
+}) {
+  const { to, firstName, portalUrl } = opts
+  await sendEmail(to, 'Update your payment details — BodyForme', wrap(
+    eyebrow('Payment details') +
+    heading('Update your bank account') +
+    p(`Hi ${firstName},`) +
+    p('Use the secure link below to update your direct debit details. It only takes a minute and your membership will continue without interruption.') +
+    cta('Update my details', portalUrl) +
+    RULE +
+    p('This link expires after one use. If you didn\'t request this, please contact us.', true) +
+    signoff('Thanks,')
   ))
 }
