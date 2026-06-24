@@ -252,10 +252,10 @@ export async function emailSetupLink(opts: {
     eyebrow('Membership set-up') +
     heading('You\'re almost in') +
     p(`Hi ${firstName},`) +
-    p(`We\'ve reserved a <strong>${planName}</strong> membership for you. Click the button below to enter your bank details and start your subscription — it takes about two minutes.`) +
-    cta('Set up my membership', checkoutUrl) +
+    p(`We\'ve set up a <strong>${planName}</strong> membership for you. Click the button below to pay your first invoice — you can use direct debit (BSB + account number) or card. Takes about two minutes.`) +
+    cta('Pay my invoice', checkoutUrl) +
     RULE +
-    p('This link is unique to you and expires in 24 hours. If you have any questions, just reply to this email or call us on (03) 9850 2221.', true) +
+    p('Your invoice is valid for 7 days. If you have any questions, just reply to this email or call us on (03) 9850 2221.', true) +
     signoff('See you on the mat,')
   ))
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMemberById } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 import { signupPlans } from '@/lib/content'
-import { emailUpdatePaymentLink } from '@/lib/email'
+import { emailSetupLink, emailUpdatePaymentLink } from '@/lib/email'
 
 // mode=subscription → Creates a subscription with send_invoice; Stripe emails the client directly
 //                     with the plan pre-loaded and a "Pay Invoice" button (BECS + card).
@@ -75,11 +75,9 @@ export async function POST(req: NextRequest) {
       product = await stripe.products.create({ name: plan.name })
     }
 
-    // Stripe creates the invoice, finalises it, and emails the client automatically.
-    // The hosted invoice page (invoice.stripe.com) shows the plan details and accepts
-    // both BECS direct debit and card. After first payment the webhook switches
-    // collection_method → charge_automatically so future billings are silent.
-    await stripe.subscriptions.create({
+    // Create the subscription. expand latest_invoice so we get hosted_invoice_url
+    // immediately — that's what we email to the client.
+    const subscription = await stripe.subscriptions.create({
       customer:           customerId,
       collection_method:  'send_invoice',
       days_until_due:     7,
@@ -102,8 +100,29 @@ export async function POST(req: NextRequest) {
         lastName:  member.lastName,
         source:    'member_app',
       },
+      expand: ['latest_invoice'],
     })
 
+    // Get the hosted invoice URL (permanent Stripe-hosted page with the plan pre-loaded)
+    const latestInvoice = (subscription as any).latest_invoice as {
+      id: string; status: string; hosted_invoice_url: string | null
+    } | null
+
+    let invoiceUrl = latestInvoice?.hosted_invoice_url ?? null
+
+    // If the invoice is still draft (rare), finalise it first to get the URL
+    if (!invoiceUrl && latestInvoice?.id && latestInvoice.status === 'draft') {
+      const finalized = await stripe.invoices.finalizeInvoice(latestInvoice.id) as any
+      invoiceUrl = finalized.hosted_invoice_url ?? null
+    }
+
+    if (!invoiceUrl) {
+      console.error('[create-setup-link] no hosted_invoice_url — subId:', subscription.id)
+      return NextResponse.json({ error: 'Subscription created but no invoice URL available. Check Stripe Dashboard.' }, { status: 500 })
+    }
+
+    // Send the invoice link via Resend — client clicks → Stripe invoice page → enters BECS or card
+    await emailSetupLink({ to: member.email, firstName: member.firstName, checkoutUrl: invoiceUrl, planName: plan.name })
     return NextResponse.json({ sent: true })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
