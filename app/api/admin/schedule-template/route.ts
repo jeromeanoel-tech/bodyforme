@@ -31,6 +31,16 @@ function melbToUtc(melbDateStr: string, hhmm: string): string {
   return `${prev.toISOString().slice(0,10)}T${String(24+utcH).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`
 }
 
+/** Get or create a service record by class name, returning its id */
+async function getOrCreateServiceId(className: string): Promise<string | undefined> {
+  const { data: existing } = await supabase.from('services').select('id').eq('name', className).limit(1)
+  if (existing?.[0]?.id) return existing[0].id
+  const { data: created } = await supabase.from('services')
+    .insert({ name: className, description: '', duration: 60, capacity: 20 })
+    .select('id').single()
+  return created?.id
+}
+
 /**
  * Find all future non-cancelled sessions matching a template slot.
  * When forceByTime=true, matches only on Melbourne weekday + start time (ignores class title).
@@ -66,17 +76,7 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
   const first     = new Date(todayDate)
   first.setUTCDate(first.getUTCDate() + daysUntil)
 
-  // Get or create service record
-  // Use limit(1) not maybeSingle() — maybeSingle errors when >1 row exists,
-  // which would silently create yet another duplicate service record.
-  const { data: svcRows } = await supabase.from('services').select('id').eq('name', className).limit(1)
-  let serviceId = svcRows?.[0]?.id
-  if (!serviceId) {
-    const { data: newSvc } = await supabase.from('services')
-      .insert({ name: className, description: '', duration: 60, capacity: 20 })
-      .select('id').single()
-    serviceId = newSvc?.id
-  }
+  const serviceId = await getOrCreateServiceId(className)
   if (!serviceId) return
 
   const inserts: object[] = []
@@ -166,9 +166,13 @@ export async function PUT(req: NextRequest) {
     const allAtThisTime = await matchingSessions(day, start_time, '', true)
     const toUpdate = allAtThisTime.filter(s => s.title === class_name)
     const toCancel = allAtThisTime.filter(s => s.title !== class_name)
-    // Rename any already correctly-titled sessions (update instructor)
+    // Ensure the correct service_id for sessions with the right title
+    const correctServiceId = await getOrCreateServiceId(class_name)
     for (const s of toUpdate) {
-      await supabase.from('sessions').update({ instructor_name: instructor }).eq('id', s.id)
+      await supabase.from('sessions').update({
+        instructor_name: instructor,
+        ...(correctServiceId ? { service_id: correctServiceId } : {}),
+      }).eq('id', s.id)
     }
     // Cancel sessions with wrong class name at this time slot
     if (toCancel.length > 0) {
@@ -183,9 +187,18 @@ export async function PUT(req: NextRequest) {
   const timeChanged = start_time !== old_start_time || end_time !== old_end_time
   const nameChanged = class_name !== (old_class_name ?? class_name)
 
+  // If class name changed, resolve the new service_id up front so all sessions are updated atomically
+  let newServiceId: string | undefined
+  if (nameChanged) {
+    newServiceId = await getOrCreateServiceId(class_name)
+  }
+
   for (const s of sessions) {
     const update: Record<string, unknown> = { instructor_name: instructor }
-    if (nameChanged) update.title = class_name
+    if (nameChanged) {
+      update.title = class_name
+      if (newServiceId) update.service_id = newServiceId
+    }
     if (timeChanged) {
       const melbDate = getMelbDate(new Date(s.start_time))
       update.start_time = melbToUtc(melbDate, start_time)
