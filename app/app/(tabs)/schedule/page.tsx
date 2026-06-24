@@ -18,7 +18,10 @@ function getWeekRange(): { from: string; to: string } {
   mon.setHours(12, 0, 0, 0)
   const sun = new Date(mon)
   sun.setDate(mon.getDate() + 6)
-  return { from: localDate(mon), to: localDate(sun) }
+  // Expand from by 1 day so Melbourne morning sessions (stored as previous UTC date) are included
+  const fromExpanded = new Date(mon)
+  fromExpanded.setDate(mon.getDate() - 1)
+  return { from: localDate(fromExpanded), to: localDate(sun) }
 }
 
 export default async function SchedulePage() {

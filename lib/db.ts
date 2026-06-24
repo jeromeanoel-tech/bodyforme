@@ -114,7 +114,8 @@ function slug(name: string) {
 }
 
 function isoSlice(ts: string) {
-  return new Date(ts).toISOString().slice(0, 19)
+  // Keep Z so browsers parse this as UTC, not local time
+  return new Date(ts).toISOString().slice(0, 19) + 'Z'
 }
 
 // eslint-disable-next-line

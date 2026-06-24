@@ -66,15 +66,15 @@ function classDuration(start: string, end: string): string {
   return `${m} min`
 }
 
-// Returns "7:30 am" — the cutoff for a session that starts at `start` ISO
+// Returns "7:30 am" — the cancellation cutoff (2h before class) in Melbourne time
 function cancelBy(start: string): string {
-  const t   = start.slice(11, 16)           // 'HH:MM' raw
-  const [h, m] = t.split(':').map(Number)
-  const cutoffH = h - 2
-  if (cutoffH < 0) return ''                // before midnight — edge case, skip
-  const ampm = cutoffH < 12 ? 'am' : 'pm'
-  const h12  = cutoffH % 12 || 12
-  return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`
+  const cutoff = new Date(new Date(start).getTime() - 2 * 60 * 60 * 1000)
+  return cutoff.toLocaleTimeString('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    hour:     'numeric',
+    minute:   '2-digit',
+    hour12:   true,
+  })
 }
 
 type BookedMap    = Record<string, { bookingId: string }>
@@ -143,10 +143,17 @@ export default function ScheduleClient({
 
   async function fetchWeekData(offset: number) {
     const days = getWeekDays(offset)
+    // Expand from by 1 day so Melbourne early-morning sessions (stored as
+    // previous UTC date, e.g. 9:30am AEST = 23:30 UTC prev day) are included.
+    const fromExpanded = (() => {
+      const d = new Date(days[0].iso + 'T12:00:00')
+      d.setDate(d.getDate() - 1)
+      return localDate(d)
+    })()
     const from = days[0].iso
     const to   = days[6].iso
     const [schedData, bookingsData, waitlistData] = await Promise.all([
-      fetch(`/api/app/schedule?from=${from}T00:00:00&to=${to}T23:59:59`).then(r => r.json()),
+      fetch(`/api/app/schedule?from=${fromExpanded}T00:00:00&to=${to}T23:59:59`).then(r => r.json()),
       fetch(`/api/app/my-bookings?from=${from}&to=${to}`).then(r => r.json()),
       fetch(`/api/app/waitlist?from=${from}&to=${to}`).then(r => r.json()).catch(() => ({ sessionIds: [] })),
     ])
@@ -358,7 +365,12 @@ export default function ScheduleClient({
 
   const selectedISO = weekDays[selIdx].iso
   const dayClasses  = sessions
-    .filter(s => s.start.startsWith(selectedISO) && s.status !== 'CANCELLED')
+    .filter(s => {
+      // Convert UTC start time to Melbourne date for comparison — a 9:30am Melbourne
+      // class is stored as the previous UTC date, so we must use the timezone here.
+      const melbDate = new Date(s.start).toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
+      return melbDate === selectedISO && s.status !== 'CANCELLED'
+    })
     .sort((a, b) => a.start.localeCompare(b.start))
 
   const startMonth = new Intl.DateTimeFormat('en-AU', { month: 'long' }).format(weekDays[0].date)
