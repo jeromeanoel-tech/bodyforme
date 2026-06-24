@@ -136,10 +136,11 @@ export default function ScheduleClient({
   const [toast,        setToast]        = useState<{ msg: string; ok: boolean } | null>(null)
   const [now,          setNow]          = useState(() => new Date())
 
-  const isFirstRender = useRef(true)
-  const weekCacheRef  = useRef<Record<number, WeekCache>>({})
-  const scrollRef     = useRef<HTMLDivElement>(null)
-  const touchStartY   = useRef(0)
+  const isFirstRender   = useRef(true)
+  const weekCacheRef    = useRef<Record<number, WeekCache>>({})
+  const displayedOffset = useRef(weekOffset)
+  const scrollRef       = useRef<HTMLDivElement>(null)
+  const touchStartY     = useRef(0)
 
   async function fetchWeekData(offset: number) {
     const days = getWeekDays(offset)
@@ -170,10 +171,16 @@ export default function ScheduleClient({
       staffMap:    schedData.resourceToStaff ?? {},
     }
     weekCacheRef.current[offset] = cached
-    setSessions(cached.sessions)
-    setStaffMap(cached.staffMap)
-    setBookedMap(cached.bookedMap)
-    setWaitlistMap(cached.waitlistMap)
+    // Only push data into displayed state if this fetch is for the week
+    // currently on screen. The background prefetch for next week must NOT
+    // overwrite sessions/bookedMap — that would clear dayClasses and flash
+    // "No classes today" while the user is viewing the current week.
+    if (offset === displayedOffset.current) {
+      setSessions(cached.sessions)
+      setStaffMap(cached.staffMap)
+      setBookedMap(cached.bookedMap)
+      setWaitlistMap(cached.waitlistMap)
+    }
   }
 
   // Main fetch effect
@@ -238,6 +245,7 @@ export default function ScheduleClient({
 
   // If cache available, populate immediately before fetch completes
   function changeWeek(newOffset: number) {
+    displayedOffset.current = newOffset
     const cached = weekCacheRef.current[newOffset]
     if (cached) {
       setSessions(cached.sessions)
