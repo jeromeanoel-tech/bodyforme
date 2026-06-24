@@ -25,7 +25,20 @@ export async function GET() {
 
   const products = await stripe.products.list({ active: true, limit: 100 })
 
-  const posProducts = products.data.filter(p => p.metadata.pos === 'true')
+  const ALLOWED_PLAN_NAMES = new Set([
+    'casual class',
+    '10 class pack',
+    '20 class pack',
+    '50 class pass',
+    '3 month unlimited',
+    '6 month unlimited',
+    '1 year unlimited',
+  ])
+
+  const posProducts = products.data.filter(p =>
+    p.metadata.pos === 'true' &&
+    ALLOWED_PLAN_NAMES.has((p.metadata.planName ?? '').toLowerCase())
+  )
 
   const result: PosProduct[] = []
   for (const p of posProducts) {

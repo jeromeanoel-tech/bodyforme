@@ -29,7 +29,6 @@ const POS_PRODUCTS = [
   { name: '10 Class Pack',      description: '10 classes at $28 per class. Any class type.',        amount: 28000,  memberAction: 'add_credits', creditAmount: '10', planName: '10 Class Pack' },
   { name: '20 Class Pack',      description: '20 classes at $25 per class. Any class type.',        amount: 50000,  memberAction: 'add_credits', creditAmount: '20', planName: '20 Class Pack' },
   { name: '50 Class Pass',      description: '50 classes at ~$20 per class. Any class type.',       amount: 99900,  memberAction: 'add_credits', creditAmount: '50', planName: '50 Class Pass' },
-  { name: '7-Day Unlimited',    description: 'All classes, unlimited, for 7 days. New members only.', amount: 4900, memberAction: 'set_plan',    creditAmount: '0',  planName: '7-Day Unlimited' },
   { name: '3 Month Unlimited',  description: 'Unlimited classes for 3 months. Prepaid upfront.',   amount: 66900,  memberAction: 'set_plan',    creditAmount: '0',  planName: '3 Month Unlimited' },
   { name: '6 Month Unlimited',  description: 'Unlimited classes for 6 months. Prepaid upfront.',   amount: 119900, memberAction: 'set_plan',    creditAmount: '0',  planName: '6 Month Unlimited' },
   { name: '1 Year Unlimited',   description: 'Unlimited classes for 12 months. Prepaid upfront.',  amount: 219900, memberAction: 'set_plan',    creditAmount: '0',  planName: '1 Year Unlimited' },
