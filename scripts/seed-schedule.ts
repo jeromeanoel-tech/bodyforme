@@ -104,22 +104,66 @@ function parseCSV(content: string): ClassRow[] {
   return rows
 }
 
-// ── Date helpers ──────────────────────────────────────────────────────────────
+// ── Date helpers (timezone-safe, works on Vercel/UTC and any local machine) ───
+//
+// Why: Vercel locks TZ=UTC (reserved AWS Lambda var). setHours() uses the
+// process TZ, so it gives wrong UTC values when run outside Melbourne.
+// Solution per Vercel docs: use Intl.DateTimeFormat with an explicit timeZone
+// option — it is immune to the machine's TZ setting and handles DST.
 
-function getMondayOfCurrentWeek(): Date {
-  const now  = new Date()
-  const diff = now.getDay() === 0 ? -6 : 1 - now.getDay()
-  const d    = new Date(now)
-  d.setDate(d.getDate() + diff)
-  d.setHours(0, 0, 0, 0)
-  return d
+const STUDIO_TZ = 'Australia/Melbourne'
+
+/** Returns YYYY-MM-DD for "today" in Melbourne time, regardless of machine TZ. */
+function getMelbDateStr(d: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: STUDIO_TZ }).format(d)
 }
 
-function toISO(base: Date, dayOffset: number, h: number, m: number): string {
-  const d = new Date(base)
-  d.setDate(d.getDate() + dayOffset)
-  d.setHours(h, m, 0, 0)
-  return d.toISOString()
+/**
+ * Melbourne's UTC offset in hours for a given Melbourne calendar date.
+ * Uses a UTC 02:00 probe: Melbourne shows 12:xx (AEST, offset=10) or
+ * 13:xx (AEDT, offset=11) — Intl resolves DST transitions automatically.
+ */
+function getMelbOffset(melbDateStr: string): number {
+  const probe = new Date(`${melbDateStr}T02:00:00Z`)
+  const melbH = parseInt(
+    new Intl.DateTimeFormat('en-AU', {
+      timeZone: STUDIO_TZ, hour: '2-digit', hour12: false,
+    }).format(probe),
+    10,
+  )
+  return melbH - 2  // 10 = AEST (winter), 11 = AEDT (summer)
+}
+
+/** Monday YYYY-MM-DD of the current Melbourne week. */
+function getMondayOfCurrentWeek(): string {
+  const todayMelb = getMelbDateStr()
+  const dow = new Date(`${todayMelb}T12:00:00Z`).getUTCDay() // 0=Sun
+  const diff = dow === 0 ? -6 : 1 - dow
+  const d = new Date(`${todayMelb}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + diff)
+  return d.toISOString().slice(0, 10)
+}
+
+/**
+ * Convert a Melbourne calendar date + local hour/minute to a UTC ISO string.
+ * Handles DST (AEST UTC+10 in winter, AEDT UTC+11 in summer) without any
+ * dependency on the machine's system timezone.
+ */
+function toISO(mondayDateStr: string, dayOffset: number, h: number, m: number): string {
+  const d = new Date(`${mondayDateStr}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + dayOffset)
+  const melbDateStr = d.toISOString().slice(0, 10)
+
+  const offsetH = getMelbOffset(melbDateStr)
+  const utcH    = h - offsetH
+
+  if (utcH >= 0) {
+    return `${melbDateStr}T${String(utcH).padStart(2, '0')}:${String(m).padStart(2, '0')}:00.000Z`
+  }
+  // Session starts before UTC midnight — belongs to the previous UTC calendar day
+  const prev = new Date(`${melbDateStr}T00:00:00Z`)
+  prev.setUTCDate(prev.getUTCDate() - 1)
+  return `${prev.toISOString().slice(0, 10)}T${String(24 + utcH).padStart(2, '0')}:${String(m).padStart(2, '0')}:00.000Z`
 }
 
 // ── Ensure service exists, return its UUID ────────────────────────────────────
@@ -173,12 +217,15 @@ async function main() {
   let inserted = 0, skipped = 0
 
   for (let week = 0; week < weeksAhead; week++) {
-    const weekStart = new Date(monday)
-    weekStart.setDate(monday.getDate() + week * 7)
+    const weekMonday = (() => {
+      const d = new Date(`${monday}T12:00:00Z`)
+      d.setUTCDate(d.getUTCDate() + week * 7)
+      return d.toISOString().slice(0, 10)
+    })()
 
     for (const cls of classes) {
-      const startISO  = toISO(weekStart, DAY_OFFSET[cls.day], cls.startH, cls.startM)
-      const endISO    = toISO(weekStart, DAY_OFFSET[cls.day], cls.endH,   cls.endM)
+      const startISO  = toISO(weekMonday, DAY_OFFSET[cls.day], cls.startH, cls.startM)
+      const endISO    = toISO(weekMonday, DAY_OFFSET[cls.day], cls.endH,   cls.endM)
       const serviceId = await getOrCreateService(cls.className)
 
       // Check if this exact session already exists
