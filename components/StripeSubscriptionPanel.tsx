@@ -121,6 +121,7 @@ export function StripeSubscriptionPanel({
 
   const load = useCallback(async () => {
     if (!member.stripeCustomerId) return
+
     setLoading(true); setLoadError('')
     try {
       const res  = await fetch(`/api/admin/stripe-subscription-status?memberId=${member._id}`)
@@ -134,6 +135,14 @@ export function StripeSubscriptionPanel({
   }, [member._id, member.stripeCustomerId])
 
   useEffect(() => { load() }, [load])
+
+  // Auto-create Stripe customer on mount if none exists — removes the manual "Create customer" step
+  useEffect(() => {
+    if (!member.stripeCustomerId) {
+      createCustomer()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [member._id])
 
   function openAccordion(key: Accordion) {
     setAccordion(prev => prev === key ? null : key)
@@ -299,11 +308,13 @@ export function StripeSubscriptionPanel({
 
   // ── Derived state ───────────────────────────────────────────────────────────
 
-  const sub         = status?.subscription
-  const pm          = status?.paymentMethod
+  const sub          = status?.subscription
+  const pm           = status?.paymentMethod
   const hasActiveSub = sub?.status === 'active' || sub?.status === 'trialing'
   const hasPastDue   = sub?.status === 'past_due' || sub?.status === 'unpaid'
-  const hasCancelled = !sub || sub.status === 'canceled' || sub.status === 'incomplete_expired'
+  const hasIncomplete = sub?.status === 'incomplete'
+  // Treat incomplete like cancelled so action buttons still show
+  const hasCancelled = !sub || sub.status === 'canceled' || sub.status === 'incomplete_expired' || sub.status === 'incomplete'
   const hasNoPm      = !pm
   const stripeUrl    = member.stripeCustomerId
     ? `https://dashboard.stripe.com/customers/${member.stripeCustomerId}`
@@ -311,17 +322,13 @@ export function StripeSubscriptionPanel({
 
   const minDateStr = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
 
-  // ── Render: no customer ─────────────────────────────────────────────────────
+  // ── Render: no customer (auto-creating) ────────────────────────────────────
 
   if (!member.stripeCustomerId) {
     return (
-      <div className="border border-neutral-200 rounded-xl bg-neutral-50 p-4 space-y-3">
+      <div className="border border-neutral-200 rounded-xl bg-neutral-50 p-4 space-y-2">
         <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Stripe membership</p>
-        <p className="text-[12.5px] text-neutral-500">Not connected to Stripe yet. Create a customer record to manage subscriptions.</p>
-        <button onClick={createCustomer} disabled={creatingCustomer}
-          className="h-8 px-4 text-[12px] font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:border-black hover:text-black transition-colors disabled:opacity-40">
-          {creatingCustomer ? 'Creating…' : '+ Create Stripe customer'}
-        </button>
+        <p className="text-[12px] text-neutral-400">{creatingCustomer ? 'Setting up billing account…' : 'No billing account yet.'}</p>
         {loadError && <p className="text-[11px] text-red-600">{loadError}</p>}
       </div>
     )
@@ -381,13 +388,17 @@ export function StripeSubscriptionPanel({
               <StatusBadge status={sub.status} />
             </div>
 
-            {pm && (
+            {pm ? (
               <div className="text-[11.5px] text-neutral-500">
                 {pm.type === 'au_becs_debit'
                   ? `BECS direct debit · BSB ${pm.bsb} · ···${pm.last4}`
                   : pm.type === 'card'
                   ? `${pm.brand?.charAt(0).toUpperCase()}${pm.brand?.slice(1)} card ···${pm.last4}`
                   : 'Payment method on file'}
+              </div>
+            ) : (
+              <div className="text-[11.5px] text-amber-600 font-medium">
+                ⚠ No payment method — invoice awaiting payment
               </div>
             )}
           </>
@@ -440,6 +451,14 @@ export function StripeSubscriptionPanel({
           </button>
         )}
 
+        {/* Incomplete subscription — first payment failed; treat like no subscription */}
+        {hasIncomplete && (
+          <button onClick={() => openAccordion('cancel')}
+            className={`h-7 px-3 text-[11.5px] rounded-lg border transition-colors ${accordion === 'cancel' ? 'bg-red-700 text-white border-red-700' : 'border-red-200 text-red-600 hover:border-red-400 hover:bg-red-50'}`}>
+            Cancel incomplete subscription
+          </button>
+        )}
+
         {/* Active or past_due subscription actions */}
         {(hasActiveSub || hasPastDue) && (
           <>
@@ -459,10 +478,10 @@ export function StripeSubscriptionPanel({
               className={`h-7 px-3 text-[11.5px] rounded-lg border transition-colors ${accordion === 'cancel' ? 'bg-red-700 text-white border-red-700' : 'border-red-200 text-red-600 hover:border-red-400 hover:bg-red-50'}`}>
               Cancel subscription
             </button>
-            {/* Send Customer Portal link — member updates their own bank details */}
+            {/* Send invoice/portal link — member pays or updates payment details */}
             <button onClick={() => openAccordion('setupLink')}
               className={`h-7 px-3 text-[11.5px] rounded-lg border transition-colors ${accordion === 'setupLink' && !(!hasNoPm && (hasCancelled || !sub)) ? 'bg-black text-white border-black' : 'border-neutral-200 text-neutral-500 hover:border-neutral-400 hover:text-neutral-700'}`}>
-              Update bank details link
+              {hasNoPm ? 'Send payment link' : 'Update bank details link'}
             </button>
           </>
         )}
@@ -513,10 +532,12 @@ export function StripeSubscriptionPanel({
           </p>
 
           {hasActiveSub || hasPastDue ? (
-            // Customer Portal — member updates their own bank details
+            // Customer Portal — member pays invoice or updates bank details
             <>
               <p className="text-[12px] text-neutral-500">
-                Sends {contact.firstName} a secure link to update their own bank details directly with Stripe.
+                {hasNoPm
+                  ? `Sends ${contact.firstName} a secure link to pay their invoice and set up direct debit on Stripe's payment page.`
+                  : `Sends ${contact.firstName} a secure link to update their existing bank details or card with Stripe.`}
               </p>
               {!setupUrl && (
                 <button onClick={() => generateSetupLink('portal')} disabled={actionLoading}
