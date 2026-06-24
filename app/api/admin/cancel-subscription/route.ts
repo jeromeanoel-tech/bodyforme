@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberById, updateMemberCredential, upsertMembership } from '@/lib/db'
+import { getMemberById, getMemberByEmail, updateMemberCredential, upsertMembership } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 
 export async function POST(req: NextRequest) {
@@ -7,8 +7,8 @@ export async function POST(req: NextRequest) {
     const session = await getAdminSession()
     if (!session) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-    const { memberId } = await req.json() as { memberId: string }
-    if (!memberId) return NextResponse.json({ error: 'memberId required' }, { status: 400 })
+    const { memberId, email } = await req.json() as { memberId?: string; email?: string }
+    if (!memberId && !email) return NextResponse.json({ error: 'memberId or email required' }, { status: 400 })
 
     const stripeKey = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim()
     if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
     const { default: Stripe } = await import('stripe')
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-04-10' as never })
 
-    const member = await getMemberById(memberId)
+    const member = memberId
+      ? await getMemberById(memberId)
+      : await getMemberByEmail((email ?? '').toLowerCase().trim())
     if (!member) return NextResponse.json({ error: 'Member not found.' }, { status: 404 })
 
     if (!member.stripeCustomerId) {
