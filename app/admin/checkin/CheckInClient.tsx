@@ -198,7 +198,7 @@ export default function CheckInClient({ sessions, services, defaultSessionId }: 
         ) : (
           <div className="flex gap-2 px-3 pb-3 overflow-x-auto">
             {sessions.map(s => {
-              const name   = scheduleToName[s.scheduleId] ?? s.title
+              const name   = s.title || scheduleToName[s.scheduleId]
               const active = selectedSession?.id === s.id
               const past   = new Date(s.end) < new Date()
               return (
@@ -236,7 +236,7 @@ export default function CheckInClient({ sessions, services, defaultSessionId }: 
             <p className="px-4 py-8 text-sm text-neutral-400">No classes today.</p>
           ) : (
             sessions.map(s => {
-              const name   = scheduleToName[s.scheduleId] ?? s.title
+              const name   = s.title || scheduleToName[s.scheduleId]
               const fill   = pct(s.bookedCount, s.capacity)
               const active = selectedSession?.id === s.id
               const past   = new Date(s.end) < new Date()
@@ -288,7 +288,7 @@ export default function CheckInClient({ sessions, services, defaultSessionId }: 
               <div className="flex items-center justify-between">
                 <div className="min-w-0">
                   <h2 className="text-[14px] md:text-[15px] font-semibold text-neutral-900 truncate">
-                    {scheduleToName[selectedSession.scheduleId] ?? selectedSession.title}
+                    {selectedSession.title || scheduleToName[selectedSession.scheduleId]}
                   </h2>
                   <p className="text-[11.5px] text-neutral-400 mt-0.5">
                     {fmt12(selectedSession.start)} – {fmt12(selectedSession.end)} · {selectedSession.bookedCount}/{selectedSession.capacity} booked

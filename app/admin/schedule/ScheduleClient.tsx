@@ -64,6 +64,20 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
 
   const { settings } = useSettings()
 
+  // Keep sessions in sync with Classes template — runs silently on mount, then re-fetches current week
+  useEffect(() => {
+    const offset = weekOffset
+    fetch('/api/admin/resync-all-sessions', { method: 'POST' })
+      .then(async () => {
+        const { from, to } = weekRange(offset)
+        const res  = await fetch(`/api/admin/schedule-sessions?from=${from}&to=${to}`)
+        const data = await res.json()
+        setSessions(data.sessions ?? [])
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   async function fetchSessions(offset: number) {
     const { from, to } = weekRange(offset)
     try {
@@ -268,7 +282,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
                         <div className="flex items-baseline gap-2 flex-wrap">
                           <span className="text-[11.5px] text-neutral-400 shrink-0">{fmt12(session.start)}</span>
                           <span className={`text-[13px] font-medium truncate ${cancelled ? 'line-through text-neutral-400' : 'text-neutral-800'}`}>
-                            {svc?.name ?? session.title}
+                            {session.title || svc?.name}
                           </span>
                           {cancelled && (
                             <span className="text-[10px] font-semibold bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide shrink-0">
@@ -341,7 +355,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
                       <div className="flex items-center gap-2">
                         <div className={`w-5 h-5 rounded shrink-0 ${cancelled ? 'bg-neutral-300' : 'bg-black'}`} />
                         <span className={`text-[12.5px] font-medium ${cancelled ? 'text-neutral-400 line-through' : 'text-neutral-800'}`}>
-                          {svc?.name ?? session.title}
+                          {session.title || svc?.name}
                         </span>
                         {cancelled && (
                           <span className="text-[10px] font-semibold bg-neutral-200 text-neutral-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
