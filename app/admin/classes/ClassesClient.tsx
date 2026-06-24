@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type TemplateRow = {
   id:         string
@@ -50,6 +50,16 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
   // Dedup state
   const [deduping,  setDeduping]  = useState(false)
   const [syncing,   setSyncing]   = useState<string | null>(null)
+
+  // Auto-fix stale service_ids on first visit — runs silently in background
+  useEffect(() => {
+    const key = 'bf_schedule_synced_v2'
+    if (typeof localStorage === 'undefined' || localStorage.getItem(key)) return
+    fetch('/api/admin/resync-all-sessions', { method: 'POST' })
+      .then(() => localStorage.setItem(key, 'true'))
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Exact duplicates (same day+time+name) — safe to auto-remove
   const dupIds: string[] = (() => {
