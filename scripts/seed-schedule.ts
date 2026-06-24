@@ -229,15 +229,24 @@ async function main() {
       const serviceId = await getOrCreateService(cls.className)
 
       // Check if this exact session already exists
-      const { data: exists } = await supabase
+      const { data: existing } = await supabase
         .from('sessions')
-        .select('id')
+        .select('id, status')
         .eq('title', cls.className)
         .eq('instructor_name', cls.instructor)
         .eq('start_time', startISO)
-        .single()
+        .maybeSingle()
 
-      if (exists) { skipped++; continue }
+      if (existing) {
+        // Un-cancel sessions that were previously cancelled
+        if (existing.status === 'CANCELLED') {
+          await supabase.from('sessions').update({ status: 'CONFIRMED' }).eq('id', existing.id)
+          inserted++
+        } else {
+          skipped++
+        }
+        continue
+      }
 
       const { error } = await supabase
         .from('sessions')

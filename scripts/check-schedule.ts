@@ -30,7 +30,7 @@ async function main() {
     const melbStr = melb(s.start_time)
     const day = melbStr.split(',')[0]
     if (day !== lastDay) { console.log('\n' + day.toUpperCase()); lastDay = day }
-    console.log(`  ${melbStr.split(', ')[1]}  ${s.title.padEnd(30)} ${(s.instructor_name||'—').padEnd(15)}  ${s.id}`)
+    console.log(`  ${melbStr.split(', ').slice(1).join(', ')}  ${s.title.padEnd(30)} ${(s.instructor_name||'—').padEnd(15)}  ${s.id}`)
   }
 }
 main().catch(err => { console.error(err); process.exit(1) })

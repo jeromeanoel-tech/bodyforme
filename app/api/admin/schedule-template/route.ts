@@ -85,9 +85,16 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
     const startISO = melbToUtc(melbDate, startHHMM)
     const endISO   = melbToUtc(melbDate, endHHMM)
 
-    const { data: exists } = await supabase.from('sessions')
-      .select('id').eq('title', className).eq('start_time', startISO).maybeSingle()
-    if (exists) continue
+    const { data: existing } = await supabase.from('sessions')
+      .select('id, status').eq('title', className).eq('start_time', startISO).maybeSingle()
+
+    if (existing) {
+      // Un-cancel sessions that were cancelled (e.g. after a template row was deleted)
+      if (existing.status === 'CANCELLED') {
+        await supabase.from('sessions').update({ status: 'CONFIRMED', instructor_name: instructor, end_time: endISO }).eq('id', existing.id)
+      }
+      continue
+    }
 
     inserts.push({ service_id: serviceId, title: className, instructor_name: instructor, start_time: startISO, end_time: endISO, capacity: 20, status: 'CONFIRMED' })
   }
