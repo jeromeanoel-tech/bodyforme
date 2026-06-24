@@ -464,18 +464,18 @@ export default function MembershipPage() {
         {memberStatus && (memberStatus.status === 'inactive' || memberStatus.status === 'pending' || memberStatus.status === 'past_due') && (
           <div style={{ margin: '20px 20px 0', background: '#f5ede3', border: `1px solid ${T.rule}`, padding: '24px 24px 20px' }}>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9.5, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.brown, marginBottom: 8 }}>
-              {memberStatus.status === 'pending' ? 'Account pending' : memberStatus.status === 'past_due' ? 'Payment overdue' : 'Membership inactive'}
+              {memberStatus.status === 'pending' ? 'Payment pending' : memberStatus.status === 'past_due' ? 'Payment overdue' : 'Membership inactive'}
             </div>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 22, fontStyle: 'italic', color: T.esp, lineHeight: 1.2, marginBottom: 12 }}>
               {memberStatus.status === 'pending'
-                ? 'Your account is being set up.'
+                ? 'Invoice sent — payment required.'
                 : memberStatus.status === 'past_due'
                 ? "A payment didn't go through."
                 : 'Your membership has lapsed.'}
             </div>
             <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 13, color: T.mid, lineHeight: 1.6, marginBottom: 20 }}>
               {memberStatus.status === 'pending'
-                ? "We're just finishing setting up your account. If this takes longer than expected, contact us and we'll sort it right away."
+                ? "Check your email for an invoice from BodyForme. Pay it to activate your membership. If you haven't received it, contact us and we'll resend."
                 : memberStatus.status === 'past_due'
                 ? 'Please update your payment details below so we can keep your membership active.'
                 : 'To get back on the mat, choose a new plan below or contact the studio.'}

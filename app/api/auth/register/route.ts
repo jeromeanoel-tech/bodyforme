@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     lastName:         lastName ?? '',
     phone:            phone ?? '',
     suburb:           suburb ?? '',
-    status:           planOverride ? 'active' : 'pending',
+    status:           isFreeTrial ? 'active' : 'pending',
     stripeCustomerId: '',
     planOverride,
     nextBillingDate:  '',

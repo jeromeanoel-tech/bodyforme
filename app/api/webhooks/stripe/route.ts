@@ -400,6 +400,7 @@ export async function POST(req: NextRequest) {
       const sub = event.data.object as {
         customer:             string
         status:               string
+        collection_method:    string
         current_period_end:   number
         current_period_start: number
         metadata:             Record<string, string>
@@ -433,8 +434,15 @@ export async function POST(req: NextRequest) {
         newSubPlanName = (mk && signupPlans[mk]?.name) ? signupPlans[mk].name : newSubMember.planOverride ?? ''
       }
 
+      // For send_invoice subscriptions the invoice hasn't been paid yet — Stripe
+      // marks the subscription active immediately as a grace period, but we track
+      // the member as 'pending' until invoice.paid fires. Don't downgrade a member
+      // who is already active (e.g. admin accidentally resends a setup link).
+      const isInvoiceMode = sub.collection_method === 'send_invoice'
+      const newDbStatus   = (isInvoiceMode && newSubMember.status !== 'active') ? 'pending' : 'active'
+
       await updateMemberCredential(newSubMember._id, {
-        status: 'active',
+        status: newDbStatus,
         // Set planOverride here so member's plan name is correct even if
         // checkout.session.completed couldn't resolve it (e.g. customer_email was null)
         ...(newSubPlanName ? { planOverride: newSubPlanName } : {}),
@@ -444,7 +452,7 @@ export async function POST(req: NextRequest) {
       await upsertMembership({
         memberId:  newSubMember._id,
         planName:  newSubPlanName,
-        status:    'ACTIVE',
+        status:    newDbStatus === 'pending' ? 'PENDING' : 'ACTIVE',
         startDate: newSubStartDate,
         endDate:   newSubEndDate ?? '',
       })
