@@ -1,12 +1,12 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY
-const FROM = 'BodyForme Studio <hello@bodyforme.com.au>'
+const FROM = 'BodyForme Studio <info@bodyforme.com.au>'
 const BASE = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
 // ── Layout helpers ────────────────────────────────────────────────────────────
 
 const HEADER = `
-  <div style="padding:34px 48px 28px;border-bottom:1px solid #d8ccba">
-    <span style="font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:30px;font-weight:500;color:#2a1506;letter-spacing:.01em">Bodyforme</span>
+  <div style="padding:30px 48px 26px;border-bottom:1px solid #d8ccba">
+    <img src="${BASE}/bodyformeBlogo.png" alt="BodyForme" height="52" style="display:block;height:52px;width:auto;border:0" />
   </div>`
 
 const FOOTER = `
