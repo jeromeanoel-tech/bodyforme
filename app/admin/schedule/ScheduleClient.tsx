@@ -13,6 +13,10 @@ type Props = {
   templateNameBySlot: Record<string, string>
 }
 
+function melbDate(utcIso: string): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date(utcIso))
+}
+
 function slotKey(utcIso: string): string {
   const parts = new Intl.DateTimeFormat('en-AU', {
     timeZone: 'Australia/Melbourne',
@@ -140,7 +144,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
     date.setDate(monday.getDate() + i)
     const dateStr  = localDate(date)
     const daySessions = sessions
-      .filter(s => s.start.startsWith(dateStr))
+      .filter(s => melbDate(s.start) === dateStr)
       .filter(s => settings.showCancelledClasses || (s.status !== 'CANCELLED' && !cancelledIds.has(s.id)))
       .filter(s => {
         if (!search) return true

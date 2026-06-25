@@ -5,8 +5,11 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminCheckInPage({ searchParams }: { searchParams: { session?: string } }) {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-  const from  = today + 'T00:00:00'
-  const to    = today + 'T23:59:59'
+  // Use Melbourne-aware bounds: +11 for from (earliest possible Melbourne midnight in UTC, covers both AEST/AEDT)
+  // and +10 for to (latest possible Melbourne end-of-day in UTC). This ensures morning sessions
+  // stored as the previous UTC day are still included.
+  const from  = new Date(`${today}T00:00:00+11:00`).toISOString()
+  const to    = new Date(`${today}T23:59:59+10:00`).toISOString()
 
   const [sessions, services, template] = await Promise.all([
     getSessions(from, to),
