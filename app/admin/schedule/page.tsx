@@ -8,7 +8,7 @@ function getInstructors(): string[] {
   } catch { return [] }
 }
 
-export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 function weekRange(offsetWeeks = 0) {
   // Use Melbourne date so the week is correct even before 10am (when UTC is still yesterday)
