@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
 
@@ -88,7 +89,7 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
     const endISO   = melbToUtc(melbDate, endHHMM)
 
     const { data: existing } = await supabase.from('sessions')
-      .select('id, status').eq('title', className).eq('start_time', startISO).maybeSingle()
+      .select('id, status').eq('service_id', serviceId).eq('start_time', startISO).maybeSingle()
 
     if (existing) {
       // Un-cancel sessions that were cancelled (e.g. after a template row was deleted)
@@ -139,6 +140,10 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
+  revalidatePath('/classes')
+  revalidatePath('/admin/schedule')
+  revalidatePath('/admin/checkin')
+  revalidatePath('/app/schedule')
   return NextResponse.json({ row: data })
 }
 
@@ -180,6 +185,10 @@ export async function PUT(req: NextRequest) {
     }
     // Seed the correct class for any weeks that are now missing sessions
     await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
+    revalidatePath('/classes')
+    revalidatePath('/admin/schedule')
+    revalidatePath('/admin/checkin')
+    revalidatePath('/app/schedule')
     return NextResponse.json({ row: data, resynced: allAtThisTime.length, cancelled: toCancel.length })
   }
 
@@ -209,6 +218,10 @@ export async function PUT(req: NextRequest) {
 
   // Ensure sessions exist for the next 12 weeks under the current class name
   await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
+  revalidatePath('/classes')
+  revalidatePath('/admin/schedule')
+  revalidatePath('/admin/checkin')
+  revalidatePath('/app/schedule')
 
   return NextResponse.json({ row: data, updated: sessions.length })
 }
@@ -229,6 +242,10 @@ export async function DELETE(req: NextRequest) {
   if (sessions.length > 0) {
     await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', sessions.map(s => s.id))
   }
+  revalidatePath('/classes')
+  revalidatePath('/admin/schedule')
+  revalidatePath('/admin/checkin')
+  revalidatePath('/app/schedule')
 
   return NextResponse.json({ cancelled: sessions.length })
 }

@@ -1,6 +1,6 @@
 import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
-import { getSessions, getMemberBookingsForRange, getMemberWaitlistInRange, getStaff } from '@/lib/db'
+import { getSessions, getMemberBookingsForRange, getMemberWaitlistInRange, getStaff, getScheduleTemplate } from '@/lib/db'
 import type { Session } from '@/lib/db'
 import ScheduleClient from './ScheduleClient'
 
@@ -30,12 +30,15 @@ export default async function SchedulePage() {
 
   const { from, to } = getWeekRange()
 
-  const [sessions, bookings, waitlistIds, staff] = await Promise.all([
+  const [sessions, bookings, waitlistIds, staff, template] = await Promise.all([
     getSessions(`${from}T00:00:00`, `${to}T23:59:59`),
     getMemberBookingsForRange(session.id, from, to),
     getMemberWaitlistInRange(session.id, from, to),
     getStaff(),
+    getScheduleTemplate(),
   ])
+
+  const templateNameBySlot = Object.fromEntries(template.map(r => [`${r.day}:${r.start}`, r.className]))
 
   const initialBookedMap: Record<string, { bookingId: string }> = {}
   bookings
@@ -55,6 +58,7 @@ export default async function SchedulePage() {
       initialBookedMap={initialBookedMap}
       initialWaitlistMap={initialWaitlistMap}
       initialStaffMap={initialStaffMap}
+      templateNameBySlot={templateNameBySlot}
     />
   )
 }

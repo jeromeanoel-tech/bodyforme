@@ -66,6 +66,17 @@ function classDuration(start: string, end: string): string {
   return `${m} min`
 }
 
+function slotKey(utcIso: string): string {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(utcIso))
+  const day = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() ?? ''
+  const h   = (parts.find(p => p.type === 'hour')?.value   ?? '0').padStart(2, '0')
+  const mi  = (parts.find(p => p.type === 'minute')?.value ?? '0').padStart(2, '0')
+  return `${day}:${h}:${mi}`
+}
+
 // Returns "7:30 am" — the cancellation cutoff (2h before class) in Melbourne time
 function cancelBy(start: string): string {
   const cutoff = new Date(new Date(start).getTime() - 2 * 60 * 60 * 1000)
@@ -107,6 +118,7 @@ type Props = {
   initialBookedMap:   BookedMap
   initialWaitlistMap: WaitlistMap
   initialStaffMap:    Record<string, string>
+  templateNameBySlot: Record<string, string>
 }
 
 export default function ScheduleClient({
@@ -114,6 +126,7 @@ export default function ScheduleClient({
   initialBookedMap,
   initialWaitlistMap,
   initialStaffMap,
+  templateNameBySlot,
 }: Props) {
   const todayISO    = localDate(new Date())
   const hasInitial  = initialSessions.length > 0
@@ -523,7 +536,8 @@ export default function ScheduleClient({
           const onWaitlist  = !!waitlistMap[s.id]
           const isPast      = new Date(s.start) < now
           const inFlight    = pending === s.id
-          const color       = classColor(s.title)
+          const displayName = templateNameBySlot[slotKey(s.start)] || s.title
+          const color       = classColor(displayName)
           const duration    = classDuration(s.start, s.end)
           const teacher     = staffMap[s.staffResourceId] ?? ''
           const cutoff      = isBooked && !isPast ? cancelBy(s.start) : ''
@@ -547,9 +561,9 @@ export default function ScheduleClient({
               {/* Class info */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, fontWeight: 500, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.muted, marginBottom: 3 }}>
-                  {s.title.split('(')[0].trim()}
+                  {displayName.split('(')[0].trim()}
                 </div>
-                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 18, fontStyle: 'italic', color: T.esp, lineHeight: 1.1 }}>{s.title}</div>
+                <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 18, fontStyle: 'italic', color: T.esp, lineHeight: 1.1 }}>{displayName}</div>
                 {teacher && <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.mid, marginTop: 3 }}>w/ {teacher}</div>}
               </div>
 

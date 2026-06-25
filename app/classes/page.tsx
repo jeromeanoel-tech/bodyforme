@@ -13,7 +13,7 @@ export const metadata = {
   description: 'Browse the BodyForme weekly timetable. Hot Pilates, Bikram, Hot HIIT, Tabata, Yin Yoga, Special Forces and more in Doncaster.',
 }
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
 
 const COLOR_MAP: Record<string, string> = {
   'bikram':     'var(--sage)',
