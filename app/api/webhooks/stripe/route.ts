@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
           status:             'active',
           stripeCustomerId,
           planOverride:       planName,
-          creditBalance:      creditSeed > 0 ? creditSeed : member.creditBalance,
+          creditBalance:      creditSeed > 0 ? (member.creditBalance ?? 0) + creditSeed : member.creditBalance,
           ...(membershipEndDate ? { membershipEndDate } : {}),
         })
 

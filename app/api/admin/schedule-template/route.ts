@@ -101,7 +101,10 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
 
     inserts.push({ service_id: serviceId, title: className, instructor_name: instructor, start_time: startISO, end_time: endISO, capacity: 20, status: 'CONFIRMED' })
   }
-  if (inserts.length > 0) await supabase.from('sessions').insert(inserts)
+  if (inserts.length > 0) {
+    const { error } = await supabase.from('sessions').insert(inserts)
+    if (error) console.error('[seedSessions] insert failed:', error.message)
+  }
 }
 
 // ── GET — return all template rows ───────────────────────────────────────────
