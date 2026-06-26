@@ -89,7 +89,7 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
     const endISO   = melbToUtc(melbDate, endHHMM)
 
     const { data: existing } = await supabase.from('sessions')
-      .select('id, status').eq('service_id', serviceId).eq('start_time', startISO).maybeSingle()
+      .select('id, status').eq('service_id', serviceId).eq('start_time', startISO).neq('status', 'CANCELLED').maybeSingle()
 
     if (existing) {
       // Un-cancel sessions that were cancelled (e.g. after a template row was deleted)

@@ -77,7 +77,7 @@ async function seedMissingSessions(
     const endISO   = melbToUtc(melbDate, endHHMM)
 
     const { data: existing } = await supabase.from('sessions')
-      .select('id, status').eq('service_id', serviceId).eq('start_time', startISO).maybeSingle()
+      .select('id, status').eq('service_id', serviceId).eq('start_time', startISO).neq('status', 'CANCELLED').maybeSingle()
 
     if (existing) {
       if (existing.status === 'CANCELLED') {
