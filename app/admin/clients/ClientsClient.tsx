@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Contact, ContactBooking, Membership, MemberCredential } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 import { StripeSetupForm } from '@/components/StripeSetupForm'
@@ -128,6 +129,7 @@ function applyFilter(key: FilterKey, contact: Contact, mems: Membership[], newMe
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function ClientsClient({ contacts, membershipsByContact, planNames }: Props) {
+  const router = useRouter()
   const [search, setSearch]     = useState('')
   const [sort, setSort]         = useState<SortKey>('name-asc')
   const [cols, setCols]         = useState<ColKey[]>(['email', 'phone', 'since', 'membership'])
@@ -715,6 +717,7 @@ export default function ClientsClient({ contacts, membershipsByContact, planName
           memberships={membershipsByContact[selected.id] ?? []}
           newMemberDays={newMemberDays}
           onClose={() => setSelected(null)}
+          onDelete={() => { setSelected(null); router.refresh() }}
         />
       )}
 
@@ -899,12 +902,13 @@ function MenuItem({
 type DrawerTab = 'overview' | 'bookings' | 'memberships' | 'notes'
 
 function ClientDrawer({
-  contact, memberships, newMemberDays, onClose,
+  contact, memberships, newMemberDays, onClose, onDelete,
 }: {
   contact: Contact
   memberships: Membership[]
   newMemberDays: number
   onClose: () => void
+  onDelete: () => void
 }) {
   const [bookings, setBookings]   = useState<ContactBooking[] | null>(null)
   const [loading, setLoading]     = useState(false)
@@ -1167,6 +1171,7 @@ function ClientDrawer({
               member={member}
               memberLoading={memberLoading}
               onMemberUpdate={setMember}
+              onDelete={onDelete}
             />
           )}
 
@@ -1347,12 +1352,13 @@ function packSize(plan: string): number | null {
   return null
 }
 
-function MembershipsTab({ contact, memberships, member, memberLoading, onMemberUpdate }: {
+function MembershipsTab({ contact, memberships, member, memberLoading, onMemberUpdate, onDelete }: {
   contact:        Contact
   memberships:    Membership[]
   member:         MemberCredential | null | undefined
   memberLoading:  boolean
   onMemberUpdate: (m: MemberCredential) => void
+  onDelete:       () => void
 }) {
   const [form, setForm]       = useState<Partial<MemberCredential>>({})
   const [saving, setSaving]   = useState(false)
@@ -1366,6 +1372,28 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
   const [pauseSaving, setPauseSaving] = useState(false)
   const [pauseDone,   setPauseDone]   = useState(false)
   const [pauseError,  setPauseError]  = useState('')
+
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleting,      setDeleting]      = useState(false)
+  const [deleteError,   setDeleteError]   = useState('')
+
+  async function deleteProfile() {
+    setDeleting(true)
+    setDeleteError('')
+    const res = await fetch('/api/admin/delete-member', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId: contact.id }),
+    })
+    setDeleting(false)
+    if (res.ok) {
+      onDelete()
+    } else {
+      const d = await res.json()
+      setDeleteError(d.error ?? 'Failed to delete profile')
+      setDeleteConfirm(false)
+    }
+  }
 
   async function applyPause() {
     if (!member) return
@@ -1725,6 +1753,33 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                     className="h-8 px-4 text-sm border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors">
                     Cancel
                   </button>
+                </div>
+
+                {/* Delete profile — destructive, separated visually */}
+                <div className="pt-4 border-t border-neutral-100 mt-2">
+                  {deleteError && (
+                    <p className="text-[11px] text-red-600 mb-2">{deleteError}</p>
+                  )}
+                  {!deleteConfirm ? (
+                    <button onClick={() => { setDeleteConfirm(true); setDeleteError('') }}
+                      className="text-[11.5px] text-red-500 hover:text-red-700 underline underline-offset-2">
+                      Delete profile
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-[12px] text-neutral-700">Permanently delete this profile and all their data? This cannot be undone.</p>
+                      <div className="flex gap-2">
+                        <button onClick={deleteProfile} disabled={deleting}
+                          className="h-8 px-4 text-sm bg-red-600 text-white rounded-lg disabled:opacity-40 hover:bg-red-700 transition-colors">
+                          {deleting ? 'Deleting…' : 'Yes, delete'}
+                        </button>
+                        <button onClick={() => setDeleteConfirm(false)}
+                          className="h-8 px-4 text-sm border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 transition-colors">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
