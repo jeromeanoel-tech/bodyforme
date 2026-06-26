@@ -1021,12 +1021,16 @@ function ClientDrawer({
                   {fresh && <span className="text-[10px] font-semibold bg-black text-white px-1.5 py-0.5 rounded-full">New</span>}
                 </div>
                 <p className="text-[12px] text-neutral-500 mt-0.5">
-                  {activeMem
-                    ? <>{activeMem.planName} · <span className={`font-medium ${activeMem.status === 'ACTIVE' ? 'text-neutral-800' : 'text-neutral-400'}`}>{activeMem.status.charAt(0) + activeMem.status.slice(1).toLowerCase()}</span></>
-                    : contact.planOverride
-                    ? <>{contact.planOverride} · <span className={`font-medium ${contact.memberStatus === 'active' ? 'text-green-700' : contact.memberStatus === 'inactive' ? 'text-red-600' : 'text-neutral-400'}`}>{contact.memberStatus ? contact.memberStatus.charAt(0).toUpperCase() + contact.memberStatus.slice(1) : ''}</span></>
-                    : 'No active membership'
-                  }
+                  {(() => {
+                    // members.status is the operational source of truth — if it says inactive,
+                    // never show the memberships row as Active regardless of what that table says.
+                    const effectiveMem = contact.memberStatus === 'inactive' ? undefined : activeMem
+                    return effectiveMem
+                      ? <>{effectiveMem.planName} · <span className={`font-medium ${effectiveMem.status === 'ACTIVE' ? 'text-neutral-800' : 'text-neutral-400'}`}>{effectiveMem.status.charAt(0) + effectiveMem.status.slice(1).toLowerCase()}</span></>
+                      : contact.planOverride
+                      ? <>{contact.planOverride} · <span className={`font-medium ${contact.memberStatus === 'active' ? 'text-green-700' : contact.memberStatus === 'inactive' ? 'text-red-600' : 'text-neutral-400'}`}>{contact.memberStatus ? contact.memberStatus.charAt(0).toUpperCase() + contact.memberStatus.slice(1) : ''}</span></>
+                      : 'No active membership'
+                  })()}
                 </p>
               </div>
             </div>

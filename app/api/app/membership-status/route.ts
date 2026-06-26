@@ -35,6 +35,8 @@ export async function GET() {
 
   if (effectiveStatus === 'active' && isPrepaidExpired(plan, endDate)) {
     effectiveStatus = 'inactive'
+    // Write back to DB so check-in and other pages that read members.status directly stay in sync
+    await supabase.from('members').update({ status: 'inactive' }).eq('id', session.id)
   }
 
   return NextResponse.json({
