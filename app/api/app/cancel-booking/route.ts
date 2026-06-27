@@ -10,7 +10,6 @@ import {
   countPendingBookings,
 } from '@/lib/db'
 import { getSession } from '@/lib/session'
-import { emailBookingCancelled, emailWaitlistBooked } from '@/lib/email'
 import { broadcastBookingChanged } from '@/lib/broadcast'
 
 export async function POST(req: NextRequest) {
@@ -34,25 +33,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const cancelledMember = await getMemberByContactId(session.id)
-
   await cancelBooking(bookingId, session.id)
 
   // Notify other members immediately that a spot opened
   if (booking) broadcastBookingChanged(booking.sessionId, -1).catch(() => {})
 
-  // Send cancellation confirmation email
-  if (booking && cancelledMember) {
-    emailBookingCancelled({
-      to:        cancelledMember.email,
-      firstName: cancelledMember.firstName,
-      className: booking.title,
-      startTime: booking.start_time,
-    }).catch(() => {})
-  }
-
   if (booking) {
-    // Promote next person off the waitlist and notify them
+    // Promote next person off the waitlist
     ;(async () => {
       if (booking.start_time && new Date(booking.start_time) > new Date()) {
         const next = await getFirstOnWaitlist(booking.sessionId)
@@ -83,12 +70,6 @@ export async function POST(req: NextRequest) {
               if (newBookingId) {
                 await leaveWaitlist(next.memberId, booking.sessionId)
                 broadcastBookingChanged(booking.sessionId, 1).catch(() => {})
-                emailWaitlistBooked({
-                  to:        nextMember!.email,
-                  firstName: nextMember!.firstName,
-                  className: booking.title,
-                  startTime: booking.start_time,
-                }).catch(() => {})
               }
             } catch { /* booking failed — leave on waitlist */ }
           }

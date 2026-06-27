@@ -353,7 +353,7 @@ export default function ScheduleClient({
       })
       if (res.ok) {
         setWaitlistMap(m => ({ ...m, [sessionId]: true }))
-        showToast("You're on the waitlist — we'll email you if a spot opens", true)
+        showToast("You're on the waitlist — check back here if a spot opens", true)
       } else {
         showToast('Could not join waitlist', false)
       }

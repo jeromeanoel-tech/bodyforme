@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createBooking, getMemberByContactId, getSessionById, CREDIT_PLANS, countPendingBookings } from '@/lib/db'
 import { getSession } from '@/lib/session'
-import { emailBookingConfirmed } from '@/lib/email'
 import { broadcastBookingChanged } from '@/lib/broadcast'
 
 export async function POST(req: NextRequest) {
@@ -72,14 +71,6 @@ export async function POST(req: NextRequest) {
     const bookingId = await createBooking(session.id, sessionId)
 
     broadcastBookingChanged(sessionId, 1).catch(() => {})
-
-    emailBookingConfirmed({
-      to:             member.email,
-      firstName:      member.firstName,
-      className:      sess.title,
-      startTime:      sess.start_time,
-      instructorName: sess.instructor_name || undefined,
-    }).catch(() => {})
 
     return NextResponse.json({ ok: true, bookingId })
   } catch (err: unknown) {
