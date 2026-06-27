@@ -49,9 +49,8 @@ export async function POST(req: NextRequest) {
           if (nextMember && nextMember.status !== 'inactive') {
             let ok = true
             if (nextMember.membershipEndDate) {
-              const today = new Date(); today.setHours(0, 0, 0, 0)
-              const end   = new Date(nextMember.membershipEndDate); end.setHours(0, 0, 0, 0)
-              if (today > end) ok = false
+              const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
+              if (todayMelb > nextMember.membershipEndDate) ok = false
             }
             if (ok) {
               const plan   = nextMember.planOverride.toLowerCase()

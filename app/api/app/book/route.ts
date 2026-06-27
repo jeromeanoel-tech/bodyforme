@@ -30,9 +30,9 @@ export async function POST(req: NextRequest) {
   // For credit packs: only block if credits are also exhausted — if they still have classes
   // left we let them use them even if the pack date has passed.
   if (member.membershipEndDate) {
-    const today   = new Date(); today.setHours(0, 0, 0, 0)
-    const endDate = new Date(member.membershipEndDate); endDate.setHours(0, 0, 0, 0)
-    if (today > endDate && (!isPackPlan || member.creditBalance <= 0)) {
+    // Compare Melbourne calendar dates — server runs UTC so setHours(0,0,0,0) would be UTC midnight, not Melbourne midnight.
+    const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
+    if (todayMelb > member.membershipEndDate && (!isPackPlan || member.creditBalance <= 0)) {
       return NextResponse.json({ error: 'Your membership has expired. Please contact the studio to renew.' }, { status: 403 })
     }
   }

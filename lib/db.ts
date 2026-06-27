@@ -436,15 +436,34 @@ const WEEKLY_PLAN_ALLOWANCE: Record<string, number> = {
 const UNLIMITED_KEYWORDS = ['unlimited', 'weekly-unlimited']
 
 function weekBounds() {
-  const now = new Date()
-  const day = now.getDay() // 0=Sun
-  const mon = new Date(now)
-  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
-  mon.setHours(0, 0, 0, 0)
-  const sun = new Date(mon)
-  sun.setDate(mon.getDate() + 6)
-  sun.setHours(23, 59, 59, 999)
-  return { weekStart: mon.toISOString(), weekEnd: sun.toISOString() }
+  // Determine Melbourne's current date — server runs UTC so getDay() would give UTC weekday, not Melbourne's.
+  const melbStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
+  const [y, m, d] = melbStr.split('-').map(Number)
+  // Use UTC noon for Melbourne's calendar date so getUTCDay() returns Melbourne's weekday.
+  const dow = new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay() // 0=Sun in Melbourne
+  const daysToMon = dow === 0 ? 6 : dow - 1
+
+  const monStr  = new Date(Date.UTC(y, m - 1, d - daysToMon)).toISOString().slice(0, 10)
+  const nextMonStr = new Date(Date.UTC(y, m - 1, d - daysToMon + 7)).toISOString().slice(0, 10)
+
+  // Convert Melbourne midnight (00:00) to UTC using offset probe.
+  function melbMidnightUtc(dateStr: string): string {
+    const probe = new Date(`${dateStr}T02:00:00Z`)
+    const melbH = parseInt(
+      new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', hour: '2-digit', hour12: false }).format(probe), 10,
+    )
+    const offsetH = melbH - 2  // 10=AEST, 11=AEDT
+    const utcH = -offsetH      // Melbourne 00:00 in UTC hours (negative = previous day)
+    if (utcH >= 0) return `${dateStr}T${String(utcH).padStart(2, '0')}:00:00.000Z`
+    const prev = new Date(`${dateStr}T00:00:00Z`)
+    prev.setUTCDate(prev.getUTCDate() - 1)
+    return `${prev.toISOString().slice(0, 10)}T${String(24 + utcH).padStart(2, '0')}:00:00.000Z`
+  }
+
+  const weekStart = melbMidnightUtc(monStr)
+  // End of Sunday Melbourne = start of next Monday Melbourne minus 1 ms
+  const weekEnd = new Date(new Date(melbMidnightUtc(nextMonStr)).getTime() - 1).toISOString()
+  return { weekStart, weekEnd }
 }
 
 function weeklyAllowance(plan: string): number | null {

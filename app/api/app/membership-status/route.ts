@@ -12,7 +12,9 @@ function isPrepaidExpired(plan: string, endDate: string | null): boolean {
   const p = plan.toLowerCase()
   const isPrepaid = PREPAID_KEYWORDS.some(k => p.includes(k))
   if (!isPrepaid) return false
-  return new Date(endDate) < new Date()
+  // Compare Melbourne calendar dates — endDate is YYYY-MM-DD, server runs UTC.
+  const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
+  return todayMelb > endDate
 }
 
 export async function GET() {

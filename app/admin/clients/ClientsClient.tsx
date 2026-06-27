@@ -52,19 +52,27 @@ function isNew(d: string, days: number) {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+const MELB = 'Australia/Melbourne'
+
 function fmtDate(iso: string) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('en-AU', { timeZone: MELB, day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function fmtDateTime(iso: string) {
   if (!iso) return '—'
   const d = new Date(iso)
   return (
-    d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' }) +
+    d.toLocaleDateString('en-AU', { timeZone: MELB, weekday: 'short', day: 'numeric', month: 'short' }) +
     ' · ' +
-    d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true })
+    d.toLocaleTimeString('en-AU', { timeZone: MELB, hour: 'numeric', minute: '2-digit', hour12: true })
   )
+}
+
+// True if a YYYY-MM-DD expiry date is in the past by Melbourne calendar date
+function isExpiredMelb(endDateStr: string): boolean {
+  const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: MELB }).format(new Date())
+  return todayMelb > endDateStr
 }
 
 function initials(first: string, last: string) {
@@ -1599,7 +1607,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
               {member.membershipEndDate && (
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-neutral-500">Membership expires</span>
-                  <span className={`font-medium ${new Date(member.membershipEndDate) < new Date() ? 'text-red-600' : 'text-neutral-700'}`}>
+                  <span className={`font-medium ${isExpiredMelb(member.membershipEndDate) ? 'text-red-600' : 'text-neutral-700'}`}>
                     {fmtDate(member.membershipEndDate)}
                   </span>
                 </div>
