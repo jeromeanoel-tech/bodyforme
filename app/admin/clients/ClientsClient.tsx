@@ -1437,14 +1437,22 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     })
   }, [member])
 
+  const [saveError, setSaveError] = useState('')
+
   async function save() {
     setSaving(true)
-    await fetch('/api/admin/update-member', {
+    setSaveError('')
+    const res = await fetch('/api/admin/update-member', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contactId: contact.id, ...form }),
     })
     setSaving(false)
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      setSaveError(d.error ?? 'Save failed — please try again')
+      return
+    }
     setSaved(true)
     setEditing(false)
     if (member) onMemberUpdate({ ...member, ...form } as MemberCredential)
@@ -1586,6 +1594,14 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-neutral-500">Next billing</span>
                   <span className="text-neutral-700">{fmtDate(member.nextBillingDate)}</span>
+                </div>
+              )}
+              {member.membershipEndDate && (
+                <div className="flex items-center justify-between text-[12px]">
+                  <span className="text-neutral-500">Membership expires</span>
+                  <span className={`font-medium ${new Date(member.membershipEndDate) < new Date() ? 'text-red-600' : 'text-neutral-700'}`}>
+                    {fmtDate(member.membershipEndDate)}
+                  </span>
                 </div>
               )}
             </div>
@@ -1744,6 +1760,7 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
                     rows={3}
                     className="w-full text-[13px] border border-neutral-200 rounded-lg px-3 py-2 outline-none focus:border-black resize-none" />
                 </div>
+                {saveError && <p className="text-[11px] text-red-600">{saveError}</p>}
                 <div className="flex gap-2 pt-1">
                   <button onClick={save} disabled={saving}
                     className="h-8 px-4 text-sm bg-black text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800 transition-colors">

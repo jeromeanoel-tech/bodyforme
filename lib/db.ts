@@ -399,7 +399,8 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
   if (patch.paidTerm          !== undefined) update.paid_term          = patch.paidTerm
 
   if (!Object.keys(update).length) return
-  await getSupabase().from('members').update(update).eq('id', id)
+  const { error } = await getSupabase().from('members').update(update).eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 // ── Bookings for a member ─────────────────────────────────────────────────────
@@ -907,6 +908,7 @@ export async function runMigrations(): Promise<void> {
       password_hash TEXT NOT NULL,
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`,
+    `ALTER TABLE members ADD COLUMN IF NOT EXISTS end_date  TEXT NOT NULL DEFAULT ''`,
     `ALTER TABLE members ADD COLUMN IF NOT EXISTS paid_term TEXT NOT NULL DEFAULT ''`,
     `CREATE TABLE IF NOT EXISTS stripe_events (
       event_id   TEXT PRIMARY KEY,

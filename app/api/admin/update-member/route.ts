@@ -63,7 +63,11 @@ export async function PATCH(req: NextRequest) {
     }
   }
 
-  await updateMemberCredential(member._id, patch)
+  try {
+    await updateMemberCredential(member._id, patch)
+  } catch (e) {
+    return NextResponse.json({ error: (e instanceof Error ? e.message : 'DB update failed') }, { status: 500 })
+  }
 
   // Sync memberships table when plan or status changes
   if (patch.planOverride !== undefined || patch.status !== undefined) {
