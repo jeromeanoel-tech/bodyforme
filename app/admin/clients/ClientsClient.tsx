@@ -1457,6 +1457,10 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     })
     setSaving(false)
     if (!res.ok) {
+      if (res.status === 403) {
+        window.location.href = '/admin/login?expired=1'
+        return
+      }
       const d = await res.json().catch(() => ({}))
       setSaveError(d.error ?? 'Save failed — please try again')
       return
