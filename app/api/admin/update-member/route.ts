@@ -54,10 +54,13 @@ export async function PATCH(req: NextRequest) {
     }
   }
 
+  // Normalise email to lowercase before any check or write
+  if (patch.email) patch.email = patch.email.toLowerCase()
+
   // If email is changing, verify it's not already used by another member
-  if (patch.email && patch.email.toLowerCase() !== member.email.toLowerCase()) {
+  if (patch.email && patch.email !== member.email.toLowerCase()) {
     const { getMemberByEmail } = await import('@/lib/db')
-    const conflict = await getMemberByEmail(patch.email.toLowerCase())
+    const conflict = await getMemberByEmail(patch.email)
     if (conflict && conflict._id !== member._id) {
       return NextResponse.json({ error: 'That email address is already used by another member' }, { status: 409 })
     }

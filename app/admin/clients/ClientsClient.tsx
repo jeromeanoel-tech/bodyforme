@@ -1475,27 +1475,41 @@ function MembershipsTab({ contact, memberships, member, memberLoading, onMemberU
     if (!member) return
     const next = Math.max(0, (member.creditBalance ?? 0) + delta)
     setAdjSaving(true)
-    await fetch('/api/admin/update-member', {
+    setSaveError('')
+    const res = await fetch('/api/admin/update-member', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contactId: contact.id, creditBalance: next }),
     })
-    onMemberUpdate({ ...member, creditBalance: next })
     setAdjSaving(false)
+    if (!res.ok) {
+      if (res.status === 403) { window.location.href = '/admin/login?expired=1'; return }
+      const d = await res.json().catch(() => ({}))
+      setSaveError(d.error ?? 'Failed to update credits — please try again')
+      return
+    }
+    onMemberUpdate({ ...member, creditBalance: next })
   }
 
   async function applyPreset(plan: string, credits: number) {
     if (!member) return
     const patch = { planOverride: plan, status: 'active', creditBalance: credits > 0 ? credits : member.creditBalance }
     setSaving(true)
-    await fetch('/api/admin/update-member', {
+    setSaveError('')
+    const res = await fetch('/api/admin/update-member', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contactId: contact.id, ...patch }),
     })
+    setSaving(false)
+    if (!res.ok) {
+      if (res.status === 403) { window.location.href = '/admin/login?expired=1'; return }
+      const d = await res.json().catch(() => ({}))
+      setSaveError(d.error ?? 'Save failed — please try again')
+      return
+    }
     onMemberUpdate({ ...member, ...patch })
     setForm(f => ({ ...f, ...patch }))
-    setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
