@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 
 export const maxDuration = 30
 import { signupPlans, RECURRING_PLAN_BILLING } from '@/lib/content'
-import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS, recordStripeEvent } from '@/lib/db'
+import { getMemberByEmail, getMemberByStripeCustomerId, updateMemberCredential, getMemberById, upsertMembership, CREDIT_PLANS, recordStripeEvent, logError } from '@/lib/db'
 
 const stripe = new Stripe(
   (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(),
@@ -379,7 +379,9 @@ export async function POST(req: NextRequest) {
                 endDate:   endDate ?? '',
               })
             } catch (err) {
-              console.error('[setup_intent.succeeded] auto-subscription failed:', err)
+              const msg = err instanceof Error ? err.message : String(err)
+              console.error('[setup_intent.succeeded] auto-subscription failed:', msg)
+              logError('/api/webhooks/stripe', `setup_intent.succeeded auto-sub failed: ${msg}`, { memberId: member?._id }).catch(() => {})
             }
           }
         }

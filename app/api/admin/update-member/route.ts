@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
-import { getMemberByContactId, updateMemberCredential, upsertMembership, CREDIT_PLANS } from '@/lib/db'
+import { getMemberByContactId, updateMemberCredential, upsertMembership, CREDIT_PLANS, logError } from '@/lib/db'
 import { getAdminSession } from '@/lib/adminSession'
 
 
@@ -66,7 +66,9 @@ export async function PATCH(req: NextRequest) {
   try {
     await updateMemberCredential(member._id, patch)
   } catch (e) {
-    return NextResponse.json({ error: (e instanceof Error ? e.message : 'DB update failed') }, { status: 500 })
+    const msg = e instanceof Error ? e.message : 'DB update failed'
+    await logError('/api/admin/update-member', msg, { contactId, patch })
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 
   // Sync memberships table when plan or status changes

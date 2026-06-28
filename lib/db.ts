@@ -934,10 +934,30 @@ export async function runMigrations(): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`,
     `CREATE UNIQUE INDEX IF NOT EXISTS sessions_service_start_unique ON sessions (service_id, start_time)`,
+    `CREATE TABLE IF NOT EXISTS system_errors (
+      id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      route      TEXT        NOT NULL DEFAULT '',
+      message    TEXT        NOT NULL DEFAULT '',
+      context    JSONB       NOT NULL DEFAULT '{}',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`,
   ]
 
   for (const sql of statements) {
     const { error } = await getSupabase().rpc('exec_sql', { sql })
     if (error) throw new Error(error.message)
   }
+}
+
+export async function logError(route: string, message: string, context: Record<string, unknown> = {}): Promise<void> {
+  await getSupabase().from('system_errors').insert({ route, message, context }).catch(() => {})
+}
+
+export async function getSystemErrors(limit = 100): Promise<{ id: string; route: string; message: string; context: Record<string, unknown>; created_at: string }[]> {
+  const { data } = await getSupabase()
+    .from('system_errors')
+    .select('id, route, message, context, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return (data ?? []) as { id: string; route: string; message: string; context: Record<string, unknown>; created_at: string }[]
 }
