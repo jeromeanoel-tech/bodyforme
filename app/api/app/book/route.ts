@@ -25,15 +25,19 @@ export async function POST(req: NextRequest) {
   // Treat members with no plan name as credit-based (MindBody imports without plan mapping)
   const isPackPlan = !member.planOverride || CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
 
-  // Block if membership has expired.
-  // For subscription/unlimited plans: block on end_date regardless.
-  // For credit packs: only block if credits are also exhausted — if they still have classes
-  // left we let them use them even if the pack date has passed.
+  // Block if a PREPAID membership has expired.
+  // BECS subscription members (3/4/unlimited per week, monthly unlimited) are gated only by
+  // members.status — the Stripe webhook sets that to 'inactive' when cancelled.
+  // Applying end_date to subscriptions incorrectly blocks them during the 2–3 day BECS
+  // settlement window (between billing period end and invoice.paid firing).
   if (member.membershipEndDate) {
-    // Compare Melbourne calendar dates — server runs UTC so setHours(0,0,0,0) would be UTC midnight, not Melbourne midnight.
-    const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
-    if (todayMelb > member.membershipEndDate && (!isPackPlan || member.creditBalance <= 0)) {
-      return NextResponse.json({ error: 'Your membership has expired. Please contact the studio to renew.' }, { status: 403 })
+    const PREPAID_KEYS = ['7-day', '3 month unlimited', '6 month unlimited', '1 year unlimited']
+    const isPrepaidPlan = PREPAID_KEYS.some(k => plan.includes(k))
+    if (isPrepaidPlan) {
+      const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
+      if (todayMelb > member.membershipEndDate) {
+        return NextResponse.json({ error: 'Your membership has expired. Please contact the studio to renew.' }, { status: 403 })
+      }
     }
   }
 

@@ -49,8 +49,12 @@ export async function POST(req: NextRequest) {
           if (nextMember && nextMember.status !== 'inactive') {
             let ok = true
             if (nextMember.membershipEndDate) {
-              const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
-              if (todayMelb > nextMember.membershipEndDate) ok = false
+              const PREPAID_KEYS = ['7-day', '3 month unlimited', '6 month unlimited', '1 year unlimited']
+              const wlPlan = nextMember.planOverride.toLowerCase()
+              if (PREPAID_KEYS.some(k => wlPlan.includes(k))) {
+                const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
+                if (todayMelb > nextMember.membershipEndDate) ok = false
+              }
             }
             if (ok) {
               const plan   = nextMember.planOverride.toLowerCase()
