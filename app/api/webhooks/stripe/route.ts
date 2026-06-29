@@ -35,7 +35,14 @@ export async function POST(req: NextRequest) {
   }
 
   // Idempotency — skip events we've already processed (guards against Stripe retries)
-  const isNew = await recordStripeEvent(event.id)
+  let isNew = true
+  try {
+    isNew = await recordStripeEvent(event.id)
+  } catch (e) {
+    // DB error — log but continue. Risk of double-processing is lower than
+    // failing with 500 and having Stripe disable the endpoint.
+    logError('/api/webhooks/stripe', `recordStripeEvent failed: ${e instanceof Error ? e.message : String(e)}`, { eventId: event.id }).catch(() => {})
+  }
   if (!isNew) return NextResponse.json({ received: true })
 
   const obj = event.data.object as Record<string, unknown>
@@ -43,6 +50,7 @@ export async function POST(req: NextRequest) {
   const STUDIO_EMAIL = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
   const BASE_URL     = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
+  try {
   switch (event.type) {
     case 'checkout.session.completed': {
       const meta = (obj.metadata ?? {}) as Record<string, string>
@@ -535,6 +543,13 @@ export async function POST(req: NextRequest) {
       }
       break
     }
+  }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    logError('/api/webhooks/stripe', `unhandled error in ${event.type}: ${msg}`, { eventId: event.id }).catch(() => {})
+    // Return 200 so Stripe marks the event as delivered and stops retrying.
+    // The error is logged — fix the bug, then replay from Stripe dashboard.
+    return NextResponse.json({ received: true, error: msg })
   }
 
   return NextResponse.json({ received: true })
