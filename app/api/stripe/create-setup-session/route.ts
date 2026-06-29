@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   const checkoutSession = await stripe.checkout.sessions.create({
     mode:                 'setup',
     customer:             customerId,
-    payment_method_types: ['au_becs_debit'],
+    payment_method_types: ['au_becs_debit', 'card'],
     success_url:          `${BASE}/app/setup-payment/success`,
     cancel_url:           `${BASE}/app/setup-payment`,
     metadata:             { memberId: member._id },
