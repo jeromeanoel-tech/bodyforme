@@ -907,7 +907,16 @@ function MenuItem({
 
 // ── Client drawer ─────────────────────────────────────────────────────────────
 
-type DrawerTab = 'overview' | 'bookings' | 'memberships' | 'notes'
+type DrawerTab = 'overview' | 'bookings' | 'memberships' | 'notes' | 'payments'
+
+type Invoice = {
+  id:          string
+  date:        number
+  amount:      number
+  status:      string
+  description: string
+  invoiceUrl:  string | null
+}
 
 function ClientDrawer({
   contact, memberships, newMemberDays, onClose, onDelete,
@@ -925,6 +934,8 @@ function ClientDrawer({
   const [notes, setNotes]         = useState<{ text: string; date: string }[]>([])
   const [member, setMember]       = useState<MemberCredential | null | undefined>(undefined)
   const [memberLoading, setMemberLoading] = useState(false)
+  const [invoices, setInvoices]         = useState<Invoice[] | null>(null)
+  const [invoicesLoading, setInvoicesLoading] = useState(false)
 
   // Advance booking state
   const [bookingMode, setBookingMode]         = useState(false)
@@ -961,8 +972,20 @@ function ClientDrawer({
     { key: 'overview',    label: 'Overview' },
     { key: 'bookings',    label: `Bookings${totalBookings ? ` (${totalBookings})` : ''}` },
     { key: 'memberships', label: `Memberships${memberships.length ? ` (${memberships.length})` : ''}` },
+    { key: 'payments',    label: 'Payments' },
     { key: 'notes',       label: `Notes${notes.length ? ` (${notes.length})` : ''}` },
   ]
+
+  function openPaymentsTab() {
+    setTab('payments')
+    if (invoices === null && !invoicesLoading) {
+      setInvoicesLoading(true)
+      fetch(`/api/admin/invoice-history?memberId=${contact.id}`)
+        .then(r => r.json())
+        .then(d => { setInvoices(d.invoices ?? []); setInvoicesLoading(false) })
+        .catch(() => { setInvoices([]); setInvoicesLoading(false) })
+    }
+  }
 
   function addNote() {
     if (!note.trim()) return
@@ -1060,7 +1083,7 @@ function ClientDrawer({
           {TABS.map(t => (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
+              onClick={() => t.key === 'payments' ? openPaymentsTab() : setTab(t.key)}
               className={`py-2.5 mr-5 text-[12.5px] border-b-2 transition-colors whitespace-nowrap ${
                 tab === t.key
                   ? 'border-black text-neutral-900 font-medium'
@@ -1181,6 +1204,67 @@ function ClientDrawer({
               onMemberUpdate={setMember}
               onDelete={onDelete}
             />
+          )}
+
+          {/* Payments */}
+          {tab === 'payments' && (
+            <div>
+              {invoicesLoading && <p className="px-6 py-6 text-sm text-neutral-400">Loading payment history…</p>}
+              {!invoicesLoading && invoices?.length === 0 && (
+                <p className="px-6 py-6 text-sm text-neutral-400">No payment history found. This member may not have a Stripe account yet.</p>
+              )}
+              {!invoicesLoading && invoices && invoices.length > 0 && (
+                <>
+                  <div className="px-6 py-3 border-b border-neutral-100 flex items-center justify-between">
+                    <p className="text-[11px] text-neutral-400">{invoices.length} invoice{invoices.length !== 1 ? 's' : ''} on record</p>
+                    <p className="text-[12px] font-semibold text-neutral-900">
+                      Total paid: ${(invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0) / 100).toFixed(2)}
+                    </p>
+                  </div>
+                  {invoices.map((inv, i) => {
+                    const isPaid   = inv.status === 'paid'
+                    const isOpen   = inv.status === 'open'
+                    const statusStyle = isPaid
+                      ? 'bg-green-50 text-green-700'
+                      : isOpen
+                      ? 'bg-amber-50 text-amber-700'
+                      : 'bg-neutral-100 text-neutral-500'
+                    return (
+                      <div key={inv.id} className={`px-6 py-3.5 ${i < invoices.length - 1 ? 'border-b border-neutral-100' : ''}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-medium text-neutral-900 truncate">
+                              {inv.description || 'Membership payment'}
+                            </p>
+                            <p className="text-[11.5px] text-neutral-400 mt-0.5">
+                              {new Date(inv.date * 1000).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Australia/Melbourne' })}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <p className="text-[13px] font-semibold text-neutral-900">
+                              ${(inv.amount / 100).toFixed(2)}
+                            </p>
+                            <span className={`text-[10.5px] font-medium px-2 py-0.5 rounded-full ${statusStyle}`}>
+                              {inv.status}
+                            </span>
+                          </div>
+                        </div>
+                        {inv.invoiceUrl && (
+                          <a
+                            href={inv.invoiceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1.5 inline-block text-[11px] text-neutral-400 hover:text-neutral-700 underline underline-offset-2"
+                          >
+                            View invoice →
+                          </a>
+                        )}
+                      </div>
+                    )
+                  })}
+                </>
+              )}
+            </div>
           )}
 
           {/* Notes */}
