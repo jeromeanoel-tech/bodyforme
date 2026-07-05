@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Session, Service, Staff, Booking } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
 
@@ -52,6 +53,16 @@ function fmt12(iso: string) {
     minute:   '2-digit',
     hour12:   true,
   })
+}
+
+function getMelbHHMM(iso: string): string {
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: 'Australia/Melbourne',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(iso))
+  const h = parts.find(p => p.type === 'hour')?.value   ?? '00'
+  const m = parts.find(p => p.type === 'minute')?.value ?? '00'
+  return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`
 }
 
 function dayLabel(date: Date) {
@@ -477,6 +488,9 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
           initialConfirmCancel={autoConfirmCancel}
           instructors={instructors}
           onInstructorChange={handleInstructorChange}
+          onSessionUpdate={(id, patch) =>
+            setSessions(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s))
+          }
         />
       )}
     </div>
@@ -486,7 +500,7 @@ export default function ScheduleClient({ initialSessions, scheduleToService, res
 // ── Attendee drawer ───────────────────────────────────────────────────────────
 
 function AttendeeDrawer({
-  session, serviceName, staffName, onClose, onCancelled, initialConfirmCancel, instructors, onInstructorChange,
+  session, serviceName, staffName, onClose, onCancelled, initialConfirmCancel, instructors, onInstructorChange, onSessionUpdate,
 }: {
   session:               Session
   serviceName:           string
@@ -496,7 +510,9 @@ function AttendeeDrawer({
   initialConfirmCancel?: boolean
   instructors:           string[]
   onInstructorChange:    (sessionId: string, name: string) => void
+  onSessionUpdate:       (id: string, patch: Partial<Session>) => void
 }) {
+  const router = useRouter()
   const [bookings,       setBookings]       = useState<Booking[] | null>(null)
   const [loading,        setLoading]        = useState(true)
   const [cancelling,     setCancelling]     = useState(false)
@@ -504,6 +520,11 @@ function AttendeeDrawer({
   const [editInstructor, setEditInstructor] = useState(false)
   const [instrValue,     setInstrValue]     = useState(staffName ?? '')
   const [instrSaving,    setInstrSaving]    = useState(false)
+  const [editDetails,    setEditDetails]    = useState(false)
+  const [timeValue,      setTimeValue]      = useState(getMelbHHMM(session.start))
+  const [capValue,       setCapValue]       = useState(String(session.capacity))
+  const [detailsSaving,  setDetailsSaving]  = useState(false)
+  const [detailsError,   setDetailsError]   = useState('')
 
   useEffect(() => {
     let active = true
@@ -535,6 +556,33 @@ function AttendeeDrawer({
     onInstructorChange(session.id, instrValue)
     setEditInstructor(false)
     setInstrSaving(false)
+  }
+
+  async function saveDetails() {
+    setDetailsSaving(true)
+    setDetailsError('')
+    const body: Record<string, unknown> = { id: session.id }
+    const origTime = getMelbHHMM(session.start)
+    const timeChanged = timeValue && timeValue !== origTime
+    const newCap = parseInt(capValue, 10)
+    const capChanged = !isNaN(newCap) && newCap > 0 && newCap !== session.capacity
+    if (timeChanged) body.startTime = timeValue
+    if (capChanged)  body.capacity  = newCap
+    if (!timeChanged && !capChanged) { setEditDetails(false); setDetailsSaving(false); return }
+
+    const res = await fetch('/api/admin/sessions', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (res.ok) {
+      if (capChanged) onSessionUpdate(session.id, { capacity: newCap })
+      setEditDetails(false)
+      if (timeChanged) router.refresh()
+    } else {
+      const d = await res.json().catch(() => ({}))
+      setDetailsError(d.error ?? 'Save failed — please try again')
+    }
+    setDetailsSaving(false)
   }
 
   return (
@@ -569,15 +617,61 @@ function AttendeeDrawer({
                 <span className="text-[11px] text-neutral-300 group-hover:text-neutral-500 transition-colors">✏</span>
               </button>
             )}
+            {/* Edit time & capacity */}
+            {editDetails ? (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div>
+                    <p className="text-[10px] text-neutral-400 mb-0.5 uppercase tracking-wide">Start time</p>
+                    <input
+                      type="time"
+                      value={timeValue}
+                      onChange={e => setTimeValue(e.target.value)}
+                      className="h-7 px-2 text-[12px] border border-neutral-300 rounded-md outline-none focus:border-black bg-white"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-neutral-400 mb-0.5 uppercase tracking-wide">Capacity</p>
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={capValue}
+                      onChange={e => setCapValue(e.target.value)}
+                      className="h-7 w-16 px-2 text-[12px] border border-neutral-300 rounded-md outline-none focus:border-black bg-white"
+                    />
+                  </div>
+                  <div className="flex gap-1.5 mt-4">
+                    <button onClick={saveDetails} disabled={detailsSaving}
+                      className="h-7 px-2.5 text-[11px] font-medium bg-black text-white rounded-md disabled:opacity-40 touch-manipulation">
+                      {detailsSaving ? '…' : 'Save'}
+                    </button>
+                    <button onClick={() => { setEditDetails(false); setDetailsError(''); setTimeValue(getMelbHHMM(session.start)); setCapValue(String(session.capacity)) }}
+                      className="h-7 px-2 text-[11px] text-neutral-500 hover:text-neutral-800 touch-manipulation">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+                {detailsError && <p className="text-[11px] text-red-600">{detailsError}</p>}
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditDetails(true)}
+                className="mt-2 text-[11px] text-neutral-400 hover:text-neutral-700 touch-manipulation"
+              >
+                Edit time & capacity
+              </button>
+            )}
+
             {!confirmCancel ? (
               <button
                 onClick={() => setConfirmCancel(true)}
-                className="mt-3 text-[11px] font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors touch-manipulation"
+                className="mt-2 text-[11px] font-medium text-red-600 hover:text-red-800 border border-red-200 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors touch-manipulation"
               >
                 Cancel class
               </button>
             ) : (
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-2 flex items-center gap-2">
                 <span className="text-[11px] text-neutral-600">Cancel this class?</span>
                 <button
                   onClick={cancelSession}

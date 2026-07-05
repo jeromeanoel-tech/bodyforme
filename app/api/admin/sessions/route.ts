@@ -113,7 +113,7 @@ export async function PATCH(req: NextRequest) {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { id, instructorName, startTime, endTime, applyToFuture } = await req.json()
+  const { id, instructorName, startTime, endTime, capacity, applyToFuture } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   // Fetch original session so we can compute deltas and find sibling sessions
@@ -146,6 +146,7 @@ export async function PATCH(req: NextRequest) {
 
   const basePatch: Record<string, unknown> = {}
   if (instructorName !== undefined) basePatch.instructor_name = instructorName
+  if (typeof capacity === 'number' && capacity > 0) basePatch.capacity = capacity
 
   if (applyToFuture) {
     const { data: future } = await supabase
