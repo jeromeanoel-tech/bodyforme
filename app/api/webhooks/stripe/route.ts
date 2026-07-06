@@ -350,8 +350,9 @@ export async function POST(req: NextRequest) {
       if (member && customerId && paymentMethod && member.planOverride) {
         const billing = RECURRING_PLAN_BILLING[member.planOverride.toLowerCase()]
         if (billing) {
-          const existing = await stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 })
-          if (!existing.data.length) {
+          const existing = await stripe.subscriptions.list({ customer: customerId, limit: 10 })
+          const hasLive = existing.data.some(s => ['active', 'trialing', 'past_due', 'incomplete'].includes(s.status))
+          if (!hasLive) {
             try {
               // subscriptions.create price_data needs an existing product ID
               const productList = await stripe.products.list({ active: true, limit: 100 })

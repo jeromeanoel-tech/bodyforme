@@ -67,6 +67,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan — must be a subscription plan' }, { status: 400 })
     }
 
+    // Block if the member already has a live subscription
+    const existingSubs = await stripe.subscriptions.list({ customer: customerId, limit: 10 })
+    const liveSub = existingSubs.data.find(s => ['active', 'trialing', 'past_due', 'incomplete'].includes(s.status))
+    if (liveSub) {
+      return NextResponse.json(
+        { error: `This member already has an active subscription (${liveSub.id}, status: ${liveSub.status}). Cancel it first before creating a new one.` },
+        { status: 409 },
+      )
+    }
+
     // subscriptions.create price_data requires an existing product ID, not inline product_data.
     // Find the product by name; create it if it doesn't exist yet.
     const productList = await stripe.products.list({ active: true, limit: 100 })

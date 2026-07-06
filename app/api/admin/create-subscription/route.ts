@@ -43,6 +43,16 @@ export async function POST(req: NextRequest) {
       await updateMemberCredential(member._id, { stripeCustomerId: customerId })
     }
 
+    // Block if the member already has a live subscription
+    const existingSubs = await stripe.subscriptions.list({ customer: customerId, limit: 10 })
+    const liveSub = existingSubs.data.find(s => ['active', 'trialing', 'past_due', 'incomplete'].includes(s.status))
+    if (liveSub) {
+      return NextResponse.json(
+        { error: `This member already has an active subscription (${liveSub.id}, status: ${liveSub.status}). Cancel it first before creating a new one.` },
+        { status: 409 },
+      )
+    }
+
     // Set the BECS payment method as the customer's default
     await stripe.customers.update(customerId, {
       invoice_settings: { default_payment_method: paymentMethodId },
