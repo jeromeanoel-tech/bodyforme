@@ -14,7 +14,7 @@ type FixResult = {
   subscriptionId: string
   customerId:     string
   memberEmail?:   string
-  action:         'activated' | 'retried' | 'no_member' | 'no_invoice' | 'skipped' | 'error'
+  action:         'activated' | 'retried' | 'needs_new_sub' | 'no_member' | 'no_invoice' | 'skipped' | 'error'
   detail?:        string
 }
 
@@ -26,34 +26,37 @@ export async function POST() {
 
   const results: FixResult[] = []
 
-  // Fetch all incomplete subscriptions (these are ones where the first invoice
-  // hasn't confirmed yet — common with BECS which takes 2-3 days to clear)
-  let page = await stripe.subscriptions.list({
-    status: 'incomplete',
-    limit:  100,
-    expand: ['data.latest_invoice.payment_intent'],
-  })
-
-  while (true) {
-    for (const sub of page.data) {
-      const result = await fixSubscription(sub)
-      results.push(result)
-    }
-    if (!page.has_more) break
-    page = await stripe.subscriptions.list({
-      status:          'incomplete',
-      limit:           100,
-      starting_after:  page.data[page.data.length - 1].id,
-      expand:          ['data.latest_invoice.payment_intent'],
+  // Fetch both incomplete and incomplete_expired subscriptions.
+  // Stripe moves incomplete → incomplete_expired after 23 hours if the
+  // first payment never confirmed, so we need to handle both statuses.
+  for (const status of ['incomplete', 'incomplete_expired'] as const) {
+    let page = await stripe.subscriptions.list({
+      status,
+      limit:  100,
+      expand: ['data.latest_invoice.payment_intent'],
     })
+    while (true) {
+      for (const sub of page.data) {
+        const result = await fixSubscription(sub)
+        results.push(result)
+      }
+      if (!page.has_more) break
+      page = await stripe.subscriptions.list({
+        status,
+        limit:           100,
+        starting_after:  page.data[page.data.length - 1].id,
+        expand:          ['data.latest_invoice.payment_intent'],
+      })
+    }
   }
 
   return NextResponse.json({
-    activated: results.filter(r => r.action === 'activated').length,
-    retried:   results.filter(r => r.action === 'retried').length,
-    skipped:   results.filter(r => r.action === 'skipped').length,
-    noMember:  results.filter(r => r.action === 'no_member').length,
-    errors:    results.filter(r => r.action === 'error').length,
+    activated:    results.filter(r => r.action === 'activated').length,
+    retried:      results.filter(r => r.action === 'retried').length,
+    needsNewSub:  results.filter(r => r.action === 'needs_new_sub').length,
+    skipped:      results.filter(r => r.action === 'skipped').length,
+    noMember:     results.filter(r => r.action === 'no_member').length,
+    errors:       results.filter(r => r.action === 'error').length,
     results,
   })
 }
@@ -79,6 +82,13 @@ async function fixSubscription(sub: Stripe.Subscription): Promise<FixResult> {
 
   if (!member) {
     return { subscriptionId, customerId, action: 'no_member' }
+  }
+
+  // incomplete_expired means Stripe cancelled the subscription after 23 hours
+  // without a confirmed payment. The member was never charged. A new subscription
+  // needs to be created — flag it for manual follow-up rather than auto-creating.
+  if (sub.status === 'incomplete_expired') {
+    return { subscriptionId, customerId, memberEmail: member.email, action: 'needs_new_sub', detail: 'subscription expired without payment — resend setup link from client drawer' }
   }
 
   // Get the latest invoice and its payment intent
