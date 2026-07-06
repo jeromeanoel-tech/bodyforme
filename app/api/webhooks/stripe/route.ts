@@ -363,6 +363,7 @@ export async function POST(req: NextRequest) {
                 customer:               customerId,
                 default_payment_method: paymentMethod,
                 collection_method:      'charge_automatically',
+                payment_behavior:       'allow_incomplete',
                 items: [{
                   price_data: {
                     currency:    'aud',
