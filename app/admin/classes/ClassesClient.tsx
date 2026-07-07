@@ -179,13 +179,13 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
 
   function sortRows(r: TemplateRow[]) {
     return [...r].sort((a, b) => {
-      const d = DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day)
+      const d = DAY_ORDER.indexOf((a.day ?? '').toLowerCase().trim()) - DAY_ORDER.indexOf((b.day ?? '').toLowerCase().trim())
       return d !== 0 ? d : a.start_time.localeCompare(b.start_time)
     })
   }
 
   const byDay = DAY_ORDER.reduce((acc, d) => {
-    acc[d] = rows.filter(r => r.day === d)
+    acc[d] = rows.filter(r => (r.day ?? '').toLowerCase().trim() === d)
     return acc
   }, {} as Record<string, TemplateRow[]>)
 

@@ -135,7 +135,12 @@ export async function POST(req: NextRequest) {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { day, start_time, end_time, class_name, instructor } = await req.json()
+  const body = await req.json()
+  const day        = (body.day ?? '').toLowerCase().trim()
+  const start_time = body.start_time
+  const end_time   = body.end_time
+  const class_name = body.class_name
+  const instructor = body.instructor
   if (!day || !start_time || !end_time || !class_name) {
     return NextResponse.json({ error: 'day, start_time, end_time and class_name are required' }, { status: 400 })
   }
@@ -162,9 +167,11 @@ export async function PUT(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
-  const { id, day, start_time, end_time, class_name, instructor, resync } = body
+  const { id, start_time, end_time, class_name, instructor, resync } = body
+  const day     = (body.day ?? '').toLowerCase().trim()
+  const old_day = body.old_day ? (body.old_day as string).toLowerCase().trim() : undefined
   // "old_*" are the original values before the edit — used to find existing sessions
-  const { old_day, old_start_time, old_end_time, old_class_name } = body
+  const { old_start_time, old_end_time, old_class_name } = body
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const { data, error } = await supabase

@@ -169,7 +169,7 @@ export async function getScheduleTemplate(): Promise<TemplateRow[]> {
   return (data ?? [])
     .map((r: { id: string; day: string; start_time: string; end_time: string; class_name: string; instructor: string }) => ({
       id:         r.id,
-      day:        r.day,
+      day:        (r.day ?? '').toLowerCase().trim(),
       start:      r.start_time,
       end:        r.end_time,
       className:  r.class_name,
