@@ -127,7 +127,7 @@ export async function GET() {
       melb_time:  getMelbTime(new Date(s.start_time)),
       status:     s.status,
     })),
-    all_sessions_±2weeks: (allSessions ?? []).map(s => ({
+    all_sessions_3week_window: (allSessions ?? []).map(s => ({
       title:     s.title,
       start_utc: s.start_time,
       melb_time: getMelbTime(new Date(s.start_time)),
