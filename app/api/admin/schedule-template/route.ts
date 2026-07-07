@@ -77,10 +77,14 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
   const melbDowName = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', weekday: 'long' })
     .format(todayDate).toLowerCase()
   const DOWNAME: Record<string, number> = { sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 }
-  const todayDow  = DOWNAME[melbDowName] ?? todayDate.getUTCDay()
-  const daysUntil = (targetDow - todayDow + 7) % 7
-  const first     = new Date(todayDate)
-  first.setUTCDate(first.getUTCDate() + daysUntil)
+  const todayDow = DOWNAME[melbDowName] ?? todayDate.getUTCDay()
+  // Start from this week's Monday so adding a class mid-week still seeds the current week
+  const daysToMonday  = (todayDow - 1 + 7) % 7
+  const weekMonday    = new Date(todayDate)
+  weekMonday.setUTCDate(weekMonday.getUTCDate() - daysToMonday)
+  const daysFromMonday = (targetDow - 1 + 7) % 7
+  const first          = new Date(weekMonday)
+  first.setUTCDate(weekMonday.getUTCDate() + daysFromMonday)
 
   const serviceId = await getOrCreateServiceId(className)
   if (!serviceId) return

@@ -68,9 +68,13 @@ async function seedMissingSessions(
     .format(todayDate).toLowerCase()
   const DOWNAME: Record<string, number> = { sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 }
   const todayDow = DOWNAME[melbDowName] ?? todayDate.getUTCDay()
-  const daysUntil = (targetDow - todayDow + 7) % 7
-  const first = new Date(todayDate)
-  first.setUTCDate(first.getUTCDate() + daysUntil)
+  // Start from this week's Monday so classes added mid-week still get seeded for the current week
+  const daysToMonday = (todayDow - 1 + 7) % 7
+  const weekMonday = new Date(todayDate)
+  weekMonday.setUTCDate(weekMonday.getUTCDate() - daysToMonday)
+  const daysFromMonday = (targetDow - 1 + 7) % 7
+  const first = new Date(weekMonday)
+  first.setUTCDate(weekMonday.getUTCDate() + daysFromMonday)
 
   const inserts: object[] = []
   for (let week = 0; week < 12; week++) {
