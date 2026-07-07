@@ -42,7 +42,11 @@ function weekRange(offset: number) {
   mon.setHours(12, 0, 0, 0)
   const sun = new Date(mon)
   sun.setDate(mon.getDate() + 6)
-  return { from: `${localDate(mon)}T00:00:00`, to: `${localDate(sun)}T23:59:59`, monday: mon }
+  // Start one calendar day before Melbourne Monday so early-morning classes (stored as
+  // UTC Sunday due to AEST+10 offset) are included in the query window.
+  const fromDate = new Date(mon)
+  fromDate.setDate(mon.getDate() - 1)
+  return { from: `${localDate(fromDate)}T00:00:00`, to: `${localDate(sun)}T23:59:59`, monday: mon }
 }
 
 function fmt12(iso: string) {

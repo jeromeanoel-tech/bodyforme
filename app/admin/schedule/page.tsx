@@ -22,7 +22,11 @@ function weekRange(offsetWeeks = 0) {
   sun.setDate(mon.getDate() + 6)
   sun.setHours(23, 59, 59, 0)
   const pad = (d: Date) => d.toISOString().slice(0, 10)
-  return { from: `${pad(mon)}T00:00:00`, to: `${pad(sun)}T23:59:59`, monday: mon }
+  // Start one UTC day before Melbourne Monday — morning classes (e.g. 6:30am, 9:30am AEST)
+  // are stored as UTC Sunday timestamps and would be cut off by a Monday-midnight query start.
+  const fromDate = new Date(mon)
+  fromDate.setDate(mon.getDate() - 1)
+  return { from: `${pad(fromDate)}T00:00:00`, to: `${pad(sun)}T23:59:59`, monday: mon }
 }
 
 export default async function AdminSchedulePage({
