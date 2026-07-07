@@ -72,7 +72,12 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
 
   const todayMelb = getMelbDate()
   const todayDate = new Date(`${todayMelb}T12:00:00Z`)
-  const todayDow  = todayDate.getUTCDay()
+  // Use Melbourne weekday, not UTC weekday — on Vercel (UTC server) getUTCDay() returns
+  // the wrong day when Melbourne is ahead of midnight (e.g. Melbourne Monday = UTC Tuesday)
+  const melbDowName = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', weekday: 'long' })
+    .format(todayDate).toLowerCase()
+  const DOWNAME: Record<string, number> = { sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 }
+  const todayDow  = DOWNAME[melbDowName] ?? todayDate.getUTCDay()
   const daysUntil = (targetDow - todayDow + 7) % 7
   const first     = new Date(todayDate)
   first.setUTCDate(first.getUTCDate() + daysUntil)
