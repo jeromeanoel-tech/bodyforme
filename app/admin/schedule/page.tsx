@@ -1,4 +1,5 @@
 import { getSessions, getServices, getStaff, getScheduleTemplate } from '@/lib/db'
+import { getScheduleWeekRange } from '@/lib/dates'
 import ScheduleClient from './ScheduleClient'
 
 function getInstructors(): string[] {
@@ -10,32 +11,14 @@ function getInstructors(): string[] {
 
 export const dynamic = 'force-dynamic'
 
-function weekRange(offsetWeeks = 0) {
-  // Use Melbourne date so the week is correct even before 10am (when UTC is still yesterday)
-  const melbStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
-  const [y, m, d] = melbStr.split('-').map(Number)
-  const now = new Date(y, m - 1, d) // midnight UTC, but date is Melbourne's current date
-  const mon = new Date(now)
-  mon.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offsetWeeks * 7)
-  mon.setHours(0, 0, 0, 0)
-  const sun = new Date(mon)
-  sun.setDate(mon.getDate() + 6)
-  sun.setHours(23, 59, 59, 0)
-  const pad = (d: Date) => d.toISOString().slice(0, 10)
-  // Start one UTC day before Melbourne Monday — morning classes (e.g. 6:30am, 9:30am AEST)
-  // are stored as UTC Sunday timestamps and would be cut off by a Monday-midnight query start.
-  const fromDate = new Date(mon)
-  fromDate.setDate(mon.getDate() - 1)
-  return { from: `${pad(fromDate)}T00:00:00`, to: `${pad(sun)}T23:59:59`, monday: mon }
-}
-
 export default async function AdminSchedulePage({
   searchParams,
 }: {
   searchParams: { week?: string }
 }) {
   const offset = parseInt(searchParams.week ?? '0', 10) || 0
-  const { from, to, monday } = weekRange(offset)
+  const { from, to, melbMonday } = getScheduleWeekRange(offset)
+  const monday = new Date(`${melbMonday}T12:00:00Z`)
 
   const [sessions, services, staff, template] = await Promise.all([
     getSessions(from, to),

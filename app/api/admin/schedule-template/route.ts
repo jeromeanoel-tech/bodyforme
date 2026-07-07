@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
+import { getMelbDate, getMelbFirstOccurrence, melbToUtc } from '@/lib/dates'
 
 const supabase = createClient(
   (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
@@ -9,28 +10,6 @@ const supabase = createClient(
 )
 
 const DAY_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
-
-/** Melbourne YYYY-MM-DD for a given Date */
-function getMelbDate(d: Date = new Date()): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(d)
-}
-
-/** Convert Melbourne HH:MM on a Melbourne calendar date to a UTC ISO string */
-function melbToUtc(melbDateStr: string, hhmm: string): string {
-  const [h, m] = hhmm.split(':').map(Number)
-  const probe   = new Date(`${melbDateStr}T02:00:00Z`)
-  const melbH   = parseInt(
-    new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', hour: '2-digit', hour12: false }).format(probe), 10,
-  )
-  const offsetH = melbH - 2   // 10 = AEST (winter), 11 = AEDT (summer)
-  const utcH    = h - offsetH
-  if (utcH >= 0) {
-    return `${melbDateStr}T${String(utcH).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`
-  }
-  const prev = new Date(`${melbDateStr}T00:00:00Z`)
-  prev.setUTCDate(prev.getUTCDate() - 1)
-  return `${prev.toISOString().slice(0,10)}T${String(24+utcH).padStart(2,'0')}:${String(m).padStart(2,'0')}:00.000Z`
-}
 
 /** Get or create a service record by class name, returning its id */
 async function getOrCreateServiceId(className: string): Promise<string | undefined> {
@@ -66,34 +45,17 @@ async function matchingSessions(day: string, startHHMM: string, className: strin
 
 /** Seed sessions for a template slot for the next 12 weeks */
 async function seedSessions(day: string, startHHMM: string, endHHMM: string, className: string, instructor: string) {
-  // Which PostgreSQL DOW does this day map to? (0=Sun,1=Mon,...,6=Sat)
-  const DOW = { sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 }
-  const targetDow = DOW[day as keyof typeof DOW]
-
-  const todayMelb = getMelbDate()
-  const todayDate = new Date(`${todayMelb}T12:00:00Z`)
-  // Use Melbourne weekday, not UTC weekday — on Vercel (UTC server) getUTCDay() returns
-  // the wrong day when Melbourne is ahead of midnight (e.g. Melbourne Monday = UTC Tuesday)
-  const melbDowName = new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Melbourne', weekday: 'long' })
-    .format(todayDate).toLowerCase()
-  const DOWNAME: Record<string, number> = { sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 }
-  const todayDow = DOWNAME[melbDowName] ?? todayDate.getUTCDay()
-  // Start from this week's Monday so adding a class mid-week still seeds the current week
-  const daysToMonday  = (todayDow - 1 + 7) % 7
-  const weekMonday    = new Date(todayDate)
-  weekMonday.setUTCDate(weekMonday.getUTCDate() - daysToMonday)
-  const daysFromMonday = (targetDow - 1 + 7) % 7
-  const first          = new Date(weekMonday)
-  first.setUTCDate(weekMonday.getUTCDate() + daysFromMonday)
+  // getMelbFirstOccurrence returns this week's Monday-aligned Melbourne date for the given day
+  const firstMelbDate = getMelbFirstOccurrence(day)
+  const [fy, fm, fd]  = firstMelbDate.split('-').map(Number)
 
   const serviceId = await getOrCreateServiceId(className)
   if (!serviceId) return
 
   const inserts: object[] = []
   for (let week = 0; week < 12; week++) {
-    const d = new Date(first)
-    d.setUTCDate(d.getUTCDate() + week * 7)
-    const melbDate = d.toISOString().slice(0, 10)
+    // Advance by whole weeks in Melbourne calendar date arithmetic
+    const melbDate = new Date(Date.UTC(fy, fm - 1, fd + week * 7)).toISOString().slice(0, 10)
     const startISO = melbToUtc(melbDate, startHHMM)
     const endISO   = melbToUtc(melbDate, endHHMM)
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Session, Service, Staff, Booking } from '@/lib/db'
 import { useSettings } from '@/lib/useSettings'
+import { getScheduleWeekRange } from '@/lib/dates'
 
 type Props = {
   initialSessions:    Session[]
@@ -36,17 +37,9 @@ function localDate(d: Date) {
 }
 
 function weekRange(offset: number) {
-  const now = new Date()
-  const mon = new Date(now)
-  mon.setDate(now.getDate() - ((now.getDay() + 6) % 7) + offset * 7)
-  mon.setHours(12, 0, 0, 0)
-  const sun = new Date(mon)
-  sun.setDate(mon.getDate() + 6)
-  // Start one calendar day before Melbourne Monday so early-morning classes (stored as
-  // UTC Sunday due to AEST+10 offset) are included in the query window.
-  const fromDate = new Date(mon)
-  fromDate.setDate(mon.getDate() - 1)
-  return { from: `${localDate(fromDate)}T00:00:00`, to: `${localDate(sun)}T23:59:59`, monday: mon }
+  const { from, to, melbMonday } = getScheduleWeekRange(offset)
+  const monday = new Date(`${melbMonday}T12:00:00Z`)
+  return { from, to, monday }
 }
 
 function fmt12(iso: string) {
