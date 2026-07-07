@@ -195,7 +195,12 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ row: data, resynced: allAtThisTime.length, cancelled: toCancel.length })
   }
 
-  const sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, old_class_name ?? class_name)
+  // Find sessions by title first; fall back to time-only match if none found
+  // (handles cases where session titles drifted from the template class name)
+  let sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, old_class_name ?? class_name)
+  if (sessions.length === 0) {
+    sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, '', true)
+  }
   const timeChanged = start_time !== old_start_time || end_time !== old_end_time
   const nameChanged = class_name !== (old_class_name ?? class_name)
 

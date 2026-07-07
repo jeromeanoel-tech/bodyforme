@@ -212,7 +212,7 @@ export async function getSessions(from: string, to: string): Promise<Session[]> 
     .from('sessions')
     .select('*')
     .gte('start_time', from)
-    .lte('start_time', to.slice(0, 10) + 'T23:59:59')
+    .lte('start_time', to)
     .order('start_time')
 
   if (!sessions?.length) return []
