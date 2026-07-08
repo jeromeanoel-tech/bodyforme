@@ -949,6 +949,65 @@ export async function runMigrations(): Promise<void> {
   }
 }
 
+/**
+ * Self-healing: for the given week, seed any template slot that has no matching
+ * session in the DB.  Called from the admin schedule server component so the
+ * schedule is always consistent with the template without any manual resync.
+ */
+export async function seedMissingWeekSessions(
+  template: TemplateRow[],
+  existingSessions: Session[],
+  melbMonday: string,
+): Promise<void> {
+  const { getMelbDayTime, melbToUtc, getMelbFirstOccurrence } = await import('./dates')
+
+  // Build a Set of slots already in the DB for this week (melbourne day:time)
+  const existing = new Set(existingSessions.map(s => {
+    const { day, time } = getMelbDayTime(s.start)
+    return `${day}:${time}`
+  }))
+
+  const toInsert: Array<{
+    service_id: string; title: string; instructor_name: string;
+    start_time: string; end_time: string; capacity: number; status: string
+  }> = []
+
+  for (const row of template) {
+    const key = `${row.day}:${row.start}`
+    if (existing.has(key)) continue
+
+    // Get or create service
+    const { data: svc } = await getSupabase().from('services').select('id').eq('name', row.className).limit(1)
+    let serviceId = svc?.[0]?.id
+    if (!serviceId) {
+      const { data: created } = await getSupabase().from('services')
+        .insert({ name: row.className, description: '', duration: 60, capacity: 20 })
+        .select('id').single()
+      serviceId = created?.id
+    }
+    if (!serviceId) continue
+
+    const melbDate = getMelbFirstOccurrence(row.day)
+    const startISO = melbToUtc(melbDate, row.start)
+    const endISO   = melbToUtc(melbDate, row.end)
+
+    // Double-check: don't insert if a session already exists at this exact UTC time
+    const { data: clash } = await getSupabase().from('sessions')
+      .select('id').eq('service_id', serviceId).eq('start_time', startISO).maybeSingle()
+    if (clash) continue
+
+    toInsert.push({
+      service_id: serviceId, title: row.className, instructor_name: row.instructor,
+      start_time: startISO, end_time: endISO, capacity: 20, status: 'CONFIRMED',
+    })
+  }
+
+  if (toInsert.length > 0) {
+    const { error } = await getSupabase().from('sessions').insert(toInsert)
+    if (error) console.error('[seedMissingWeekSessions] insert failed:', error.message)
+  }
+}
+
 export async function logError(route: string, message: string, context: Record<string, unknown> = {}): Promise<void> {
   await getSupabase().from('system_errors').insert({ route, message, context }).catch(() => {})
 }

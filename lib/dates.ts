@@ -104,6 +104,25 @@ export function getScheduleWeekRange(offsetWeeks = 0): {
 }
 
 /**
+ * Converts a UTC ISO timestamp to the Melbourne weekday name + HH:MM time.
+ * Used for cross-referencing stored sessions against the schedule template.
+ */
+export function getMelbDayTime(utcIso: string): { day: string; time: string } {
+  const d = new Date(utcIso)
+  const parts = new Intl.DateTimeFormat('en-AU', {
+    timeZone: TZ,
+    weekday: 'long',
+    hour:    '2-digit',
+    minute:  '2-digit',
+    hour12:  false,
+  }).formatToParts(d)
+  const day    = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() ?? ''
+  const h      = parts.find(p => p.type === 'hour')?.value   ?? '00'
+  const m      = parts.find(p => p.type === 'minute')?.value ?? '00'
+  return { day, time: `${h.padStart(2, '0')}:${m.padStart(2, '0')}` }
+}
+
+/**
  * Returns the Melbourne YYYY-MM-DD for the first occurrence of a named weekday
  * starting from the current week's Monday (or offsetWeeks ahead).
  *

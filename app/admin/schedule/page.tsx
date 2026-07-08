@@ -1,4 +1,4 @@
-import { getSessions, getServices, getStaff, getScheduleTemplate } from '@/lib/db'
+import { getSessions, getServices, getStaff, getScheduleTemplate, seedMissingWeekSessions } from '@/lib/db'
 import { getScheduleWeekRange } from '@/lib/dates'
 import ScheduleClient from './ScheduleClient'
 
@@ -20,12 +20,18 @@ export default async function AdminSchedulePage({
   const { from, to, melbMonday } = getScheduleWeekRange(offset)
   const monday = new Date(`${melbMonday}T12:00:00Z`)
 
-  const [sessions, services, staff, template] = await Promise.all([
+  let [sessions, services, staff, template] = await Promise.all([
     getSessions(from, to),
     getServices(),
     getStaff(),
     getScheduleTemplate(),
   ])
+
+  // Auto-heal: create any sessions the template says should exist but don't yet
+  if (template.length > 0) {
+    await seedMissingWeekSessions(template, sessions, melbMonday)
+    sessions = await getSessions(from, to)
+  }
 
   const scheduleToService  = Object.fromEntries(services.map(s => [s.scheduleId, s]))
   const resourceToStaff    = Object.fromEntries(staff.map(s => [s.resourceId, s]))
