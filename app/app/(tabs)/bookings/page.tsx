@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from '@/components/app/SessionProvider'
 import type { ContactBooking } from '@/lib/db'
 import { getBrowserSupabase } from '@/lib/supabase-browser'
+import { usePersistedState } from '@/hooks/usePersistedState'
 
 function CalendarStrip({ memberId }: { memberId: string }) {
   const [open,   setOpen]   = useState(false)
@@ -171,7 +172,7 @@ export default function BookingsPage() {
   const session  = useSession()
   const [bookings, setBookings] = useState<ContactBooking[]>([])
   const [loading,  setLoading]  = useState(true)
-  const [tab,      setTab]      = useState<'upcoming' | 'past'>('upcoming')
+  const [tab,      setTab]      = usePersistedState<'upcoming' | 'past'>('bookings-tab', 'upcoming')
 
   useEffect(() => {
     if (!session.id) { setLoading(false); return }

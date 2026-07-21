@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { Session, MemberBooking } from '@/lib/db'
 import { getBrowserSupabase } from '@/lib/supabase-browser'
+import { usePersistedState } from '@/hooks/usePersistedState'
 
 const T = {
   linen:  '#f4ede1',
@@ -121,7 +122,6 @@ type Props = {
   templateNameBySlot: Record<string, string>
 }
 
-const WEEK_OFFSET_KEY = 'schedule-week-offset'
 const MIN_WEEK = -2  // allow viewing 2 weeks back
 
 export default function ScheduleClient({
@@ -134,13 +134,7 @@ export default function ScheduleClient({
   const todayISO    = localDate(new Date())
   const hasInitial  = initialSessions.length > 0
 
-  // Restore week position from sessionStorage so tab switches don't reset it
-  const [weekOffset, setWeekOffset] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem(WEEK_OFFSET_KEY)
-      return saved ? parseInt(saved, 10) : 0
-    } catch { return 0 }
-  })
+  const [weekOffset, setWeekOffset] = usePersistedState('schedule-week-offset', 0)
   const weekDays  = getWeekDays(weekOffset)
   const defaultIdx = weekOffset === 0
     ? (weekDays.findIndex(d => d.iso === todayISO) >= 0 ? weekDays.findIndex(d => d.iso === todayISO) : 0)
@@ -277,7 +271,6 @@ export default function ScheduleClient({
       setStaffMap(cached.staffMap)
       setError(false)
     }
-    try { sessionStorage.setItem(WEEK_OFFSET_KEY, String(clamped)) } catch {}
     setWeekOffset(clamped)
   }
 
