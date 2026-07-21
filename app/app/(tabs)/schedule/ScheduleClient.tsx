@@ -121,6 +121,9 @@ type Props = {
   templateNameBySlot: Record<string, string>
 }
 
+const WEEK_OFFSET_KEY = 'schedule-week-offset'
+const MIN_WEEK = -2  // allow viewing 2 weeks back
+
 export default function ScheduleClient({
   initialSessions,
   initialBookedMap,
@@ -131,7 +134,13 @@ export default function ScheduleClient({
   const todayISO    = localDate(new Date())
   const hasInitial  = initialSessions.length > 0
 
-  const [weekOffset, setWeekOffset] = useState(0)
+  // Restore week position from sessionStorage so tab switches don't reset it
+  const [weekOffset, setWeekOffset] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(WEEK_OFFSET_KEY)
+      return saved ? parseInt(saved, 10) : 0
+    } catch { return 0 }
+  })
   const weekDays  = getWeekDays(weekOffset)
   const defaultIdx = weekOffset === 0
     ? (weekDays.findIndex(d => d.iso === todayISO) >= 0 ? weekDays.findIndex(d => d.iso === todayISO) : 0)
@@ -258,8 +267,9 @@ export default function ScheduleClient({
 
   // If cache available, populate immediately before fetch completes
   function changeWeek(newOffset: number) {
-    displayedOffset.current = newOffset
-    const cached = weekCacheRef.current[newOffset]
+    const clamped = Math.max(MIN_WEEK, newOffset)
+    displayedOffset.current = clamped
+    const cached = weekCacheRef.current[clamped]
     if (cached) {
       setSessions(cached.sessions)
       setBookedMap(cached.bookedMap)
@@ -267,7 +277,8 @@ export default function ScheduleClient({
       setStaffMap(cached.staffMap)
       setError(false)
     }
-    setWeekOffset(newOffset)
+    try { sessionStorage.setItem(WEEK_OFFSET_KEY, String(clamped)) } catch {}
+    setWeekOffset(clamped)
   }
 
   // Tick every 30 s to update past/upcoming status live
@@ -435,7 +446,7 @@ export default function ScheduleClient({
           </div>
         </div>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-          {weekOffset > 0 && (
+          {weekOffset !== 0 && (
             <button
               onClick={() => changeWeek(0)}
               style={{
@@ -450,8 +461,8 @@ export default function ScheduleClient({
           )}
           <button
             onClick={() => changeWeek(weekOffset - 1)}
-            disabled={weekOffset === 0}
-            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: `1px solid ${T.rule}`, cursor: weekOffset === 0 ? 'not-allowed' : 'pointer', opacity: weekOffset === 0 ? 0.35 : 1 }}
+            disabled={weekOffset <= MIN_WEEK}
+            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: `1px solid ${T.rule}`, cursor: weekOffset <= MIN_WEEK ? 'not-allowed' : 'pointer', opacity: weekOffset <= MIN_WEEK ? 0.35 : 1 }}
           >
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7.5 2.5L4.5 6L7.5 9.5" stroke={T.esp} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
