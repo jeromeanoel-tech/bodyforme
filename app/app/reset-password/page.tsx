@@ -199,17 +199,27 @@ function ResetPasswordForm() {
 
               {error && (
                 <div style={{
-                  padding:      '10px 14px',
+                  padding:      '12px 14px',
                   background:   '#fff5f5',
                   border:       '1px solid #fcc',
                   marginBottom: 20,
                 }}>
                   <p style={{
-                    margin:     0,
+                    margin:     '0 0 8px',
                     fontSize:   12,
                     color:      T.rust,
                     fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
                   }}>{error}</p>
+                  {(error.includes('already been used') || error.includes('expired')) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <a href="/app/login" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.brown, textDecoration: 'underline' }}>
+                        Try signing in — your password may already be set
+                      </a>
+                      <a href="/app/forgot-password" style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 11, color: T.mid, textDecoration: 'underline' }}>
+                        Request a new reset link
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
 

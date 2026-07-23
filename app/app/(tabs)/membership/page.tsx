@@ -153,7 +153,6 @@ function isRecurringPlan(plan: string | null): boolean {
 
 export default function MembershipPage() {
   const session = useSession()
-  const [portalLoading, setPortalLoading] = useState(false)
   const [billingMsg,    setBillingMsg]    = useState<string | null>(null)
   const [memberStatus,  setMemberStatus]  = useState<MemberStatus | null>(null)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
@@ -183,8 +182,7 @@ export default function MembershipPage() {
   }, [])
 
   function openPortal() {
-    setPortalLoading(true)
-    window.location.href = '/api/billing/portal'
+    window.open('/api/billing/portal', '_blank', 'noopener,noreferrer')
   }
 
   // ── Pause ──────────────────────────────────────────────────────────────────
@@ -280,8 +278,6 @@ export default function MembershipPage() {
     isRecurringPlan(memberStatus.plan) &&
     memberStatus.nextBillingDate === null &&
     memberStatus.membershipEndDate === null
-
-  const _ = portalLoading // suppress unused warning
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.linen, overflow: 'hidden' }}>
