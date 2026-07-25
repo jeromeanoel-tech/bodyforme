@@ -82,7 +82,7 @@ type MemberStatus = {
   status:             string
 }
 
-const PACK_PLANS = ['10-Class Pack', '10 Class Pack', '20-Class Pack', '20 Class Pack', '50-Class Pass', '50 Class Pass', '5-Class Pack', '5 Class Pack', 'casual', 'intro-offer', 'Free Trial', 'Casual Drop-in', 'Casual Class']
+const PACK_PLANS = ['10-Class Pack', '10 Class Pack', '20-Class Pack', '20 Class Pack', '50-Class Pass', '50 Class Pass', '5-Class Pack', '5 Class Pack', 'casual', 'intro-offer', 'Free Trial', 'New Member Trial', 'Casual Drop-in', 'Casual Class']
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -137,7 +137,7 @@ function planSummary(ms: MemberStatus): { label: string; value: string; sub: str
 function isPack(plan: string | null) {
   if (!plan) return false
   const p = plan.toLowerCase()
-  return PACK_PLANS.some(pk => p.includes(pk.toLowerCase())) || p.includes('pack') || p.includes('pass') || p === 'casual' || p === 'intro-offer' || p === 'free trial'
+  return PACK_PLANS.some(pk => p.includes(pk.toLowerCase())) || p.includes('pack') || p.includes('pass') || p === 'casual' || p === 'intro-offer' || p === 'free trial' || p === 'new member trial'
 }
 
 // Recurring plans that are billed via direct debit (not prepaid)

@@ -17,18 +17,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Account not found. Please try signing up again.' }, { status: 404 })
   }
   // Block existing active paying members — free trial is for new members only
-  if (member.status === 'active' && member.planOverride && !['Free Trial', 'free-trial'].includes(member.planOverride)) {
+  if (member.status === 'active' && member.planOverride && !['Free Trial', 'free-trial', 'New Member Trial'].includes(member.planOverride)) {
     return NextResponse.json({ error: 'A paid membership already exists for this email. The free trial is for new members only.' }, { status: 409 })
   }
   await updateMemberCredential(member._id, {
     status:        'active',
-    planOverride:  'Free Trial',
+    planOverride:  'New Member Trial',
     creditBalance: 1,
   })
 
   await upsertMembership({
     memberId:  member._id,
-    planName:  'Free Trial',
+    planName:  'New Member Trial',
     status:    'ACTIVE',
     startDate: new Date().toISOString().slice(0, 10),
     endDate:   '',
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       <img src="https://bodyforme.com.au/bodyforme-wordmark.png" alt="BODYFORME" width="180" style="display:block;width:180px;height:auto;border:0">
     </div>
     <div style="padding:44px 48px 40px">
-      <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7a4a2a;margin-bottom:18px">Free Trial</div>
+      <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#7a4a2a;margin-bottom:18px">New Member Trial</div>
       <h1 style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:36px;font-weight:500;line-height:1.12;color:#2a1506;margin:0 0 24px">Welcome, ${firstName}!</h1>
       <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 18px">Thanks for registering for your free trial class at BodyForme Pilates.</p>
       <p style="font-size:15px;line-height:1.72;color:#2a1506;margin:0 0 18px">We'll be in touch shortly to confirm your first session. In the meantime, if you have any questions you're welcome to reply to this email or give us a call.</p>

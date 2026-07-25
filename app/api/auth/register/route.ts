@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   // Free trial gets 1 credit immediately at account creation so the member
   // can book without depending on a second API call succeeding.
   const isFreeTrial   = plan === 'free-trial'
-  const planOverride  = isFreeTrial ? 'Free Trial' : (plan ?? '')
+  const planOverride  = isFreeTrial ? 'New Member Trial' : (plan ?? '')
   const creditBalance = isFreeTrial ? 1 : 0
 
   await createMemberCredential({

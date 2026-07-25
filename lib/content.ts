@@ -38,8 +38,8 @@ export const hours = [
 // ── Announcement bar (shows at the top of every page) ────────────────────────
 
 export const announce = {
-  text:    'New members — first class free when you join before 30 June 2026',
-  linkText: 'Book now',
+  text:     'Free trial class — your first class at BodyForme is on us',
+  linkText: 'Book free trial',
   linkHref: '/free-trial',
 }
 

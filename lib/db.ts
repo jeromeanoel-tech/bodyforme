@@ -559,6 +559,7 @@ export const CREDIT_PLANS = [
   '20-Class Pack', '20 Class Pack',
   '50-Class Pass', '50 Class Pass',
   'Free Trial',
+  'New Member Trial',
 ]
 
 export async function markAttendance(bookingId: string, attended: boolean): Promise<void> {
@@ -786,7 +787,7 @@ export async function getFreeTrialCount(): Promise<number> {
   const { count } = await getSupabase()
     .from('members')
     .select('*', { count: 'exact', head: true })
-    .eq('plan_override', 'Free Trial')
+    .in('plan_override', ['Free Trial', 'New Member Trial'])
   return count ?? 0
 }
 

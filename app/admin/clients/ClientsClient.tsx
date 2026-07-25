@@ -1415,6 +1415,7 @@ const PLAN_OPTIONS = [
   { label: 'Casual Drop-in',         value: 'casual' },
   { label: 'Intro Pass',             value: 'intro-offer' },
   { label: 'Free Trial',             value: 'Free Trial' },
+  { label: 'New Member Trial',       value: 'New Member Trial' },
 ]
 
 const QUICK_PRESETS = [

@@ -71,6 +71,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This class is now full. Join the waitlist to be notified if a spot opens.' }, { status: 409 })
   }
 
+  // Free trial members cannot book the 90-minute Bikram class
+  const isTrial = ['new member trial', 'free trial'].includes((member.planOverride ?? '').toLowerCase())
+  if (isTrial && sess.title.toLowerCase().includes('90')) {
+    return NextResponse.json({ error: 'The 90-minute Bikram class is not included in the free trial. You\'re welcome to book any other class.' }, { status: 403 })
+  }
+
   try {
     const bookingId = await createBooking(session.id, sessionId)
 
