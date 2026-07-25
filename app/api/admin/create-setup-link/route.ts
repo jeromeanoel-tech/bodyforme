@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     // Block if the member already has a live subscription
     const existingSubs = await stripe.subscriptions.list({ customer: customerId, limit: 10 })
-    const liveSub = existingSubs.data.find(s => ['active', 'trialing', 'past_due', 'incomplete'].includes(s.status))
+    const liveSub = existingSubs.data.find(s => ['active', 'trialing', 'past_due', 'incomplete', 'unpaid'].includes(s.status))
     if (liveSub) {
       return NextResponse.json(
         { error: `This member already has an active subscription (${liveSub.id}, status: ${liveSub.status}). Cancel it first before creating a new one.` },

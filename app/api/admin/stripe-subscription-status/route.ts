@@ -107,7 +107,7 @@ export async function GET(req: NextRequest) {
     }
 
     // All live subscriptions — used to detect duplicates in the admin panel
-    const LIVE_STATUSES = ['active', 'trialing', 'past_due', 'incomplete']
+    const LIVE_STATUSES = ['active', 'trialing', 'past_due', 'incomplete', 'unpaid']
     const liveSubs = subs.filter(s => LIVE_STATUSES.includes(s.status))
     const allSubscriptions = await Promise.all(liveSubs.map(s => buildSubData(s)))
 
