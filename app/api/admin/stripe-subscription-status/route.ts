@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const customerId = member.stripeCustomerId
 
     // Get all subscriptions, prefer active > past_due > trialing > most recent
-    const { data: subs } = await stripe.subscriptions.list({ customer: customerId, limit: 5 })
+    const { data: subs } = await stripe.subscriptions.list({ customer: customerId, limit: 10 })
 
     const sub =
       subs.find(s => s.status === 'active') ??
@@ -75,14 +75,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    let subscription = null
-    if (sub) {
-      const item     = sub.items.data[0]
+    // Helper to build a SubData shape from a Stripe subscription
+    async function buildSubData(s: typeof subs[0]) {
+      const item     = s.items.data[0]
       const price    = item?.price
       const amount   = price?.unit_amount ?? 0
       const interval = (price?.recurring as { interval?: string } | null)?.interval ?? 'week'
-
-      // Resolve plan name: price nickname → product name
       let planName = price?.nickname ?? ''
       if (!planName && price?.product) {
         try {
@@ -92,19 +90,28 @@ export async function GET(req: NextRequest) {
           planName = prod.name ?? ''
         } catch { /* keep empty */ }
       }
-      if (!planName) planName = member.planOverride ?? ''
-
-      subscription = {
-        id:               sub.id,
-        status:           sub.status,
+      return {
+        id:               s.id,
+        status:           s.status,
         planName,
         amount,
         interval,
-        currentPeriodEnd: (sub as unknown as { current_period_end: number }).current_period_end ?? 0,
+        currentPeriodEnd: (s as unknown as { current_period_end: number }).current_period_end ?? 0,
       }
     }
 
-    return NextResponse.json({ subscription, paymentMethod })
+    let subscription = null
+    if (sub) {
+      subscription = await buildSubData(sub)
+      if (!subscription.planName) subscription.planName = member.planOverride ?? ''
+    }
+
+    // All live subscriptions — used to detect duplicates in the admin panel
+    const LIVE_STATUSES = ['active', 'trialing', 'past_due', 'incomplete']
+    const liveSubs = subs.filter(s => LIVE_STATUSES.includes(s.status))
+    const allSubscriptions = await Promise.all(liveSubs.map(s => buildSubData(s)))
+
+    return NextResponse.json({ subscription, paymentMethod, allSubscriptions })
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[stripe-subscription-status]', msg)

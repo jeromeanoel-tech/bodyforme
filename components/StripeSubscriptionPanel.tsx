@@ -24,8 +24,9 @@ type PmData = {
 }
 
 type StripeStatus = {
-  subscription:  SubData | null
-  paymentMethod: PmData | null
+  subscription:     SubData | null
+  paymentMethod:    PmData | null
+  allSubscriptions: SubData[]
 }
 
 type Accordion = 'start' | 'setupLink' | 'changePlan' | 'changeDate' | 'cancel' | 'invoices' | null
@@ -308,8 +309,10 @@ export function StripeSubscriptionPanel({
 
   // ── Derived state ───────────────────────────────────────────────────────────
 
-  const sub          = status?.subscription
-  const pm           = status?.paymentMethod
+  const sub              = status?.subscription
+  const pm               = status?.paymentMethod
+  const allSubs          = status?.allSubscriptions ?? []
+  const hasDuplicateSubs = allSubs.length > 1
   const hasActiveSub = sub?.status === 'active' || sub?.status === 'trialing'
   const hasPastDue   = sub?.status === 'past_due' || sub?.status === 'unpaid'
   const hasIncomplete = sub?.status === 'incomplete'
@@ -424,6 +427,32 @@ export function StripeSubscriptionPanel({
           </div>
         )}
       </div>
+
+      {/* Duplicate subscription alert */}
+      {hasDuplicateSubs && (
+        <div className="mx-0 border-t border-red-200 bg-red-50 px-4 py-3 space-y-2">
+          <p className="text-[12px] font-semibold text-red-800">
+            ⚠ {allSubs.length} active subscriptions — this member is being charged twice
+          </p>
+          <p className="text-[11.5px] text-red-700">
+            Use &ldquo;Cancel subscription&rdquo; below to cancel all, then re-create a single one.
+          </p>
+          <div className="space-y-1">
+            {allSubs.map(s => (
+              <a key={s.id}
+                href={`https://dashboard.stripe.com/subscriptions/${s.id}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[11px] font-mono text-indigo-600 hover:text-indigo-800">
+                <span>{s.id}</span>
+                <span className="font-sans font-normal text-red-600">
+                  — {s.planName || '—'} · {fmtAud(s.amount)}/{s.interval} · {s.status}
+                </span>
+                <span className="text-indigo-400">↗</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Action done banner */}
       {actionDone && (
