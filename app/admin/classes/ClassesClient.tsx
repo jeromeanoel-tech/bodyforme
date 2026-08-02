@@ -11,6 +11,16 @@ type TemplateRow = {
   instructor: string
 }
 
+type PopupSession = {
+  id:              string
+  title:           string
+  instructor_name: string
+  start_time:      string
+  end_time:        string
+  capacity:        number
+  status:          string
+}
+
 const DAY_ORDER  = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
 const DAY_LABELS: Record<string, string> = {
   monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
@@ -24,7 +34,18 @@ function fmt12(hhmm: string) {
   return `${h12}:${String(m).padStart(2,'0')} ${suffix}`
 }
 
-const BLANK = { day: 'monday', start_time: '', end_time: '', class_name: '', instructor: '' }
+function fmtPopupDate(iso: string) {
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-AU', { timeZone: 'Australia/Melbourne', weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+function fmtPopupTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-AU', { timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
+const BLANK        = { day: 'monday', start_time: '', end_time: '', class_name: '', instructor: '' }
+const POPUP_BLANK  = { date: '', start_time: '', end_time: '', class_name: '', instructor: '', capacity: '20' }
+const todayStr     = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
 
 export default function ClassesClient({ initialRows, instructors }: { initialRows: TemplateRow[]; instructors: string[] }) {
   const [rows,      setRows]      = useState<TemplateRow[]>(initialRows)
@@ -51,12 +72,59 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
   const [deduping,  setDeduping]  = useState(false)
   const [syncing,   setSyncing]   = useState<string | null>(null)
 
+  // Pop-up classes
+  const [popups,        setPopups]       = useState<PopupSession[]>([])
+  const [showAddPopup,  setShowAddPopup] = useState(false)
+  const [popupForm,     setPopupForm]    = useState({ ...POPUP_BLANK })
+  const [popupError,    setPopupError]   = useState('')
+  const [addingPopup,   setAddingPopup]  = useState(false)
+  const [cancellingId,  setCancellingId] = useState<string | null>(null)
+
   // Auto-fix stale sessions whenever Classes page is opened — runs silently in background
   useEffect(() => {
     fetch('/api/admin/resync-all-sessions', { method: 'POST' })
       .catch(() => {})
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Load upcoming pop-up sessions
+  useEffect(() => {
+    fetch('/api/admin/popup-session')
+      .then(r => r.json())
+      .then(d => { if (d.sessions) setPopups(d.sessions) })
+      .catch(() => {})
+  }, [])
+
+  async function addPopup() {
+    const { date, start_time, end_time, class_name, instructor, capacity } = popupForm
+    if (!date || !start_time || !end_time || !class_name.trim()) { setPopupError('Date, times and class name are required'); return }
+    setAddingPopup(true); setPopupError('')
+    const res  = await fetch('/api/admin/popup-session', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, start_time, end_time, class_name: class_name.trim(), instructor, capacity: parseInt(capacity) || 20 }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setPopupError(data.error ?? 'Failed to add pop-up class'); setAddingPopup(false); return }
+    setPopups(prev => [...prev, data.session].sort((a, b) => a.start_time.localeCompare(b.start_time)))
+    setShowAddPopup(false); setPopupForm({ ...POPUP_BLANK }); setAddingPopup(false)
+  }
+
+  async function cancelPopup(id: string) {
+    setCancellingId(id)
+    const res = await fetch('/api/admin/popup-session', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    if (res.ok) setPopups(prev => prev.filter(p => p.id !== id))
+    setCancellingId(null)
+  }
+
+  function handlePopupStart(time: string) {
+    const endAlreadySet = popupForm.end_time !== ''
+    const [h, m] = time.split(':').map(Number)
+    const autoEnd = `${String((h + 1) % 24).padStart(2,'0')}:${String(m).padStart(2,'0')}`
+    setPopupForm(f => ({ ...f, start_time: time, ...(!endAlreadySet && time ? { end_time: autoEnd } : {}) }))
+  }
 
   // Exact duplicates (same day+time+name) — safe to auto-remove
   const dupIds: string[] = (() => {
@@ -241,10 +309,16 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
           <h1 className="text-[15px] font-semibold text-neutral-900">Weekly schedule</h1>
           <p className="text-[12px] text-neutral-400 mt-0.5">{rows.length} recurring class{rows.length !== 1 ? 'es' : ''} · changes apply to all future sessions</p>
         </div>
-        <button onClick={() => { setAddForm({ ...BLANK }); setAddError(''); setShowAdd(true) }}
-          className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors touch-manipulation">
-          + Add slot
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => { setPopupForm({ ...POPUP_BLANK }); setPopupError(''); setShowAddPopup(true) }}
+            className="h-8 px-3 text-[13px] font-medium border border-neutral-300 text-neutral-700 rounded-lg hover:border-black hover:text-black transition-colors touch-manipulation">
+            + Pop-up class
+          </button>
+          <button onClick={() => { setAddForm({ ...BLANK }); setAddError(''); setShowAdd(true) }}
+            className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 transition-colors touch-manipulation">
+            + Add slot
+          </button>
+        </div>
       </div>
 
       {/* Exact duplicate warning */}
@@ -324,6 +398,48 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
             No classes yet. Click &ldquo;+ Add slot&rdquo; to build the weekly schedule.
           </div>
         )}
+
+        {/* Pop-up classes section */}
+        <div className="border-t border-neutral-200 mt-2">
+          <div className="px-4 md:px-6 pt-4 pb-2 flex items-center justify-between">
+            <div>
+              <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Pop-up classes</span>
+              <span className="ml-2 text-[11px] text-neutral-400">— one-off, not recurring</span>
+            </div>
+            <button onClick={() => { setPopupForm({ ...POPUP_BLANK }); setPopupError(''); setShowAddPopup(true) }}
+              className="h-7 px-3 text-[11.5px] font-medium border border-neutral-200 text-neutral-600 rounded-lg hover:border-neutral-400 hover:text-neutral-900 touch-manipulation">
+              + Add
+            </button>
+          </div>
+
+          {popups.length === 0 ? (
+            <p className="px-4 md:px-6 pb-6 text-[12px] text-neutral-400">No upcoming pop-up classes.</p>
+          ) : (
+            <div className="divide-y divide-neutral-100 pb-4">
+              {popups.map(p => (
+                <div key={p.id} className="flex items-center px-4 md:px-6 py-3 hover:bg-neutral-50 transition-colors group">
+                  <div className="w-28 md:w-40 shrink-0">
+                    <p className="text-[12px] md:text-[13px] font-medium text-neutral-800">{fmtPopupDate(p.start_time)}</p>
+                    <p className="text-[11px] text-neutral-400">{fmtPopupTime(p.start_time)} – {fmtPopupTime(p.end_time)}</p>
+                  </div>
+                  <div className="flex-1 min-w-0 px-2 md:px-3">
+                    <p className="text-[13px] md:text-[14px] text-neutral-900">{p.title}</p>
+                    {p.instructor_name && (
+                      <p className="text-[11px] text-neutral-400 mt-0.5">{p.instructor_name}</p>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex items-center gap-2">
+                    <span className="hidden md:inline text-[11.5px] text-neutral-400">{p.capacity} spots</span>
+                    <button onClick={() => cancelPopup(p.id)} disabled={cancellingId === p.id}
+                      className="h-7 px-3 text-[11.5px] border border-red-200 text-red-500 rounded-lg hover:border-red-400 hover:bg-red-50 disabled:opacity-40 touch-manipulation">
+                      {cancellingId === p.id ? '…' : 'Cancel'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Add slot modal ──────────────────────────────────────────────────── */}
@@ -363,6 +479,72 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
               <button onClick={saveEdit} disabled={editing}
                 className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation">
                 {editing ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add pop-up class modal ──────────────────────────────────────────── */}
+      {showAddPopup && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowAddPopup(false)} />
+          <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[440px] p-6 pb-8 md:pb-6">
+            <h2 className="text-[15px] font-semibold text-neutral-900 mb-1">Add pop-up class</h2>
+            <p className="text-[12px] text-neutral-400 mb-4">One-off class — won&apos;t repeat the following week</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Date</label>
+                <input type="date" value={popupForm.date} min={todayStr()}
+                  onChange={e => setPopupForm(f => ({ ...f, date: e.target.value }))}
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
+                  <input type="time" value={popupForm.start_time}
+                    onChange={e => handlePopupStart(e.target.value)}
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+                </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time</label>
+                  <input type="time" value={popupForm.end_time}
+                    onChange={e => setPopupForm(f => ({ ...f, end_time: e.target.value }))}
+                    className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
+                <input type="text" value={popupForm.class_name}
+                  onChange={e => setPopupForm(f => ({ ...f, class_name: e.target.value }))}
+                  placeholder="e.g. Hot Mat Pilates"
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor</label>
+                <select value={popupForm.instructor}
+                  onChange={e => setPopupForm(f => ({ ...f, instructor: e.target.value }))}
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
+                  <option value="">— Unassigned —</option>
+                  {instructors.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Capacity</label>
+                <input type="number" min="1" max="100" value={popupForm.capacity}
+                  onChange={e => setPopupForm(f => ({ ...f, capacity: e.target.value }))}
+                  className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+              </div>
+              {popupError && <p className="text-[12px] text-red-600">{popupError}</p>}
+            </div>
+            <div className="flex justify-end gap-2 mt-5">
+              <button onClick={() => setShowAddPopup(false)}
+                className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation">
+                Cancel
+              </button>
+              <button onClick={addPopup} disabled={addingPopup}
+                className="h-8 px-4 text-[14.5px] font-medium bg-black text-white rounded-lg hover:bg-neutral-800 disabled:opacity-40 touch-manipulation">
+                {addingPopup ? 'Adding…' : 'Add pop-up class'}
               </button>
             </div>
           </div>

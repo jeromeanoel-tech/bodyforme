@@ -12,6 +12,7 @@ export async function POST() {
 
   const migrations = [
     `CREATE UNIQUE INDEX IF NOT EXISTS sessions_service_start_unique ON sessions (service_id, start_time)`,
+    `ALTER TABLE sessions ADD COLUMN IF NOT EXISTS is_popup BOOLEAN NOT NULL DEFAULT FALSE`,
   ]
 
   const results: { sql: string; ok: boolean; error?: string }[] = []

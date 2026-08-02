@@ -886,6 +886,7 @@ export async function runMigrations(): Promise<void> {
       end_time        TIMESTAMPTZ NOT NULL,
       capacity        INT  NOT NULL DEFAULT 10,
       status          TEXT NOT NULL DEFAULT 'CONFIRMED',
+      is_popup        BOOLEAN NOT NULL DEFAULT FALSE,
       created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`,
     `CREATE TABLE IF NOT EXISTS bookings (
