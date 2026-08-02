@@ -69,9 +69,16 @@ const RULE = `<div style="height:1px;background:#d8ccba;margin:32px 0"></div>`
 
 // ── Send ──────────────────────────────────────────────────────────────────────
 
+const BLOCKED_EMAIL_DOMAINS = ['example.com', 'example.org', 'example.net', 'test.com', 'test.org']
+
 async function sendEmail(to: string, subject: string, html: string) {
   if (!RESEND_API_KEY) {
     console.error('[email] RESEND_API_KEY is not set — email not sent:', subject)
+    return
+  }
+  const domain = to.split('@')[1]?.toLowerCase() ?? ''
+  if (BLOCKED_EMAIL_DOMAINS.includes(domain)) {
+    console.warn('[email] skipping send to reserved/test domain:', to)
     return
   }
   await fetch('https://api.resend.com/emails', {

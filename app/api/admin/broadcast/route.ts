@@ -51,8 +51,12 @@ function wrapHtml(firstName: string, body: string) {
 </div>`
 }
 
+const BLOCKED_DOMAINS = ['bodyforme.placeholder', 'bodyforme.internal', 'example.com', 'example.org', 'example.net', 'test.com', 'test.org']
+
 function hasValidEmail(c: Awaited<ReturnType<typeof getContacts>>[number]) {
-  return !!(c.email && !c.email.includes('@bodyforme.placeholder') && !c.email.includes('@bodyforme.internal'))
+  if (!c.email) return false
+  const domain = c.email.split('@')[1]?.toLowerCase() ?? ''
+  return !!domain && !BLOCKED_DOMAINS.includes(domain)
 }
 
 function filterRecipients(contacts: Awaited<ReturnType<typeof getContacts>>, segment: Segment) {
