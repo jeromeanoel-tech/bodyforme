@@ -17,3 +17,4 @@ npm-debug.log*
 _archive-velo/
 .vercel
 scripts/migration-flags.txt
+.claude/worktrees/
