@@ -70,18 +70,19 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
       continue
     }
 
-    // Skip if a non-cancelled session for this service already exists anywhere on this Melbourne date
-    // (handles sessions that have been manually moved to a different time — avoids duplicating them)
-    const melbDayStart = melbToUtc(melbDate, '00:00')
-    const melbDayEnd   = melbToUtc(melbDate, '23:59')
-    const { data: sameDay } = await supabase.from('sessions')
+    // Skip if a non-cancelled session for this service already exists within ±59 min of the
+    // template start time. This catches sessions manually moved to a nearby time (e.g. 9:00→9:30)
+    // without accidentally matching sessions from adjacent hourly slots (exactly ±60 min away).
+    const nearStart = new Date(new Date(startISO).getTime() - 59 * 60 * 1000).toISOString()
+    const nearEnd   = new Date(new Date(startISO).getTime() + 59 * 60 * 1000).toISOString()
+    const { data: nearbySession } = await supabase.from('sessions')
       .select('id')
       .eq('service_id', serviceId)
-      .gte('start_time', melbDayStart)
-      .lte('start_time', melbDayEnd)
+      .gte('start_time', nearStart)
+      .lte('start_time', nearEnd)
       .neq('status', 'CANCELLED')
       .maybeSingle()
-    if (sameDay) continue
+    if (nearbySession) continue
 
     inserts.push({ service_id: serviceId, title: className, instructor_name: instructor, start_time: startISO, end_time: endISO, capacity: 20, status: 'CONFIRMED' })
   }
