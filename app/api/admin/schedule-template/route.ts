@@ -60,15 +60,28 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
     const endISO   = melbToUtc(melbDate, endHHMM)
 
     const { data: existing } = await supabase.from('sessions')
-      .select('id, status').eq('service_id', serviceId).eq('start_time', startISO).neq('status', 'CANCELLED').maybeSingle()
+      .select('id, status').eq('service_id', serviceId).eq('start_time', startISO).maybeSingle()
 
     if (existing) {
-      // Un-cancel sessions that were cancelled (e.g. after a template row was deleted)
+      // Restore a cancelled session at the exact template time
       if (existing.status === 'CANCELLED') {
         await supabase.from('sessions').update({ status: 'CONFIRMED', instructor_name: instructor, end_time: endISO }).eq('id', existing.id)
       }
       continue
     }
+
+    // Skip if a non-cancelled session for this service already exists anywhere on this Melbourne date
+    // (handles sessions that have been manually moved to a different time — avoids duplicating them)
+    const melbDayStart = melbToUtc(melbDate, '00:00')
+    const melbDayEnd   = melbToUtc(melbDate, '23:59')
+    const { data: sameDay } = await supabase.from('sessions')
+      .select('id')
+      .eq('service_id', serviceId)
+      .gte('start_time', melbDayStart)
+      .lte('start_time', melbDayEnd)
+      .neq('status', 'CANCELLED')
+      .maybeSingle()
+    if (sameDay) continue
 
     inserts.push({ service_id: serviceId, title: className, instructor_name: instructor, start_time: startISO, end_time: endISO, capacity: 20, status: 'CONFIRMED' })
   }
