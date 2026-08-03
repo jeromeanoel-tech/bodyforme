@@ -4,10 +4,16 @@ import { supabase } from '@/lib/supabase'
 
 // One-time migration runner — applies schema changes that were added after initial deploy.
 // Admin-only. Safe to call multiple times (all statements are IF NOT EXISTS).
-export async function POST() {
-  const session = await getAdminSession()
-  if (!session || session.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+export async function POST(req: Request) {
+  const migrateSecret = (process.env.MIGRATE_SECRET ?? '').replace(/\\n|\n/g, '').trim()
+  const authHeader    = req.headers.get('x-migrate-secret') ?? ''
+  const hasSecret     = migrateSecret && authHeader === migrateSecret
+
+  if (!hasSecret) {
+    const session = await getAdminSession()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
   }
 
   const migrations = [
