@@ -593,11 +593,17 @@ function AttendeeDrawer({
             {/* Instructor — editable */}
             {editInstructor ? (
               <div className="flex items-center gap-2 mt-1.5">
-                <select value={instrValue} onChange={e => setInstrValue(e.target.value)}
-                  className="h-7 px-2 text-[12px] border border-neutral-300 rounded-md outline-none focus:border-black bg-white">
-                  <option value="">— Unassigned —</option>
-                  {instructors.map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                <datalist id={`instructors-${session.id}`}>
+                  {instructors.map(n => <option key={n} value={n} />)}
+                </datalist>
+                <input
+                  type="text"
+                  list={`instructors-${session.id}`}
+                  value={instrValue}
+                  onChange={e => setInstrValue(e.target.value)}
+                  placeholder="Instructor name"
+                  className="h-7 px-2 text-[12px] border border-neutral-300 rounded-md outline-none focus:border-black bg-white w-40"
+                />
                 <button onClick={saveInstructor} disabled={instrSaving}
                   className="h-7 px-2.5 text-[11px] font-medium bg-black text-white rounded-md disabled:opacity-40 touch-manipulation">
                   {instrSaving ? '…' : 'Save'}
