@@ -109,9 +109,10 @@ export async function POST() {
     const toUpdate  = allAtSlot.filter(s => s.title === row.class_name)
     const toCancel  = allAtSlot.filter(s => s.title !== row.class_name)
 
-    // Update correct-title sessions: fix service_id and instructor
+    // Update correct-title sessions: fix service_id only
+    // Do NOT touch instructor_name — manual per-session instructor changes must be preserved
     for (const s of toUpdate) {
-      await supabase.from('sessions').update({ service_id: serviceId, instructor_name: row.instructor }).eq('id', s.id)
+      await supabase.from('sessions').update({ service_id: serviceId }).eq('id', s.id)
       totalFixed++
     }
     // Cancel sessions at this slot with the wrong class name
