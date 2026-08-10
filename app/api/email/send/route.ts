@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
-const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
+const FROM_ADDRESS   = 'BodyForme Studio <info@bodyforme.com.au>'
 const BASE           = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 
 type Template = 'review-request' | 'reengagement-30' | 'reengagement-90' | 'payment-failed' | 'welcome' | 'migration' | 'dd-payment-setup' | 'member-onboarding' | 'custom'
@@ -79,7 +79,7 @@ function signoff(line: string) {
           Studio Director &nbsp;·&nbsp; BodyForme Pilates<br>
           <a href="tel:0398502221" style="color:#7a4a2a;text-decoration:none">(03) 9850 2221</a>
           &nbsp;·&nbsp;
-          <a href="mailto:hello@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">hello@bodyforme.com.au</a>
+          <a href="mailto:info@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">info@bodyforme.com.au</a>
         </div>
       </div>
     </div>

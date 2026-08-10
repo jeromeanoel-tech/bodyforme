@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/adminSession'
 type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | 'no-membership'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY!
-const FROM_ADDRESS   = 'BodyForme Studio <hello@bodyforme.com.au>'
+const FROM_ADDRESS   = 'BodyForme Studio <info@bodyforme.com.au>'
 
 function escHtml(s: string) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -35,7 +35,7 @@ function wrapHtml(firstName: string, body: string) {
           Studio Director &middot; BodyForme Pilates<br>
           <a href="tel:0398502221" style="color:#7a4a2a;text-decoration:none">(03) 9850 2221</a>
           &middot;
-          <a href="mailto:hello@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">hello@bodyforme.com.au</a>
+          <a href="mailto:info@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">info@bodyforme.com.au</a>
         </div>
       </div>
     </div>

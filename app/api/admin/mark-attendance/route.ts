@@ -13,7 +13,7 @@ async function sendRenewalNudge(to: string, firstName: string) {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from:    'BodyForme Studio <hello@bodyforme.com.au>',
+      from:    'BodyForme Studio <info@bodyforme.com.au>',
       to,
       subject: 'Your membership needs renewing',
       html: `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:40px 24px">

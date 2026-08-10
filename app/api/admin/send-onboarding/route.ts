@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/adminSession'
 
 const BASE          = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 const RESEND_KEY    = process.env.RESEND_API_KEY!
-const FROM_ADDRESS  = 'BodyForme Studio <hello@bodyforme.com.au>'
+const FROM_ADDRESS  = 'BodyForme Studio <info@bodyforme.com.au>'
 const PLACEHOLDER_RE = /\.placeholder$/
 
 export async function POST(req: NextRequest) {

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     method:  'POST',
     headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from:    'BodyForme Website <hello@bodyforme.com.au>',
+      from:    'BodyForme Website <info@bodyforme.com.au>',
       to:      [STUDIO_EMAIL],
       replyTo: email,
       subject: `Website enquiry: ${subject ?? 'General'}`,

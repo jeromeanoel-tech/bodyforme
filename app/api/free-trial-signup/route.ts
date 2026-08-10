@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     method:  'POST',
     headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from:    'BodyForme Website <hello@bodyforme.com.au>',
+      from:    'BodyForme Website <info@bodyforme.com.au>',
       to:      [STUDIO_EMAIL],
       subject: `New free trial registration — ${firstName} ${lastName}`,
       html: `
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     method:  'POST',
     headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from:    'BodyForme Studio <hello@bodyforme.com.au>',
+      from:    'BodyForme Studio <info@bodyforme.com.au>',
       to:      [email],
       subject: 'Your free trial at BodyForme is confirmed',
       html: `<div style="background:#f4ede1;padding:56px 24px 96px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
           Studio Director &nbsp;·&nbsp; BodyForme Pilates<br>
           <a href="tel:0398502221" style="color:#7a4a2a;text-decoration:none">(03) 9850 2221</a>
           &nbsp;·&nbsp;
-          <a href="mailto:hello@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">hello@bodyforme.com.au</a>
+          <a href="mailto:info@bodyforme.com.au" style="color:#7a4a2a;text-decoration:none">info@bodyforme.com.au</a>
         </div>
       </div>
     </div>
