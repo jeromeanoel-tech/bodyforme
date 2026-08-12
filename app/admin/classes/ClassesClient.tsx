@@ -102,23 +102,37 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
     if (!end_time)         { setPopupError('Please enter an end time'); return }
     if (!class_name.trim()) { setPopupError('Please enter a class name'); return }
     setAddingPopup(true); setPopupError('')
-    const res  = await fetch('/api/admin/popup-session', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date, start_time, end_time, class_name: class_name.trim(), instructor, capacity: parseInt(capacity) || 20 }),
-    })
-    const data = await res.json()
-    if (!res.ok) { setPopupError(data.error ?? 'Failed to add pop-up class'); setAddingPopup(false); return }
-    setPopups(prev => [...prev, data.session].sort((a, b) => a.start_time.localeCompare(b.start_time)))
-    setShowAddPopup(false); setPopupForm({ ...POPUP_BLANK }); setAddingPopup(false)
+    try {
+      const res  = await fetch('/api/admin/popup-session', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, start_time, end_time, class_name: class_name.trim(), instructor, capacity: parseInt(capacity) || 20 }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setPopupError(data.error ?? 'Failed to add pop-up class'); setAddingPopup(false); return }
+      setPopups(prev => [...prev, data.session].sort((a, b) => a.start_time.localeCompare(b.start_time)))
+      setShowAddPopup(false); setPopupForm({ ...POPUP_BLANK })
+    } catch {
+      setPopupError('Something went wrong — please try again')
+    }
+    setAddingPopup(false)
   }
 
   async function cancelPopup(id: string) {
     setCancellingId(id)
-    const res = await fetch('/api/admin/popup-session', {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
-    if (res.ok) setPopups(prev => prev.filter(p => p.id !== id))
+    try {
+      const res = await fetch('/api/admin/popup-session', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (res.ok) {
+        setPopups(prev => prev.filter(p => p.id !== id))
+      } else {
+        const d = await res.json().catch(() => ({}))
+        alert(d.error ?? 'Failed to cancel pop-up class')
+      }
+    } catch {
+      alert('Something went wrong — please try again')
+    }
     setCancellingId(null)
   }
 
