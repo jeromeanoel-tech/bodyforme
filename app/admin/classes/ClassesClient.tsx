@@ -97,7 +97,10 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
 
   async function addPopup() {
     const { date, start_time, end_time, class_name, instructor, capacity } = popupForm
-    if (!date || !start_time || !end_time || !class_name.trim()) { setPopupError('Date, times and class name are required'); return }
+    if (!date)             { setPopupError('Please select a date'); return }
+    if (!start_time)       { setPopupError('Please enter a start time'); return }
+    if (!end_time)         { setPopupError('Please enter an end time'); return }
+    if (!class_name.trim()) { setPopupError('Please enter a class name'); return }
     setAddingPopup(true); setPopupError('')
     const res  = await fetch('/api/admin/popup-session', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -494,27 +497,27 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
             <p className="text-[12px] text-neutral-400 mb-4">One-off class — won&apos;t repeat the following week</p>
             <div className="space-y-3">
               <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Date</label>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Date <span className="text-red-400">*</span></label>
                 <input type="date" value={popupForm.date} min={todayStr()}
                   onChange={e => setPopupForm(f => ({ ...f, date: e.target.value }))}
                   className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
+                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time <span className="text-red-400">*</span></label>
                   <input type="time" value={popupForm.start_time}
                     onChange={e => handlePopupStart(e.target.value)}
                     className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time</label>
+                  <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time <span className="text-red-400">*</span></label>
                   <input type="time" value={popupForm.end_time}
                     onChange={e => setPopupForm(f => ({ ...f, end_time: e.target.value }))}
                     className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
                 </div>
               </div>
               <div>
-                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
+                <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name <span className="text-red-400">*</span></label>
                 <input type="text" value={popupForm.class_name}
                   onChange={e => setPopupForm(f => ({ ...f, class_name: e.target.value }))}
                   placeholder="e.g. Hot Mat Pilates"
