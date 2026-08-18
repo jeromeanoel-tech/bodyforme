@@ -10,10 +10,13 @@ export async function POST(req: NextRequest) {
   const { sessionId } = await req.json()
   if (!sessionId) return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
 
-  // Block inactive members from booking
+  // Block inactive or past-due members from booking
   const member = await getMemberByContactId(session.id)
   if (!member || member.status === 'inactive') {
     return NextResponse.json({ error: 'Your membership is not active. Please contact the studio.' }, { status: 403 })
+  }
+  if (member.status === 'past_due') {
+    return NextResponse.json({ error: 'Your last payment failed and your membership is on hold. Please contact the studio to resolve the payment.' }, { status: 403 })
   }
 
   // Block members with no active plan and no credits remaining
