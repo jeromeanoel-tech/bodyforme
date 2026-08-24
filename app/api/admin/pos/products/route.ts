@@ -1,12 +1,7 @@
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { getAdminSession } from '@/lib/adminSession'
 
 export const dynamic = 'force-dynamic'
-
-const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(), {
-  apiVersion: '2026-04-22.dahlia' as never,
-})
 
 export type PosProduct = {
   id: string
@@ -22,6 +17,11 @@ export type PosProduct = {
 export async function GET() {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const { default: Stripe } = await import('stripe')
+  const stripe = new Stripe((process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(), {
+    apiVersion: '2024-04-10' as never,
+  })
 
   const products = await stripe.products.list({ active: true, limit: 100 })
 
@@ -44,7 +44,6 @@ export async function GET() {
   for (const p of posProducts) {
     const priceId = typeof p.default_price === 'string' ? p.default_price : p.default_price?.id
     if (!priceId) {
-      // Fall back to fetching the first active price for this product
       const prices = await stripe.prices.list({ product: p.id, active: true, limit: 1 })
       if (!prices.data.length) continue
       result.push({
