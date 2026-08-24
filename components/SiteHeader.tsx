@@ -85,7 +85,7 @@ export default function SiteHeader() {
             height: scrolled ? '60px' : '68px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            gap: '0',
             transition: 'height .35s ease',
           }}
         >
@@ -98,16 +98,15 @@ export default function SiteHeader() {
             />
           </Link>
 
-          {/* Desktop nav */}
+          {/* Desktop nav — flex: 1 + justify-content: center keeps it centred without overlapping */}
           <nav
             className="desk-nav"
             style={{
+              flex: 1,
               display: 'flex',
+              justifyContent: 'center',
               alignItems: 'center',
               gap: '40px',
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
             }}
           >
             {NAV.map(({ href, label }) => (

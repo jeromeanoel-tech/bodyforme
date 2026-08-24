@@ -177,9 +177,10 @@ function HeroSection() {
         {/* ── Right: photo placeholder ── */}
         <div className="hero-right" style={{ position: 'relative', height: '82vh', maxHeight: '680px' }}>
           <Image
-            src="/Bodyforme Content Collective Portrait-04934.JPG"
+            src="/bodyforme-hero.jpg"
             alt="BodyForme Pilates studio"
             fill
+            sizes="(max-width: 767px) 100vw, 50vw"
             style={{ objectFit: 'cover', objectPosition: 'center top' }}
             priority
           />
