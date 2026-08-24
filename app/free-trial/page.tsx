@@ -4,6 +4,8 @@ import ScrollReveal from '@/components/ScrollReveal'
 import Link from 'next/link'
 import { freeTrial, studio } from '@/lib/content'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Free Trial Class | BodyForme Pilates',
   description: 'Book your first Pilates class free at BodyForme in Doncaster. No credit card, no commitment.',

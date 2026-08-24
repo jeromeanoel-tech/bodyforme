@@ -1,6 +1,8 @@
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Terms & Privacy | BodyForme Pilates',
   description: 'Terms and conditions and privacy policy for BodyForme Pilates Studio, Doncaster.',

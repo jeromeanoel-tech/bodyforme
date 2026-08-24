@@ -4,6 +4,8 @@ import ScrollReveal from '@/components/ScrollReveal'
 import Link from 'next/link'
 import { about, studio, memberships } from '@/lib/content'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title:       'About Us | BodyForme Pilates',
   description: 'Meet Suzanne Harb and the BodyForme team. Our story, values and what makes our Doncaster Pilates studio different.',

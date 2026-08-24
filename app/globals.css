@@ -158,6 +158,20 @@ img, video, svg { max-width: 100%; }
 .faq-toggle { transition: transform .3s cubic-bezier(.25,.46,.45,.94); }
 .faq-item.open .faq-toggle { transform: rotate(45deg); }
 
+/* ── Header link hovers ─────────────────────────────────────────────────────── */
+.header-login-link {
+  color: var(--mid);
+  transition: color .2s ease;
+}
+.header-login-link:hover { color: var(--esp); }
+
+.header-trial-btn {
+  background: var(--esp);
+  border-color: var(--esp);
+  transition: background .25s ease, border-color .25s ease;
+}
+.header-trial-btn:hover { background: var(--brown); border-color: var(--brown); }
+
 /* ── Schedule book button ───────────────────────────────────────────────────── */
 .sched-book-btn {
   display: block;

@@ -135,24 +135,22 @@ export default function SiteHeader() {
           <div className="desk-nav" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
             <Link
               href="/app"
+              className="header-login-link"
               style={{
                 fontFamily: 'var(--font-dm-sans)',
                 fontSize: '10px',
                 fontWeight: 400,
                 letterSpacing: '.15em',
                 textTransform: 'uppercase',
-                color: 'var(--mid)',
                 textDecoration: 'none',
                 padding: '8px 0',
-                transition: 'color .2s ease',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--esp)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--mid)' }}
             >
               Member Login
             </Link>
             <Link
               href="/free-trial"
+              className="header-trial-btn"
               style={{
                 fontFamily: 'var(--font-dm-sans)',
                 fontSize: '10px',
@@ -160,15 +158,12 @@ export default function SiteHeader() {
                 letterSpacing: '.16em',
                 textTransform: 'uppercase',
                 color: 'var(--canvas)',
-                background: 'var(--esp)',
                 padding: '10px 22px',
                 textDecoration: 'none',
                 whiteSpace: 'nowrap',
-                transition: 'background .25s ease',
-                border: '1px solid var(--esp)',
+                border: '1px solid',
+                display: 'inline-block',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--brown)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--brown)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'var(--esp)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--esp)' }}
             >
               Book Free Trial
             </Link>
