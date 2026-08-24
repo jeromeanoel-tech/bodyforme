@@ -112,9 +112,8 @@ function FooterCol({
             href={href}
             target={external ? '_blank' : undefined}
             rel={external ? 'noopener noreferrer' : undefined}
-            style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.42)', textDecoration: 'none', transition: 'color .2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(244,237,226,.75)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(244,237,226,.42)' }}
+            className="footer-link"
+            style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12.5px', fontWeight: 300, textDecoration: 'none' }}
           >
             {label}
           </Link>

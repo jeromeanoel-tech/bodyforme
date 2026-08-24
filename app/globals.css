@@ -158,6 +158,13 @@ img, video, svg { max-width: 100%; }
 .faq-toggle { transition: transform .3s cubic-bezier(.25,.46,.45,.94); }
 .faq-item.open .faq-toggle { transform: rotate(45deg); }
 
+/* ── Footer link hover ──────────────────────────────────────────────────────── */
+.footer-link {
+  color: rgba(244,237,226,.42);
+  transition: color .2s;
+}
+.footer-link:hover { color: rgba(244,237,226,.75); }
+
 /* ── Header link hovers ─────────────────────────────────────────────────────── */
 .header-login-link {
   color: var(--mid);
