@@ -9,21 +9,21 @@ type ClassType = { slug: string; name: string; nameItalic?: string; tags?: strin
 import { getScheduleTemplate, type TemplateRow } from '@/lib/db'
 
 export const metadata = {
-  title: 'Classes & Schedule | BodyForme Pilates',
+  title:       'Classes & Schedule | BodyForme Pilates',
   description: 'Browse the BodyForme weekly timetable. Hot Pilates, Bikram, Hot HIIT, Tabata, Yin Yoga, Special Forces and more in Doncaster.',
 }
 
 export const dynamic = 'force-dynamic'
 
 const COLOR_MAP: Record<string, string> = {
-  'bikram':     'var(--sage)',
-  'yin':        'var(--sage)',
+  'bikram':      'var(--sage)',
+  'yin':         'var(--sage)',
   'hot pilates': 'var(--rust)',
-  'hot hiit':   '#8a6a50',
-  'tabata':     '#8a6a50',
-  'special':    '#7a8898',
-  'aaa':        '#7a6858',
-  'pilates':    'var(--rust)',
+  'hot hiit':    '#8a6a50',
+  'tabata':      '#8a6a50',
+  'special':     '#7a8898',
+  'aaa':         '#7a6858',
+  'pilates':     'var(--rust)',
 }
 
 function classColor(name: string): string {
@@ -31,7 +31,7 @@ function classColor(name: string): string {
   for (const [key, val] of Object.entries(COLOR_MAP)) {
     if (lower.includes(key)) return val
   }
-  return 'var(--rule)'
+  return 'var(--blt)'
 }
 
 function fmt12(hhmm: string) {
@@ -43,6 +43,10 @@ function fmt12(hhmm: string) {
 }
 
 const DAY_LABELS: Record<string, string> = {
+  monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed',
+  thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun',
+}
+const DAY_FULL: Record<string, string> = {
   monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
   thursday: 'Thursday', friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
 }
@@ -54,10 +58,9 @@ export default async function ClassesPage() {
   try {
     rows = await getScheduleTemplate()
   } catch {
-    // fail gracefully — show empty timetable
+    // fail gracefully
   }
 
-  // Group rows by day
   const byDay: Record<string, TemplateRow[]> = {}
   for (const day of DAYS_ORDER) byDay[day] = []
   for (const r of rows) if (DAYS_ORDER.includes(r.day)) byDay[r.day].push(r)
@@ -68,26 +71,29 @@ export default async function ClassesPage() {
 
       {/* ── PAGE HERO ── */}
       <div style={{ background: 'var(--esp)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-        <div className="r2 sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 48px 56px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'end' }}>
+        <div
+          className="r2 sp"
+          style={{ maxWidth: '1320px', margin: '0 auto', padding: '72px 48px 64px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'end' }}
+        >
           <div>
-            <div style={{ fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.4)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.5)', display: 'block' }} />
+            <div style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9.5px', letterSpacing: '.22em', textTransform: 'uppercase', color: 'rgba(244,237,225,.35)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.4)', display: 'block' }} />
               {classesPage.eyebrow}
             </div>
-            <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(48px,5vw,72px)', fontWeight: 400, lineHeight: 1.05, color: 'var(--linen)', letterSpacing: '-.01em' }}>
+            <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(48px,5.5vw,78px)', fontWeight: 400, lineHeight: 1.03, color: 'var(--linen)', letterSpacing: '-.02em' }}>
               {classesPage.heading}{' '}
               <em style={{ fontStyle: 'italic', fontWeight: 300, color: '#c4a882' }}>{classesPage.headingItalic}</em>
             </h1>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '28px' }}>
-            <p style={{ fontSize: '14px', fontWeight: 300, color: 'rgba(244,237,225,.6)', lineHeight: 1.75 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: '32px' }}>
+            <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '14px', fontWeight: 300, color: 'rgba(244,237,225,.55)', lineHeight: 1.85 }}>
               {classesPage.desc}
             </p>
             <div style={{ display: 'flex', gap: '40px' }}>
               {classesPage.stats.map((s, i) => (
                 <div key={i}>
-                  <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '40px', fontWeight: 300, color: 'var(--linen)', lineHeight: 1, display: 'block' }}>{s.value}</span>
-                  <span style={{ fontSize: '9.5px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'rgba(244,237,225,.35)', marginTop: '4px', display: 'block' }}>{s.label}</span>
+                  <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '42px', fontWeight: 300, color: 'var(--linen)', lineHeight: 1, display: 'block' }}>{s.value}</span>
+                  <span style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.16em', textTransform: 'uppercase', color: 'rgba(244,237,225,.32)', marginTop: '6px', display: 'block' }}>{s.label}</span>
                 </div>
               ))}
             </div>
@@ -96,100 +102,105 @@ export default async function ClassesPage() {
       </div>
 
       {/* ── WEEK SCHEDULE ── */}
-      <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 48px 80px' }}>
-        <div style={{ marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: '28px', fontWeight: 400, color: 'var(--esp)', margin: 0 }}>
-            Weekly timetable
-          </h2>
+      <div className="sp" style={{ maxWidth: '1320px', margin: '0 auto', padding: '48px 48px 88px' }}>
+        <div style={{ marginBottom: '36px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div className="slbl" style={{ marginBottom: '8px' }}>Weekly timetable</div>
+            <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: '32px', fontWeight: 400, color: 'var(--esp)', margin: 0 }}>
+              This week&apos;s <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>schedule</em>
+            </h2>
+          </div>
           <Link
             href={studio.bookingUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--canvas)', background: 'var(--esp)', padding: '11px 24px', textDecoration: 'none', transition: 'background .2s' }}
+            className="btn-primary"
+            style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
           >
             Book online
           </Link>
         </div>
 
-        {/* Desktop: 7-col day grid */}
+        {/* Desktop: 7-col grid */}
         <div className="sched-wrap desk-only">
-        <div className="sched-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
-          {DAYS_ORDER.map((day) => {
-            const daySessions = byDay[day] ?? []
-
-            return (
-              <div key={day} style={{ background: 'var(--linen)', display: 'flex', flexDirection: 'column' }}>
-                {/* Day header */}
-                <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--rule)', textAlign: 'left' }}>
-                  <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '18px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1 }}>
-                    {DAY_LABELS[day]}
-                  </span>
-                </div>
-
-                {/* Class slots */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'var(--rule)', flex: 1 }}>
-                  {daySessions.length === 0 ? (
-                    <div style={{ padding: '20px 16px', textAlign: 'center' }}>
-                      <span style={{ width: '16px', height: '1px', background: 'var(--rule)', display: 'inline-block' }} />
-                    </div>
-                  ) : (
-                    daySessions.map(r => {
-                      const color = classColor(r.className)
-                      return (
-                        <div
-                          key={r.id}
-                          style={{ background: 'var(--canvas)', padding: '14px 16px', borderLeft: `3px solid ${color}` }}
-                        >
-                          <div style={{ fontSize: '10px', letterSpacing: '.08em', color: 'var(--muted)', marginBottom: '5px', fontWeight: 400 }}>
-                            {fmt12(r.start)}
-                          </div>
-                          <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '14px', fontWeight: 400, color: 'var(--text)', lineHeight: 1.25, marginBottom: '8px' }}>
-                            {r.className}
-                          </div>
-                          <a
-                            href={studio.bookingUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ display: 'block', width: '100%', fontSize: '9.5px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', textAlign: 'center', color: 'var(--esp)', border: '1px solid var(--rule)', padding: '7px 0', textDecoration: 'none', fontFamily: 'var(--font-dm-sans)' }}
+          <div
+            className="sched-grid"
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}
+          >
+            {DAYS_ORDER.map(day => {
+              const daySessions = byDay[day] ?? []
+              return (
+                <div key={day} style={{ background: 'var(--canvas)', display: 'flex', flexDirection: 'column' }}>
+                  {/* Day header */}
+                  <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--rule)', background: 'var(--linen)' }}>
+                    <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '16px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1 }}>
+                      {DAY_FULL[day]}
+                    </span>
+                  </div>
+                  {/* Sessions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: 'var(--rule)', flex: 1 }}>
+                    {daySessions.length === 0 ? (
+                      <div style={{ padding: '24px 16px', textAlign: 'center', background: 'var(--canvas)' }}>
+                        <span style={{ width: '16px', height: '1px', background: 'var(--rule)', display: 'inline-block' }} />
+                      </div>
+                    ) : (
+                      daySessions.map(r => {
+                        const color = classColor(r.className)
+                        return (
+                          <div
+                            key={r.id}
+                            style={{ background: 'var(--canvas)', padding: '14px 14px 14px 16px', borderLeft: `3px solid ${color}` }}
                           >
-                            Book
-                          </a>
-                        </div>
-                      )
-                    })
-                  )}
+                            <div style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9.5px', letterSpacing: '.06em', color: 'var(--muted)', marginBottom: '5px', fontWeight: 400 }}>
+                              {fmt12(r.start)}
+                            </div>
+                            <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '14px', fontWeight: 400, color: 'var(--text)', lineHeight: 1.25, marginBottom: '10px' }}>
+                              {r.className}
+                            </div>
+                            <a
+                              href={studio.bookingUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ display: 'block', width: '100%', fontFamily: 'var(--font-dm-sans)', fontSize: '9px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', textAlign: 'center', color: 'var(--esp)', border: '1px solid var(--rule)', padding: '7px 0', textDecoration: 'none', transition: 'background .2s, color .2s' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--esp)'; (e.currentTarget as HTMLElement).style.color = 'var(--canvas)' }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--esp)' }}
+                            >
+                              Book
+                            </a>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* Mobile: accordion */}
         <div className="mob-only">
-          <ScheduleAccordion
-            byDay={byDay}
-            bookingUrl={studio.bookingUrl}
-          />
+          <ScheduleAccordion byDay={byDay} bookingUrl={studio.bookingUrl} />
         </div>
       </div>
 
       {/* ── CLASS TYPE CARDS ── */}
-      <div style={{ borderTop: '1px solid var(--rule)', borderBottom: '1px solid var(--rule)' }}>
-        <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '72px 48px' }}>
+      <div style={{ borderTop: '1px solid var(--rule)', borderBottom: '1px solid var(--rule)', background: 'var(--l2)' }}>
+        <div className="sp" style={{ maxWidth: '1320px', margin: '0 auto', padding: '80px 48px' }}>
           <ScrollReveal>
-            <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '52px' }}>
+            <div className="rflex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '56px' }}>
               <div>
                 <div className="slbl">Class types</div>
-                <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(36px,4vw,54px)', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', margin: 0 }}>
+                <h2 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(40px,4.5vw,62px)', fontWeight: 400, lineHeight: 1.05, color: 'var(--esp)', margin: 0 }}>
                   What we <em style={{ fontStyle: 'italic', fontWeight: 300, color: 'var(--brown)' }}>offer</em>
                 </h2>
               </div>
-              <p style={{ fontSize: '13.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.75, maxWidth: '300px', textAlign: 'right' }}>
+              <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '13.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.85, maxWidth: '280px', textAlign: 'right' }}>
                 Every class is taught by a certified instructor in a group of no more than 12.
               </p>
             </div>
           </ScrollReveal>
+
           {/* Desktop: 2-col grid */}
           <ScrollReveal>
             <div className="r2c desk-only" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)' }}>
@@ -198,30 +209,31 @@ export default async function ClassesPage() {
                 return (
                   <div
                     key={cls.slug}
-                    className="cls-card"
                     style={{
-                      background: 'var(--linen)',
+                      background: 'var(--canvas)',
                       ...(isLastOdd ? { gridColumn: '1 / -1', maxWidth: '50%' } : {}),
                     }}
                   >
-                    <div style={{ padding: '32px 36px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
-                        <span style={{ fontSize: '11px', letterSpacing: '.1em', color: 'var(--muted)', marginBottom: '10px', display: 'block' }}>{String(i + 1).padStart(2, '0')}</span>
-                        <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '32px', fontWeight: 400, lineHeight: 1.1, color: 'var(--esp)', marginBottom: '12px' }}>
+                        <span style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '10px', letterSpacing: '.1em', color: 'var(--muted)', marginBottom: '12px', display: 'block' }}>
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '34px', fontWeight: 400, lineHeight: 1.08, color: 'var(--esp)', marginBottom: '14px' }}>
                           {cls.name} {cls.nameItalic && <em style={{ fontStyle: 'italic', fontWeight: 300 }}>{cls.nameItalic}</em>}
                         </div>
                         {'tags' in cls && Array.isArray(cls.tags) && (
                           <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', flexWrap: 'wrap' }}>
                             {(cls.tags as string[]).map((tag, ti) => (
-                              <span key={tag} style={{ fontSize: '9.5px', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--blt)', fontWeight: 500 }}>
+                              <span key={tag} style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--blt)', fontWeight: 500 }}>
                                 {ti > 0 && <span style={{ color: 'var(--rule)', marginRight: '8px' }}>·</span>}{tag}
                               </span>
                             ))}
                           </div>
                         )}
-                        <p style={{ fontSize: '13px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.75 }}>{cls.desc}</p>
+                        <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '13.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.85 }}>{cls.desc}</p>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '20px', borderTop: '1px solid var(--rule)', marginTop: '24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '24px', borderTop: '1px solid var(--rule)', marginTop: '28px' }}>
                         <span style={{ fontFamily: 'var(--font-cormorant)', fontSize: '20px', fontWeight: 300, color: 'var(--esp)' }}>
                           {cls.priceNote}
                         </span>
@@ -229,7 +241,8 @@ export default async function ClassesPage() {
                           href={studio.bookingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--canvas)', background: 'var(--esp)', padding: '11px 24px', textDecoration: 'none', display: 'inline-block', transition: 'background .2s' }}
+                          className="btn-primary"
+                          style={{ padding: '11px 24px' }}
                         >
                           Book class
                         </Link>
@@ -240,7 +253,8 @@ export default async function ClassesPage() {
               })}
             </div>
           </ScrollReveal>
-          {/* Mobile: accordion — rendered client-side */}
+
+          {/* Mobile: accordion */}
           <div className="mob-only">
             <ClassAccordion classes={classTypes as ClassType[]} bookingUrl={studio.bookingUrl} />
           </div>
@@ -248,26 +262,23 @@ export default async function ClassesPage() {
       </div>
 
       {/* ── CTA ── */}
-      <div className="sp" style={{ background: 'var(--esp)', marginTop: 0, padding: '60px 48px' }}>
-        <div className="rcta" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}>
+      <div className="sp" style={{ background: 'var(--esp)', padding: '72px 48px' }}>
+        <div
+          className="rcta"
+          style={{ maxWidth: '1320px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '48px' }}
+        >
           <div>
-            <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(28px,3vw,40px)', fontWeight: 300, color: 'var(--linen)', marginBottom: '8px' }}>
+            <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(30px,3.2vw,44px)', fontWeight: 300, color: 'var(--linen)', marginBottom: '10px' }}>
               {classesPage.ctaHeading}{' '}
               {classesPage.ctaHeadingItalic && <em style={{ fontStyle: 'italic', color: '#c4a882' }}>{classesPage.ctaHeadingItalic}</em>}
             </h3>
-            <p style={{ fontSize: '13px', fontWeight: 300, color: 'rgba(244,237,225,.55)', lineHeight: 1.6 }}>{classesPage.ctaBody}</p>
+            <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '13px', fontWeight: 300, color: 'rgba(244,237,225,.5)', lineHeight: 1.7 }}>{classesPage.ctaBody}</p>
           </div>
-          <div style={{ display: 'flex', gap: '16px', flexShrink: 0 }}>
-            <Link
-              href="/memberships"
-              style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--linen)', border: '1px solid rgba(255,255,255,.25)', padding: '13px 28px', textDecoration: 'none', display: 'inline-block', transition: 'border-color .2s' }}
-            >
+          <div style={{ display: 'flex', gap: '14px', flexShrink: 0 }}>
+            <Link href="/memberships" style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '10px', fontWeight: 400, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--linen)', border: '1px solid rgba(255,255,255,.22)', padding: '13px 28px', textDecoration: 'none', display: 'inline-block' }}>
               View memberships
             </Link>
-            <Link
-              href="/free-trial"
-              style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'var(--linen)', padding: '13px 28px', textDecoration: 'none', display: 'inline-block', transition: 'background .2s' }}
-            >
+            <Link href="/free-trial" style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '10px', fontWeight: 500, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--esp)', background: 'var(--linen)', padding: '13px 28px', textDecoration: 'none', display: 'inline-block' }}>
               Book free trial
             </Link>
           </div>

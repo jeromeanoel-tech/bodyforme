@@ -17,20 +17,21 @@ export default function FreeTrialPage() {
       {/* ── HERO ── */}
       <section style={{ background: 'var(--esp)', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
         <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '80px 48px 72px' }}>
-          <div style={{ fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.35)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.4)', display: 'block' }} />
+          <div style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9.5px', letterSpacing: '.22em', textTransform: 'uppercase', color: 'rgba(244,237,225,.32)', marginBottom: '22px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.38)', display: 'block' }} />
             New members only · No credit card required
           </div>
-          <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(52px,6vw,84px)', fontWeight: 400, lineHeight: 1.04, color: 'var(--linen)', letterSpacing: '-.01em', marginBottom: '28px', maxWidth: '700px' }}>
+          <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(52px,6.5vw,90px)', fontWeight: 400, lineHeight: 1.03, color: 'var(--linen)', letterSpacing: '-.02em', marginBottom: '28px', maxWidth: '720px' }}>
             {freeTrial.heading}<br />
             <em style={{ fontStyle: 'italic', fontWeight: 300, color: '#c4a882' }}>{freeTrial.headingItalic}</em>
           </h1>
-          <p style={{ fontSize: '14px', fontWeight: 300, color: 'rgba(244,237,225,.6)', lineHeight: 1.8, maxWidth: '520px', marginBottom: '40px' }}>
+          <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '14.5px', fontWeight: 300, color: 'rgba(244,237,225,.55)', lineHeight: 1.85, maxWidth: '520px', marginBottom: '44px' }}>
             {freeTrial.body}
           </p>
           <Link
             href="/sign-up?plan=free-trial"
-            style={{ fontSize: '10.5px', fontWeight: 500, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--esp)', background: 'var(--linen)', padding: '16px 40px', textDecoration: 'none', display: 'inline-block', transition: 'background .2s' }}
+            className="btn-primary"
+            style={{ color: 'var(--esp)', background: 'var(--linen)', border: '1px solid var(--linen)', padding: '16px 44px' }}
           >
             {freeTrial.ctaText}
           </Link>

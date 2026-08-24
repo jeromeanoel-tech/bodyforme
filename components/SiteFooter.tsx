@@ -5,81 +5,121 @@ export default function SiteFooter() {
   const year = new Date().getFullYear()
 
   return (
-    <footer style={{ background: 'var(--esp2)', paddingTop: '64px' }}>
-      <div className="sp" style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 48px' }}>
+    <footer style={{ background: 'var(--esp)', color: 'var(--linen)' }}>
 
-        {/* Top grid */}
-        <div className="footer-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '64px', paddingBottom: '56px', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
-
-          {/* Brand col */}
+      {/* ── Top section ──────────────────────────────────────────────────── */}
+      <div
+        className="sp"
+        style={{ maxWidth: '1320px', margin: '0 auto', padding: '80px 48px 64px' }}
+      >
+        <div
+          className="footer-grid"
+          style={{ display: 'grid', gridTemplateColumns: '2.5fr 1fr 1fr 1fr', gap: '64px' }}
+        >
+          {/* Brand */}
           <div>
-            <div style={{ marginBottom: '14px' }}>
-              <img src="/bodyformeBlogo.png" alt="BodyForme" style={{ height: 40, width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.85 }} />
-            </div>
-            <p style={{ fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,225,.45)', lineHeight: 1.7, maxWidth: '240px' }}>
+            <img
+              src="/bodyformeBlogo.png"
+              alt="BodyForme"
+              style={{ height: 32, width: 'auto', filter: 'brightness(0) invert(1)', opacity: .8, marginBottom: '20px', display: 'block' }}
+            />
+            <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '13px', fontWeight: 300, color: 'rgba(244,237,225,.4)', lineHeight: 1.8, maxWidth: '220px' }}>
               {studio.tagline}<br />
               {studio.address}
             </p>
+            <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12px', fontWeight: 300, color: 'rgba(244,237,225,.3)', marginTop: '16px' }}>
+              <a href={`tel:${studio.phone}`} style={{ color: 'inherit', textDecoration: 'none' }}>{studio.phone}</a>
+            </p>
           </div>
 
-          {/* Studio links */}
-          <div>
-            <div style={{ fontSize: '9px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.3)', marginBottom: '20px' }}>Studio</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                { href: '/classes',     label: 'Classes'     },
-                { href: '/memberships', label: 'Memberships' },
-                { href: '/about',       label: 'About Us'    },
-                { href: '/free-trial',  label: 'Free Trial'  },
-              ].map(({ href, label }) => (
-                <Link key={href} href={href} style={{ fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.5)', textDecoration: 'none', transition: 'color .2s' }}>
-                  {label}
-                </Link>
-              ))}
-            </div>
-          </div>
+          {/* Studio */}
+          <FooterCol heading="Studio" links={[
+            { href: '/classes',     label: 'Classes'     },
+            { href: '/memberships', label: 'Memberships' },
+            { href: '/about',       label: 'About Us'    },
+            { href: '/free-trial',  label: 'Free Trial'  },
+          ]} />
 
           {/* Visit */}
-          <div>
-            <div style={{ fontSize: '9px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.3)', marginBottom: '20px' }}>Visit</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <span style={{ fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.5)', lineHeight: 1.6 }}>{studio.address}</span>
-              <a href={`tel:${studio.phone}`} style={{ fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.5)', textDecoration: 'none' }}>{studio.phone}</a>
-              <a href={`mailto:${studio.email}`} style={{ fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.5)', textDecoration: 'none' }}>{studio.email}</a>
-            </div>
-          </div>
+          <FooterCol heading="Visit" links={[
+            { href: '/contact',         label: 'Get in touch' },
+            { href: `mailto:${studio.email}`, label: studio.email, external: true },
+          ]}>
+            <span style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.38)', lineHeight: 1.7, display: 'block' }}>
+              Mon–Fri 6am–8pm<br />
+              Sat 7am–2pm<br />
+              Sun 8am–12pm
+            </span>
+          </FooterCol>
 
           {/* Account */}
-          <div>
-            <div style={{ fontSize: '9px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.3)', marginBottom: '20px' }}>Account</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                { href: studio.bookingUrl, label: 'Book a class'   },
-                { href: '/free-trial',     label: 'Free trial'     },
-                { href: '/contact',        label: 'Get in touch'   },
-              ].map(({ href, label }) => (
-                <Link key={href} href={href} style={{ fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.5)', textDecoration: 'none', transition: 'color .2s' }}>
-                  {label}
-                </Link>
-              ))}
-            </div>
-          </div>
+          <FooterCol heading="Account" links={[
+            { href: '/app',          label: 'Member login'  },
+            { href: '/free-trial',   label: 'Book free trial' },
+            { href: studio.bookingUrl, label: 'Book a class', external: true },
+          ]} />
         </div>
+      </div>
 
-        {/* Bottom bar */}
-        <div className="footer-bottom" style={{ padding: '20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '11px', color: 'rgba(244,237,225,.25)', letterSpacing: '.04em' }}>
-            © {year} BodyForme Pilates. All rights reserved.
-          </span>
-          <div style={{ display: 'flex', gap: '24px' }}>
-            {[{ href: '/contact', label: 'Contact' }].map(({ href, label }) => (
-              <Link key={href} href={href} style={{ fontSize: '11px', color: 'rgba(244,237,225,.25)', textDecoration: 'none', transition: 'color .2s' }}>
-                {label}
-              </Link>
-            ))}
-          </div>
+      {/* ── Divider ───────────────────────────────────────────────────────── */}
+      <div style={{ height: '1px', background: 'rgba(255,255,255,.06)', maxWidth: '1320px', margin: '0 auto 0', padding: '0 48px' }}>
+        <div style={{ height: '1px', background: 'rgba(255,255,255,.06)' }} />
+      </div>
+
+      {/* ── Bottom bar ────────────────────────────────────────────────────── */}
+      <div
+        className="sp footer-bottom"
+        style={{
+          maxWidth: '1320px',
+          margin: '0 auto',
+          padding: '20px 48px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <span style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '11px', color: 'rgba(244,237,225,.22)', letterSpacing: '.04em' }}>
+          © {year} BodyForme Pilates. All rights reserved.
+        </span>
+        <div style={{ display: 'flex', gap: '24px' }}>
+          <Link href="/terms"   style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '11px', color: 'rgba(244,237,225,.22)', textDecoration: 'none', transition: 'color .2s' }}>Terms</Link>
+          <Link href="/contact" style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '11px', color: 'rgba(244,237,225,.22)', textDecoration: 'none', transition: 'color .2s' }}>Contact</Link>
         </div>
       </div>
     </footer>
+  )
+}
+
+function FooterCol({
+  heading,
+  links,
+  children,
+}: {
+  heading: string
+  links: { href: string; label: string; external?: boolean }[]
+  children?: React.ReactNode
+}) {
+  return (
+    <div>
+      <div style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'rgba(244,237,225,.28)', marginBottom: '20px', fontWeight: 400 }}>
+        {heading}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {children}
+        {links.map(({ href, label, external }) => (
+          <Link
+            key={href}
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+            style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12.5px', fontWeight: 300, color: 'rgba(244,237,226,.42)', textDecoration: 'none', transition: 'color .2s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(244,237,226,.75)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(244,237,226,.42)' }}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -44,8 +44,8 @@ export default function ContactPage() {
         <div style={{ background: 'var(--esp)', padding: '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 20% 60%,oklch(0.38 0.06 40 / .4) 0%,transparent 60%)' }} />
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div style={{ fontSize: '10px', letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(244,237,225,.35)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.4)', display: 'block' }} />
+            <div style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9.5px', letterSpacing: '.22em', textTransform: 'uppercase', color: 'rgba(244,237,225,.32)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ width: '28px', height: '1px', background: 'rgba(196,168,130,.38)', display: 'block' }} />
               {contact.hero.eyebrow}
             </div>
             <h1 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 'clamp(48px,5.5vw,76px)', fontWeight: 400, lineHeight: 1.05, color: 'var(--linen)', letterSpacing: '-.01em', marginBottom: '24px' }}>
@@ -307,12 +307,13 @@ export default function ContactPage() {
 // ── Style helpers ─────────────────────────────────────────────────────────────
 
 const lblStyle: React.CSSProperties = {
-  fontSize: '9.5px',
-  letterSpacing: '.14em',
+  fontFamily: 'var(--font-dm-sans)',
+  fontSize: '9px',
+  letterSpacing: '.18em',
   textTransform: 'uppercase',
   color: 'var(--muted)',
   display: 'block',
-  marginBottom: '8px',
+  marginBottom: '10px',
 }
 
 const inputStyle: React.CSSProperties = {
@@ -322,7 +323,7 @@ const inputStyle: React.CSSProperties = {
   borderBottom: '1px solid var(--rule)',
   padding: '10px 0',
   fontFamily: 'var(--font-dm-sans)',
-  fontSize: '16px',
+  fontSize: '14px',
   fontWeight: 300,
   color: 'var(--text)',
   outline: 'none',
