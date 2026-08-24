@@ -158,6 +158,24 @@ img, video, svg { max-width: 100%; }
 .faq-toggle { transition: transform .3s cubic-bezier(.25,.46,.45,.94); }
 .faq-item.open .faq-toggle { transform: rotate(45deg); }
 
+/* ── Schedule book button ───────────────────────────────────────────────────── */
+.sched-book-btn {
+  display: block;
+  width: 100%;
+  font-family: var(--font-dm-sans);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--esp);
+  border: 1px solid var(--rule);
+  padding: 7px 0;
+  text-decoration: none;
+  transition: background .2s ease, color .2s ease;
+}
+.sched-book-btn:hover { background: var(--esp); color: var(--canvas); }
+
 /* ── Class hover card ───────────────────────────────────────────────────────── */
 .cls-hover-card {
   transition: background .25s ease;

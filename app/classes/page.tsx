@@ -161,9 +161,7 @@ export default async function ClassesPage() {
                               href={studio.bookingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{ display: 'block', width: '100%', fontFamily: 'var(--font-dm-sans)', fontSize: '9px', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', textAlign: 'center', color: 'var(--esp)', border: '1px solid var(--rule)', padding: '7px 0', textDecoration: 'none', transition: 'background .2s, color .2s' }}
-                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--esp)'; (e.currentTarget as HTMLElement).style.color = 'var(--canvas)' }}
-                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = 'var(--esp)' }}
+                              className="sched-book-btn"
                             >
                               Book
                             </a>

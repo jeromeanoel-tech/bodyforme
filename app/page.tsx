@@ -11,24 +11,7 @@ import { home, studio, classTypes, memberships } from '@/lib/content'
 
 type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
 
-/* ── Photo placeholder ─────────────────────────────────────────────────────── */
-function Photo({
-  label = 'Studio photo',
-  style = {},
-  className = '',
-}: {
-  label?: string
-  style?: React.CSSProperties
-  className?: string
-}) {
-  return (
-    <div
-      className={`photo-block ${className}`}
-      data-label={label}
-      style={{ background: 'var(--l3)', position: 'relative', overflow: 'hidden', ...style }}
-    />
-  )
-}
+
 
 /* ── Homepage ──────────────────────────────────────────────────────────────── */
 export default function HomePage() {
@@ -415,10 +398,9 @@ function BenefitsSection() {
 
         {/* Photo */}
         <ScrollReveal>
-          <Photo
-            label="Benefits / studio photo"
-            style={{ aspectRatio: '3/4', width: '100%' }}
-          />
+          <div style={{ aspectRatio: '3/4', width: '100%', position: 'relative', overflow: 'hidden' }}>
+            <img src="/website-asset-1.jpg" alt="BodyForme studio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
         </ScrollReveal>
       </div>
     </section>

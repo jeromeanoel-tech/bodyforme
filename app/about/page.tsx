@@ -9,17 +9,6 @@ export const metadata = {
   description: 'Meet Suzanne Harb and the BodyForme team. Our story, values and what makes our Doncaster Pilates studio different.',
 }
 
-/* ── Photo placeholder ────────────────────────────────────────────────────── */
-function Photo({ label = 'Studio photo', style = {}, className = '' }: { label?: string; style?: React.CSSProperties; className?: string }) {
-  return (
-    <div
-      className={`photo-block ${className}`}
-      data-label={label}
-      style={{ background: 'var(--l3)', position: 'relative', overflow: 'hidden', ...style }}
-    />
-  )
-}
-
 export default function AboutPage() {
   return (
     <div className="site-body">
@@ -108,15 +97,21 @@ export default function AboutPage() {
       <div style={{ borderBottom: '1px solid var(--rule)' }}>
         <ScrollReveal>
           <div className="gallery-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gridTemplateRows: 'auto auto', gap: '2px', background: 'var(--rule)' }}>
-            {/* Large hero photo */}
-            <Photo
-              label="Studio space"
-              style={{ gridRow: '1 / 3', minHeight: '520px' }}
-            />
-            <Photo label="Class in session" style={{ minHeight: '258px' }} />
-            <Photo label="Reception / entrance" style={{ minHeight: '258px' }} />
-            <Photo label="Equipment" style={{ minHeight: '258px' }} />
-            <Photo label="Detail / texture" style={{ minHeight: '258px' }} />
+            <div style={{ gridRow: '1 / 3', minHeight: '520px', position: 'relative', overflow: 'hidden' }}>
+              <img src="/website-asset-1.jpg" alt="BodyForme studio" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            </div>
+            <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
+              <img src="/stretch.jpg" alt="Pilates class" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            </div>
+            <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
+              <img src="/yoga.png" alt="Flexibility training" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            </div>
+            <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
+              <img src="/mat.png" alt="Studio equipment" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            </div>
+            <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
+              <img src="/pilates.png" alt="Pilates training" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+            </div>
           </div>
         </ScrollReveal>
       </div>
