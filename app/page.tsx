@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ClassAccordion from '@/components/ClassAccordion'
@@ -192,9 +193,12 @@ function HeroSection() {
 
         {/* ── Right: photo placeholder ── */}
         <div className="hero-right" style={{ position: 'relative', height: '82vh', maxHeight: '680px' }}>
-          <Photo
-            label="Studio hero photo"
-            style={{ width: '100%', height: '100%' }}
+          <Image
+            src="/Bodyforme Content Collective Portrait-04934.JPG"
+            alt="BodyForme Pilates studio"
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center top' }}
+            priority
           />
           {/* Floating quote card */}
           <div

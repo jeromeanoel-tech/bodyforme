@@ -160,11 +160,6 @@ export default function AboutPage() {
             <div className="r3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1px', background: 'var(--rule)', border: '1px solid var(--rule)', marginTop: '56px' }}>
               {about.instructors.map((inst, i) => (
                 <div key={i} style={{ background: 'var(--canvas)' }}>
-                  {/* Photo placeholder */}
-                  <Photo
-                    label={`${inst.name} — instructor photo`}
-                    style={{ aspectRatio: '4/3', width: '100%' }}
-                  />
                   <div style={{ padding: '28px 28px 36px' }}>
                     <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '24px', fontWeight: 400, color: 'var(--esp)', lineHeight: 1.1, marginBottom: '4px' }}>{inst.name}</div>
                     <div style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '14px' }}>{inst.role}</div>
