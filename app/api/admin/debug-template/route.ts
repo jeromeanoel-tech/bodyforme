@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
 
-const supabase = createClient(
-  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
-  (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
-)
+export const dynamic = 'force-dynamic'
+
+function getClient() {
+  return createClient(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
+    (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
+  )
+}
 
 function getMelbDate(d: Date = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(d)
@@ -16,6 +20,7 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   // Get all template rows
+  const supabase = getClient()
   const { data: rows, error } = await supabase
     .from('schedule_template')
     .select('id, day, start_time, end_time, class_name, instructor')

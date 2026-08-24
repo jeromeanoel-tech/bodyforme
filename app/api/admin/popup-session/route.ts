@@ -4,15 +4,17 @@ import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
 import { melbToUtc } from '@/lib/dates'
 
-const supabase = createClient(
-  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
-  (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
-)
+function getClient() {
+  return createClient(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
+    (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
+  )
+}
 
-async function getOrCreateServiceId(className: string): Promise<string | undefined> {
-  const { data: existing } = await supabase.from('services').select('id').eq('name', className).limit(1)
+async function getOrCreateServiceId(db: ReturnType<typeof getClient>, className: string): Promise<string | undefined> {
+  const { data: existing } = await db.from('services').select('id').eq('name', className).limit(1)
   if (existing?.[0]?.id) return existing[0].id
-  const { data: created } = await supabase.from('services')
+  const { data: created } = await db.from('services')
     .insert({ name: className, description: '', duration: 60, capacity: 20 })
     .select('id').single()
   return created?.id
@@ -24,6 +26,7 @@ export async function GET() {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+  const supabase = getClient()
   const { data, error } = await supabase
     .from('sessions')
     .select('id, title, instructor_name, start_time, end_time, capacity, status')
@@ -66,7 +69,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 })
   }
 
-  const serviceId = await getOrCreateServiceId(class_name.trim())
+  const supabase = getClient()
+  const serviceId = await getOrCreateServiceId(supabase, class_name.trim())
   if (!serviceId) return NextResponse.json({ error: 'Could not create service' }, { status: 500 })
 
   const { data, error } = await supabase.from('sessions').insert({
@@ -98,6 +102,7 @@ export async function DELETE(req: NextRequest) {
   const { id } = await req.json() as { id: string }
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
+  const supabase = getClient()
   const { error } = await supabase.from('sessions').update({ status: 'CANCELLED' }).eq('id', id).eq('is_popup', true)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

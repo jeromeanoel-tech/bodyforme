@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
 
-const supabase = createClient(
-  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
-  (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
-)
+function getClient() {
+  return createClient(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
+    (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
+  )
+}
 
 export async function DELETE(req: NextRequest) {
   const session = await getAdminSession()
@@ -13,6 +15,8 @@ export async function DELETE(req: NextRequest) {
 
   const { memberId } = await req.json()
   if (!memberId) return NextResponse.json({ error: 'memberId required' }, { status: 400 })
+
+  const supabase = getClient()
 
   // Block deletion if member has confirmed future bookings
   const now = new Date().toISOString()

@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
 
-const supabase = createClient(
-  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
-  (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
-)
+export const dynamic = 'force-dynamic'
+
+function getClient() {
+  return createClient(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
+    (process.env.SUPABASE_SECRET_KEY       ?? '').replace(/\\n|\n/g, '').trim(),
+  )
+}
 
 function getMelbDate(d: Date = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(d)
@@ -53,6 +57,7 @@ export async function GET() {
   const wideTo = new Date(sun)
   wideTo.setDate(sun.getDate() + 7)
 
+  const supabase = getClient()
   const { data: allSessions } = await supabase
     .from('sessions')
     .select('id, title, start_time, end_time, status, service_id, capacity')

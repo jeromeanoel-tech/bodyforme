@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
 
-const supabase = createClient(
-  (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
-  (process.env.SUPABASE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(),
-)
+export const dynamic = 'force-dynamic'
+
+function getClient() {
+  return createClient(
+    (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\\n|\n/g, '').trim(),
+    (process.env.SUPABASE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(),
+  )
+}
 
 function slotKey(utcIso: string): string {
   const parts = new Intl.DateTimeFormat('en-AU', {
@@ -22,6 +26,7 @@ export async function GET() {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+  const supabase = getClient()
   // Fetch template
   const { data: template } = await supabase.from('schedule_template').select('*').eq('day', 'thursday')
   const templateNameBySlot = Object.fromEntries((template ?? []).map((r: { day: string; start_time: string; class_name: string }) => [`${r.day}:${r.start_time}`, r.class_name]))
