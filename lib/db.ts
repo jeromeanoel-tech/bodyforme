@@ -182,30 +182,34 @@ export async function getScheduleTemplate(): Promise<TemplateRow[]> {
 }
 
 // Returns confirmed sessions for the current Melbourne week (Mon–Sun).
-// Sessions are stored as naive Melbourne time in UTC, so we use getUTC* methods.
+// Sessions are stored as naive Melbourne time in UTC — use getUTC* for all time ops,
+// and derive the week boundaries from Melbourne's calendar date (not server UTC).
 export async function getSessionsThisWeek(): Promise<TemplateRow[]> {
   const DAY_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
   const DOW_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
 
-  const now = new Date()
-  const dow = now.getUTCDay() // 0=Sun using naive Melbourne UTC
-  const daysToMon = dow === 0 ? -6 : 1 - dow
-  const monday = new Date(now)
-  monday.setUTCDate(now.getUTCDate() + daysToMon)
-  monday.setUTCHours(0, 0, 0, 0)
-  const nextMonday = new Date(monday)
-  nextMonday.setUTCDate(monday.getUTCDate() + 7)
+  // Step 1: get today's date in Melbourne (not server UTC)
+  const melbStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
+  const [y, mo, d] = melbStr.split('-').map(Number)
+  const dow = new Date(Date.UTC(y, mo - 1, d, 12)).getUTCDay() // 0=Sun
+  const daysToMon = dow === 0 ? 6 : dow - 1
+
+  // Step 2: naive UTC boundaries — sessions store Melbourne time as if it were UTC
+  const monDate     = new Date(Date.UTC(y, mo - 1, d - daysToMon))
+  const nextMonDate = new Date(Date.UTC(y, mo - 1, d - daysToMon + 7))
+  const weekStart   = `${monDate.toISOString().slice(0, 10)}T00:00:00.000Z`
+  const weekEnd     = `${nextMonDate.toISOString().slice(0, 10)}T00:00:00.000Z`
 
   const { data } = await getSupabase()
     .from('sessions')
     .select('id, title, start_time, instructor_name')
     .eq('status', 'CONFIRMED')
-    .gte('start_time', monday.toISOString())
-    .lt('start_time', nextMonday.toISOString())
+    .gte('start_time', weekStart)
+    .lt('start_time', weekEnd)
     .order('start_time')
 
   return (data ?? []).map((s: { id: string; title: string; start_time: string; instructor_name: string }) => {
-    const dt = new Date(s.start_time)
+    const dt  = new Date(s.start_time)
     const day = DOW_NAMES[dt.getUTCDay()]
     const h   = String(dt.getUTCHours()).padStart(2, '0')
     const m   = String(dt.getUTCMinutes()).padStart(2, '0')
