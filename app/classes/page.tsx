@@ -6,7 +6,7 @@ import ScheduleAccordion from '@/components/ScheduleAccordion'
 import Link from 'next/link'
 import { classTypes, classesPage, studio } from '@/lib/content'
 type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
-import { getScheduleTemplate, type TemplateRow } from '@/lib/db'
+import { getSessionsThisWeek, type TemplateRow } from '@/lib/db'
 
 export const metadata = {
   title:       'Classes & Schedule | BodyForme Pilates',
@@ -56,7 +56,7 @@ const DAYS_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday
 export default async function ClassesPage() {
   let rows: TemplateRow[] = []
   try {
-    rows = await getScheduleTemplate()
+    rows = await getSessionsThisWeek()
   } catch {
     // fail gracefully
   }

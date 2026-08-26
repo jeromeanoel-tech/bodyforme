@@ -181,6 +181,41 @@ export async function getScheduleTemplate(): Promise<TemplateRow[]> {
     })
 }
 
+// Returns confirmed sessions for the current Melbourne week (Mon–Sun).
+// Sessions are stored as naive Melbourne time in UTC, so we use getUTC* methods.
+export async function getSessionsThisWeek(): Promise<TemplateRow[]> {
+  const DAY_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+  const DOW_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+
+  const now = new Date()
+  const dow = now.getUTCDay() // 0=Sun using naive Melbourne UTC
+  const daysToMon = dow === 0 ? -6 : 1 - dow
+  const monday = new Date(now)
+  monday.setUTCDate(now.getUTCDate() + daysToMon)
+  monday.setUTCHours(0, 0, 0, 0)
+  const nextMonday = new Date(monday)
+  nextMonday.setUTCDate(monday.getUTCDate() + 7)
+
+  const { data } = await getSupabase()
+    .from('sessions')
+    .select('id, title, start_time, instructor_name')
+    .eq('status', 'CONFIRMED')
+    .gte('start_time', monday.toISOString())
+    .lt('start_time', nextMonday.toISOString())
+    .order('start_time')
+
+  return (data ?? []).map((s: { id: string; title: string; start_time: string; instructor_name: string }) => {
+    const dt = new Date(s.start_time)
+    const day = DOW_NAMES[dt.getUTCDay()]
+    const h   = String(dt.getUTCHours()).padStart(2, '0')
+    const m   = String(dt.getUTCMinutes()).padStart(2, '0')
+    return { id: s.id, day, start: `${h}:${m}`, end: '', className: s.title, instructor: s.instructor_name ?? '' }
+  }).sort((a: TemplateRow, b: TemplateRow) => {
+    const d = DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day)
+    return d !== 0 ? d : a.start.localeCompare(b.start)
+  })
+}
+
 export async function getServices(): Promise<Service[]> {
   const { data } = await getSupabase().from('services').select('id, name').order('name')
   return (data ?? []).map((r: { id: string; name: string }) => ({
