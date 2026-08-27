@@ -177,12 +177,17 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ row: data, resynced: allAtThisTime.length, cancelled: toCancel.length })
   }
 
-  let sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, old_class_name ?? class_name)
-  if (sessions.length === 0) {
-    sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, '', true)
-  }
   const timeChanged = start_time !== old_start_time || end_time !== old_end_time
   const nameChanged = class_name !== (old_class_name ?? class_name)
+
+  // When time changes, search by slot (day+time) not by title — session titles can drift
+  // out of sync with the template, causing a title-based lookup to miss them entirely.
+  let sessions = timeChanged
+    ? await matchingSessions(old_day ?? day, old_start_time ?? start_time, '', true)
+    : await matchingSessions(old_day ?? day, old_start_time ?? start_time, old_class_name ?? class_name)
+  if (!timeChanged && sessions.length === 0) {
+    sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, '', true)
+  }
 
   let newServiceId: string | undefined
   if (nameChanged) {
