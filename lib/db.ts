@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'node:crypto'
+import { getScheduleWeekRange, getMelbDayTime } from './dates'
 
 let _supabase: ReturnType<typeof createClient> | null = null
 function getSupabase(): any {
@@ -182,38 +183,22 @@ export async function getScheduleTemplate(): Promise<TemplateRow[]> {
 }
 
 // Returns confirmed sessions for the current Melbourne week (Mon–Sun).
-// Sessions are stored as naive Melbourne time in UTC — use getUTC* for all time ops,
-// and derive the week boundaries from Melbourne's calendar date (not server UTC).
+// Sessions are stored as real UTC. Use lib/dates.ts for all Melbourne timezone conversions.
 export async function getSessionsThisWeek(): Promise<TemplateRow[]> {
   const DAY_ORDER = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
-  const DOW_NAMES = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
-
-  // Step 1: get today's date in Melbourne (not server UTC)
-  const melbStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
-  const [y, mo, d] = melbStr.split('-').map(Number)
-  const dow = new Date(Date.UTC(y, mo - 1, d, 12)).getUTCDay() // 0=Sun
-  const daysToMon = dow === 0 ? 6 : dow - 1
-
-  // Step 2: naive UTC boundaries — sessions store Melbourne time as if it were UTC
-  const monDate     = new Date(Date.UTC(y, mo - 1, d - daysToMon))
-  const nextMonDate = new Date(Date.UTC(y, mo - 1, d - daysToMon + 7))
-  const weekStart   = `${monDate.toISOString().slice(0, 10)}T00:00:00.000Z`
-  const weekEnd     = `${nextMonDate.toISOString().slice(0, 10)}T00:00:00.000Z`
+  const { from, to } = getScheduleWeekRange()
 
   const { data } = await getSupabase()
     .from('sessions')
     .select('id, title, start_time, instructor_name')
     .eq('status', 'CONFIRMED')
-    .gte('start_time', weekStart)
-    .lt('start_time', weekEnd)
+    .gte('start_time', from)
+    .lte('start_time', to)
     .order('start_time')
 
   return (data ?? []).map((s: { id: string; title: string; start_time: string; instructor_name: string }) => {
-    const dt  = new Date(s.start_time)
-    const day = DOW_NAMES[dt.getUTCDay()]
-    const h   = String(dt.getUTCHours()).padStart(2, '0')
-    const m   = String(dt.getUTCMinutes()).padStart(2, '0')
-    return { id: s.id, day, start: `${h}:${m}`, end: '', className: s.title, instructor: s.instructor_name ?? '' }
+    const { day, time } = getMelbDayTime(s.start_time)
+    return { id: s.id, day, start: time, end: '', className: s.title, instructor: s.instructor_name ?? '' }
   }).sort((a: TemplateRow, b: TemplateRow) => {
     const d = DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day)
     return d !== 0 ? d : a.start.localeCompare(b.start)

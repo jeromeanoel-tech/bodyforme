@@ -117,7 +117,7 @@ Cormorant Garamond (headings) · DM Sans (body)
 
 ## Known gotchas
 - **`\n` in env vars** — Vercel CLI sometimes injects trailing `\n`. Apply `.replace(/\\n|\n/g, '').trim()` to sensitive env vars (JWT secret, Stripe key, base URL).
-- **Melbourne timezone** — sessions stored as naive Melbourne time in UTC. Use `getUTCDay()`, `getUTCHours()` when processing times. Use `Intl.DateTimeFormat` with `timeZone: 'Australia/Melbourne'` when displaying.
+- **Melbourne timezone** — sessions are stored as **real UTC** (e.g. Monday 6:30am Melbourne AEST = `2026-07-05T20:30:00Z`). Never use `getUTCDay()` or `getUTCHours()` on session timestamps — those return the UTC day/time, not Melbourne. Use `lib/dates.ts` as the single source of truth: `getScheduleWeekRange()` for DST-safe week query boundaries, `getMelbDayTime()` to extract Melbourne weekday + time from a UTC ISO string, `melbToUtc()` to convert a Melbourne date+HHMM to a UTC ISO when seeding sessions.
 - **Lazy Stripe import** — see rule 8 above. Use `apiVersion: '2024-04-10' as never` in the constructor.
 - **`planOverride` stores human-readable name** — "3 Per Week", not "weekly-3". Use `signupPlans[planKey].name` to resolve.
 - **`invoice.paid` fires 2–3 days after BECS debit** — for immediate DB updates on subscription creation, use `customer.subscription.created` (fires instantly).
