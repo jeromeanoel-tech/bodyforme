@@ -21,20 +21,37 @@ const T = {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-function localDate(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const TZ = 'Australia/Melbourne'
+
+/** Melbourne YYYY-MM-DD for any Date (or now). */
+function melbDateStr(d: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(d)
+}
+
+/** Melbourne Monday 00:00 expressed as a UTC ISO string (DST-safe). */
+function melbMidnightToUtc(melbDate: string): string {
+  const probe = new Date(`${melbDate}T02:00:00Z`)
+  const melbH = parseInt(new Intl.DateTimeFormat('en-AU', { timeZone: TZ, hour: '2-digit', hour12: false }).format(probe), 10)
+  const utcH  = 0 - (melbH - 2)
+  if (utcH >= 0) return `${melbDate}T${String(utcH).padStart(2, '0')}:00:00.000Z`
+  const prev = new Date(`${melbDate}T00:00:00Z`)
+  prev.setUTCDate(prev.getUTCDate() - 1)
+  return `${prev.toISOString().slice(0, 10)}T${String(24 + utcH).padStart(2, '0')}:00:00.000Z`
 }
 
 function getWeekDays(weekOffset = 0): { date: Date; iso: string }[] {
-  const today = new Date()
-  const day   = today.getDay()
-  const mon   = new Date(today)
-  mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1) + weekOffset * 7)
-  mon.setHours(12, 0, 0, 0)
+  const now       = new Date()
+  const todayMelb = melbDateStr(now)
+  const dowName   = new Intl.DateTimeFormat('en-AU', { timeZone: TZ, weekday: 'long' }).format(now).toLowerCase()
+  const DOW: Record<string, number> = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 }
+  const dow       = DOW[dowName] ?? 1
+  const daysToMon = (dow - 1 + 7) % 7
+  const [y, mo, d] = todayMelb.split('-').map(Number)
+  const monUtc    = new Date(Date.UTC(y, mo - 1, d - daysToMon + weekOffset * 7))
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(mon)
-    d.setDate(mon.getDate() + i)
-    return { date: d, iso: localDate(d) }
+    const dayUtc = new Date(Date.UTC(monUtc.getUTCFullYear(), monUtc.getUTCMonth(), monUtc.getUTCDate() + i))
+    const iso    = dayUtc.toISOString().slice(0, 10)
+    return { date: dayUtc, iso }
   })
 }
 
@@ -131,7 +148,7 @@ export default function ScheduleClient({
   initialStaffMap,
   templateNameBySlot,
 }: Props) {
-  const todayISO    = localDate(new Date())
+  const todayISO    = melbDateStr()
   const hasInitial  = initialSessions.length > 0
 
   const [weekOffset, setWeekOffset] = usePersistedState('schedule-week-offset', 0)
@@ -159,20 +176,19 @@ export default function ScheduleClient({
   const touchStartY     = useRef(0)
 
   async function fetchWeekData(offset: number) {
-    const days = getWeekDays(offset)
-    // Expand from by 1 day so Melbourne early-morning sessions (stored as
-    // previous UTC date, e.g. 9:30am AEST = 23:30 UTC prev day) are included.
-    const fromExpanded = (() => {
-      const d = new Date(days[0].iso + 'T12:00:00')
-      d.setDate(d.getDate() - 1)
-      return localDate(d)
-    })()
-    const from = days[0].iso
-    const to   = days[6].iso
+    const days    = getWeekDays(offset)
+    const monIso  = days[0].iso
+    const sunIso  = days[6].iso
+    // Compute proper UTC bounds: Melbourne Monday 00:00 → Melbourne Sunday 23:59:59.999
+    // melbMidnightToUtc handles DST so Monday 6:30am sessions (stored as Sunday UTC) are included.
+    const [sy, sm, sd] = sunIso.split('-').map(Number)
+    const nextMonIso = new Date(Date.UTC(sy, sm - 1, sd + 1)).toISOString().slice(0, 10)
+    const from = melbMidnightToUtc(monIso)
+    const to   = new Date(new Date(melbMidnightToUtc(nextMonIso)).getTime() - 1).toISOString()
     const [schedData, bookingsData, waitlistData] = await Promise.all([
-      fetch(`/api/app/schedule?from=${fromExpanded}T00:00:00&to=${to}T23:59:59`).then(r => r.json()),
-      fetch(`/api/app/my-bookings?from=${from}&to=${to}`).then(r => r.json()),
-      fetch(`/api/app/waitlist?from=${from}&to=${to}`).then(r => r.json()).catch(() => ({ sessionIds: [] })),
+      fetch(`/api/app/schedule?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => r.json()),
+      fetch(`/api/app/my-bookings?from=${monIso}&to=${sunIso}`).then(r => r.json()),
+      fetch(`/api/app/waitlist?from=${monIso}&to=${sunIso}`).then(r => r.json()).catch(() => ({ sessionIds: [] })),
     ])
     const bm: BookedMap = {}
     ;(bookingsData.bookings as MemberBooking[] ?? []).forEach(b => {
