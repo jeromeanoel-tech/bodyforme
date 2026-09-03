@@ -6,6 +6,16 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source:      '/:path*',
+        has:         [{ type: 'host', value: 'www.bodyforme.com.au' }],
+        destination: 'https://bodyforme.com.au/:path*',
+        permanent:   true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
