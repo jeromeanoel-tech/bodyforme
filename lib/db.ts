@@ -689,15 +689,20 @@ export async function leaveWaitlist(memberId: string, sessionId: string): Promis
 
 export async function getMemberWaitlistInRange(
   memberId: string,
-  from: string,
-  to: string,
+  from: string,  // Melbourne YYYY-MM-DD (Monday)
+  to: string,    // Melbourne YYYY-MM-DD (Sunday)
 ): Promise<string[]> {
+  const [toY, toM, toD] = to.split('-').map(Number)
+  const nextDay = new Date(Date.UTC(toY, toM - 1, toD + 1)).toISOString().slice(0, 10)
+  const utcFrom = melbMidnightToUtc(from)
+  const utcTo   = new Date(new Date(melbMidnightToUtc(nextDay)).getTime() - 1).toISOString()
+
   const { data } = await getSupabase()
     .from('waitlist')
     .select('session_id, sessions!inner(start_time)')
     .eq('member_id', memberId)
-    .gte('sessions.start_time', from)
-    .lte('sessions.start_time', to + 'T23:59:59')
+    .gte('sessions.start_time', utcFrom)
+    .lte('sessions.start_time', utcTo)
   return (data ?? []).map((r: { session_id: string }) => r.session_id)
 }
 
@@ -721,16 +726,23 @@ export async function getFirstOnWaitlist(sessionId: string): Promise<{
 
 export async function getMemberBookingsForRange(
   memberId: string,
-  from: string,
-  to: string,
+  from: string,  // Melbourne YYYY-MM-DD (Monday)
+  to: string,    // Melbourne YYYY-MM-DD (Sunday)
 ): Promise<MemberBooking[]> {
+  // Convert Melbourne date strings to UTC so early-morning sessions
+  // stored as the previous UTC day (e.g. Mon 6:30am = Sun 20:30 UTC) are included.
+  const [toY, toM, toD] = to.split('-').map(Number)
+  const nextDay = new Date(Date.UTC(toY, toM - 1, toD + 1)).toISOString().slice(0, 10)
+  const utcFrom = melbMidnightToUtc(from)
+  const utcTo   = new Date(new Date(melbMidnightToUtc(nextDay)).getTime() - 1).toISOString()
+
   const { data } = await getSupabase()
     .from('bookings')
     .select('id, session_id, status, sessions!inner(start_time)')
     .eq('member_id', memberId)
     .eq('status', 'CONFIRMED')
-    .gte('sessions.start_time', from)
-    .lte('sessions.start_time', to + 'T23:59:59')
+    .gte('sessions.start_time', utcFrom)
+    .lte('sessions.start_time', utcTo)
 
   // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
