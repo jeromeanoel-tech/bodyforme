@@ -49,13 +49,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This class is full.' }, { status: 409 })
   }
 
-  // Check for duplicate booking
+  // Check for duplicate confirmed booking (cancelled bookings don't block re-booking)
   const { data: existing } = await supabase
     .from('bookings')
     .select('id')
     .eq('member_id', memberId)
     .eq('session_id', sessionId)
-    .single()
+    .eq('status', 'CONFIRMED')
+    .maybeSingle()
 
   if (existing?.id) {
     return NextResponse.json({ error: 'Member is already booked into this class.' }, { status: 409 })

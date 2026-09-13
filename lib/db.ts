@@ -728,6 +728,7 @@ export async function getMemberBookingsForRange(
     .from('bookings')
     .select('id, session_id, status, sessions!inner(start_time)')
     .eq('member_id', memberId)
+    .eq('status', 'CONFIRMED')
     .gte('sessions.start_time', from)
     .lte('sessions.start_time', to + 'T23:59:59')
 

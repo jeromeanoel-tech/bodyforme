@@ -24,18 +24,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Membership inactive — member must renew before check-in.' }, { status: 403 })
   }
 
-  // Check if booking already exists (avoids relying on a named unique constraint)
+  // Check if a booking already exists (any status) to avoid unique-constraint violations
   const { data: existing } = await supabase
     .from('bookings')
-    .select('id')
+    .select('id, status')
     .eq('member_id', memberId)
     .eq('session_id', sessionId)
-    .single()
+    .maybeSingle()
 
   let bookingId: string
 
   if (existing?.id) {
-    bookingId = existing.id
+    if (existing.status === 'CONFIRMED') {
+      bookingId = existing.id
+    } else {
+      // Reactivate a previously cancelled booking rather than inserting a duplicate
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'CONFIRMED' })
+        .eq('id', existing.id)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      bookingId = existing.id
+    }
   } else {
     const { data: inserted, error } = await supabase
       .from('bookings')
