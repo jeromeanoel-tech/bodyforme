@@ -172,12 +172,16 @@ export default function CheckInClient({ sessions, services, defaultSessionId, te
     const next = current === 'present' ? 'absent' : 'present'
     setAttended(a => ({ ...a, [bookingId]: 'loading' }))
     try {
-      await fetch('/api/admin/mark-attendance', {
+      const res = await fetch('/api/admin/mark-attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId, attended: next === 'present' }),
       })
-      setAttended(a => ({ ...a, [bookingId]: next }))
+      if (res.ok) {
+        setAttended(a => ({ ...a, [bookingId]: next }))
+      } else {
+        setAttended(a => { const n = { ...a }; delete n[bookingId]; return n })
+      }
     } catch {
       setAttended(a => { const n = { ...a }; delete n[bookingId]; return n })
     }
