@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createBooking, getMemberByContactId, getSessionById, CREDIT_PLANS, countPendingBookings } from '@/lib/db'
 import { getSession } from '@/lib/session'
 import { broadcastBookingChanged } from '@/lib/broadcast'
+import { supabase } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
   const session = await getSession()
@@ -82,6 +83,19 @@ export async function POST(req: NextRequest) {
 
   try {
     const bookingId = await createBooking(session.id, sessionId)
+
+    // Re-check capacity after booking to close the race window where two members
+    // both pass the pre-check simultaneously and both get a spot in a full class.
+    const { count: finalCount } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', sessionId)
+      .eq('status', 'CONFIRMED')
+
+    if ((finalCount ?? 0) > sess.capacity) {
+      await supabase.from('bookings').update({ status: 'CANCELLED' }).eq('id', bookingId)
+      return NextResponse.json({ error: 'This class is now full. Join the waitlist to be notified if a spot opens.' }, { status: 409 })
+    }
 
     broadcastBookingChanged(sessionId, 1).catch(() => {})
 

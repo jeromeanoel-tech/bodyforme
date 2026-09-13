@@ -38,10 +38,11 @@ export async function POST(req: NextRequest) {
     if (existing.status === 'CONFIRMED') {
       bookingId = existing.id
     } else {
-      // Reactivate a previously cancelled booking rather than inserting a duplicate
+      // Reactivate a previously cancelled booking rather than inserting a duplicate;
+      // reset attended so credit deduction fires correctly on next check-in
       const { error } = await supabase
         .from('bookings')
-        .update({ status: 'CONFIRMED' })
+        .update({ status: 'CONFIRMED', attended: false })
         .eq('id', existing.id)
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
       bookingId = existing.id

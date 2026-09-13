@@ -621,7 +621,7 @@ export async function countPendingBookings(memberId: string): Promise<number> {
 export async function createBooking(memberId: string, sessionId: string): Promise<string> {
   const { data, error } = await getSupabase()
     .from('bookings')
-    .upsert({ member_id: memberId, session_id: sessionId, status: 'CONFIRMED' }, { onConflict: 'member_id,session_id' })
+    .upsert({ member_id: memberId, session_id: sessionId, status: 'CONFIRMED', attended: false }, { onConflict: 'member_id,session_id' })
     .select('id')
     .single()
   if (error) throw error
