@@ -478,6 +478,7 @@ export async function getSessionBookings(sessionId: string): Promise<Booking[]> 
     .from('bookings')
     .select('id, status, attended, members(id, first_name, last_name, email, plan_override, credit_balance, status)')
     .eq('session_id', sessionId)
+    .eq('status', 'CONFIRMED')
 
   if (!data || data.length === 0) return []
 

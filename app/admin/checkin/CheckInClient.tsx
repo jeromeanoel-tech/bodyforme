@@ -61,7 +61,7 @@ export default function CheckInClient({ sessions, services, defaultSessionId, te
   const [walkInError, setWalkInError]     = useState('')
   const walkInDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const selectedSessionRef = useRef<Session | null>(null)
+  const selectedSessionRef = useRef<Session | null>(selectedSession)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -163,9 +163,10 @@ export default function CheckInClient({ sessions, services, defaultSessionId, te
       .catch(() => { setBookings([]); setLoading(false) })
   }
 
-  if (selectedSession && bookings === null && !loading) {
-    loadBookings(selectedSession.id)
-  }
+  useEffect(() => {
+    if (selectedSession) loadBookings(selectedSession.id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function toggleAttendance(bookingId: string, current: 'present' | 'absent' | 'loading' | undefined) {
     const next = current === 'present' ? 'absent' : 'present'
