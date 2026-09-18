@@ -47,6 +47,64 @@ const BLANK        = { day: 'monday', start_time: '', end_time: '', class_name: 
 const POPUP_BLANK  = { date: '', start_time: '', end_time: '', class_name: '', instructor: '', capacity: '20' }
 const todayStr     = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' })
 
+function addHour(hhmm: string) {
+  const [h, m] = hhmm.split(':').map(Number)
+  return `${String((h + 1) % 24).padStart(2,'0')}:${String(m).padStart(2,'0')}`
+}
+
+function handleStartTime(time: string, form: typeof BLANK, setForm: (f: typeof BLANK) => void) {
+  const endAlreadySet = form.end_time !== ''
+  setForm({ ...form, start_time: time, ...(!endAlreadySet && time ? { end_time: addHour(time) } : {}) })
+}
+
+function SlotForm({ form, setForm, err, instructors }: {
+  form: typeof BLANK
+  setForm: (f: typeof BLANK) => void
+  err: string
+  instructors: string[]
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="block text-[12px] font-medium text-neutral-600 mb-1">Day</label>
+        <select value={form.day} onChange={e => setForm({ ...form, day: e.target.value })}
+          className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
+          {DAY_ORDER.map(d => <option key={d} value={d}>{DAY_LABELS[d]}</option>)}
+        </select>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
+          <input type="time" value={form.start_time}
+            onChange={e => handleStartTime(e.target.value, form, setForm)}
+            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+        </div>
+        <div>
+          <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time</label>
+          <input type="time" value={form.end_time}
+            onChange={e => setForm({ ...form, end_time: e.target.value })}
+            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
+        <input type="text" value={form.class_name} onChange={e => setForm({ ...form, class_name: e.target.value })}
+          placeholder="e.g. Hot Mat Pilates"
+          className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
+      </div>
+      <div>
+        <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor</label>
+        <select value={form.instructor} onChange={e => setForm({ ...form, instructor: e.target.value })}
+          className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
+          <option value="">— Unassigned —</option>
+          {instructors.map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </div>
+      {err && <p className="text-[12px] text-red-600">{err}</p>}
+    </div>
+  )
+}
+
 export default function ClassesClient({ initialRows, instructors }: { initialRows: TemplateRow[]; instructors: string[] }) {
   const [rows,      setRows]      = useState<TemplateRow[]>(initialRows)
   const [saving,    setSaving]    = useState(false)
@@ -173,16 +231,6 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
     setEditError('')
   }
 
-  function handleStartTime(time: string, form: typeof BLANK, setForm: (f: typeof BLANK) => void) {
-    const endAlreadySet = form.end_time !== ''
-    setForm({ ...form, start_time: time, ...(!endAlreadySet && time ? { end_time: addHour(time) } : {}) })
-  }
-
-  function addHour(hhmm: string) {
-    const [h, m] = hhmm.split(':').map(Number)
-    return `${String((h + 1) % 24).padStart(2,'0')}:${String(m).padStart(2,'0')}`
-  }
-
   async function addSlot() {
     const { day, start_time, end_time, class_name, instructor } = addForm
     if (!start_time || !end_time || !class_name.trim()) { setAddError('Day, times and class name are required'); return }
@@ -273,49 +321,6 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
     acc[d] = rows.filter(r => (r.day ?? '').toLowerCase().trim() === d)
     return acc
   }, {} as Record<string, TemplateRow[]>)
-
-  function SlotForm({ form, setForm, err }: { form: typeof BLANK; setForm: (f: typeof BLANK) => void; err: string }) {
-    return (
-      <div className="space-y-3">
-        <div>
-          <label className="block text-[12px] font-medium text-neutral-600 mb-1">Day</label>
-          <select value={form.day} onChange={e => setForm({ ...form, day: e.target.value })}
-            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
-            {DAY_ORDER.map(d => <option key={d} value={d}>{DAY_LABELS[d]}</option>)}
-          </select>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[12px] font-medium text-neutral-600 mb-1">Start time</label>
-            <input type="time" value={form.start_time}
-              onChange={e => handleStartTime(e.target.value, form, setForm)}
-              className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
-          </div>
-          <div>
-            <label className="block text-[12px] font-medium text-neutral-600 mb-1">End time</label>
-            <input type="time" value={form.end_time}
-              onChange={e => setForm({ ...form, end_time: e.target.value })}
-              className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
-          </div>
-        </div>
-        <div>
-          <label className="block text-[12px] font-medium text-neutral-600 mb-1">Class name</label>
-          <input type="text" value={form.class_name} onChange={e => setForm({ ...form, class_name: e.target.value })}
-            placeholder="e.g. Hot Mat Pilates"
-            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black" />
-        </div>
-        <div>
-          <label className="block text-[12px] font-medium text-neutral-600 mb-1">Instructor</label>
-          <select value={form.instructor} onChange={e => setForm({ ...form, instructor: e.target.value })}
-            className="w-full h-9 px-3 text-sm border border-neutral-200 rounded-lg outline-none focus:border-black bg-white">
-            <option value="">— Unassigned —</option>
-            {instructors.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
-        {err && <p className="text-[12px] text-red-600">{err}</p>}
-      </div>
-    )
-  }
 
   return (
     <div className="h-full flex flex-col">
@@ -465,7 +470,7 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowAdd(false)} />
           <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
             <h2 className="text-[15px] font-semibold text-neutral-900 mb-4">Add recurring slot</h2>
-            <SlotForm form={addForm} setForm={setAddForm} err={addError} />
+            <SlotForm form={addForm} setForm={setAddForm} err={addError} instructors={instructors} />
             <div className="flex justify-end gap-2 mt-5">
               <button onClick={() => setShowAdd(false)}
                 className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation">
@@ -487,7 +492,7 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
           <div className="relative bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full md:w-[420px] p-6 pb-8 md:pb-6">
             <h2 className="text-[15px] font-semibold text-neutral-900 mb-1">Edit slot</h2>
             <p className="text-[12px] text-neutral-400 mb-4">Changes apply to all future matching sessions</p>
-            <SlotForm form={editForm} setForm={setEditForm} err={editError} />
+            <SlotForm form={editForm} setForm={setEditForm} err={editError} instructors={instructors} />
             <div className="flex justify-end gap-2 mt-5">
               <button onClick={() => setEditRow(null)}
                 className="h-8 px-4 text-[14.5px] text-neutral-600 border border-neutral-200 rounded-lg hover:border-neutral-400 touch-manipulation">
