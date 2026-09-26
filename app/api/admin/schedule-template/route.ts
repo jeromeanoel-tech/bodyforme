@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
 import { getAdminSession } from '@/lib/adminSession'
-import { getMelbDate, getMelbFirstOccurrence, melbToUtc } from '@/lib/dates'
+import { getMelbDate, getMelbDayTime, getMelbFirstOccurrence, melbToUtc } from '@/lib/dates'
 
 function getClient() {
   return createClient(
@@ -23,24 +23,52 @@ async function getOrCreateServiceId(className: string): Promise<string | undefin
   return created?.id
 }
 
-async function matchingSessions(day: string, startHHMM: string, className: string, forceByTime = false) {
+/**
+ * Find all future non-cancelled sessions for a service on a specific Melbourne weekday.
+ *
+ * Matches by service_id (stable class identifier) + day-of-week in Melbourne timezone.
+ * This is immune to time drift: it finds sessions regardless of what time they're currently
+ * stored at — so a previous failed update can never permanently hide sessions from this query.
+ */
+async function sessionsOnDay(
+  supabase: ReturnType<typeof getClient>,
+  serviceId: string,
+  day: string,
+): Promise<Array<{ id: string; start_time: string; end_time: string }>> {
+  const { data } = await supabase
+    .from('sessions')
+    .select('id, start_time, end_time')
+    .eq('service_id', serviceId)
+    .neq('status', 'CANCELLED')
+    .gt('start_time', new Date().toISOString())
+    .limit(5000)
+
+  return (data ?? []).filter(s => getMelbDayTime(s.start_time).day === day)
+}
+
+/**
+ * Used only by the admin Sync button: find sessions at a specific Melbourne day+time slot.
+ * Returns all non-cancelled future sessions at that slot regardless of class name.
+ */
+async function sessionsAtSlot(day: string, startHHMM: string) {
   const supabase = getClient()
-  const base = supabase.from('sessions').select('id, title, start_time, end_time')
-    .neq('status', 'CANCELLED').gt('start_time', new Date().toISOString())
-  const { data } = await (forceByTime ? base : base.eq('title', className))
+  const { data } = await supabase
+    .from('sessions')
+    .select('id, title, start_time, end_time, service_id')
+    .neq('status', 'CANCELLED')
+    .gt('start_time', new Date().toISOString())
+    .limit(5000)
 
   return (data ?? []).filter(s => {
-    const parts = new Intl.DateTimeFormat('en-AU', {
-      timeZone: 'Australia/Melbourne',
-      weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: false,
-    }).formatToParts(new Date(s.start_time))
-    const weekday = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() ?? ''
-    const h  = parts.find(p => p.type === 'hour')?.value   ?? '00'
-    const mi = parts.find(p => p.type === 'minute')?.value ?? '00'
-    return weekday === day && `${h.padStart(2,'0')}:${mi.padStart(2,'0')}` === startHHMM
+    const { day: sDay, time } = getMelbDayTime(s.start_time)
+    return sDay === day && time === startHHMM
   })
 }
 
+/**
+ * Seed sessions for the next 12 weeks at a specific Melbourne weekday+time.
+ * Only inserts rows that don't already exist at the exact UTC start_time.
+ */
 async function seedSessions(day: string, startHHMM: string, endHHMM: string, className: string, instructor: string) {
   const supabase = getClient()
   const firstMelbDate = getMelbFirstOccurrence(day)
@@ -65,23 +93,19 @@ async function seedSessions(day: string, startHHMM: string, endHHMM: string, cla
       continue
     }
 
-    const nearStart = new Date(new Date(startISO).getTime() - 59 * 60 * 1000).toISOString()
-    const nearEnd   = new Date(new Date(startISO).getTime() + 59 * 60 * 1000).toISOString()
-    const { data: nearbySession } = await supabase.from('sessions')
-      .select('id')
-      .eq('service_id', serviceId)
-      .gte('start_time', nearStart)
-      .lte('start_time', nearEnd)
-      .neq('status', 'CANCELLED')
-      .maybeSingle()
-    if (nearbySession) continue
-
     inserts.push({ service_id: serviceId, title: className, instructor_name: instructor, start_time: startISO, end_time: endISO, capacity: 20, status: 'CONFIRMED' })
   }
   if (inserts.length > 0) {
     const { error } = await supabase.from('sessions').insert(inserts)
     if (error) console.error('[seedSessions] insert failed:', error.message)
   }
+}
+
+function revalidateAll() {
+  revalidatePath('/classes')
+  revalidatePath('/admin/schedule')
+  revalidatePath('/admin/checkin')
+  revalidatePath('/app/schedule')
 }
 
 // ── GET — return all template rows ───────────────────────────────────────────
@@ -127,14 +151,11 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
-  revalidatePath('/classes')
-  revalidatePath('/admin/schedule')
-  revalidatePath('/admin/checkin')
-  revalidatePath('/app/schedule')
+  revalidateAll()
   return NextResponse.json({ row: data })
 }
 
-// ── PUT — update a slot, propagate changes to future sessions ─────────────────
+// ── PUT — update a slot, propagate changes to all matching future sessions ────
 
 export async function PUT(req: NextRequest) {
   const admin = await getAdminSession()
@@ -144,7 +165,7 @@ export async function PUT(req: NextRequest) {
   const { id, start_time, end_time, class_name, instructor, resync } = body
   const day     = (body.day ?? '').toLowerCase().trim()
   const old_day = body.old_day ? (body.old_day as string).toLowerCase().trim() : undefined
-  const { old_start_time, old_end_time, old_class_name } = body
+  const { old_start_time, old_class_name } = body
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const supabase = getClient()
@@ -155,89 +176,101 @@ export async function PUT(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // ── Sync button: fix service_id mismatches and cancel wrong classes at this slot ──
   if (resync) {
-    const allAtThisTime = await matchingSessions(day, start_time, '', true)
-    const toUpdate = allAtThisTime.filter(s => s.title === class_name)
-    const toCancel = allAtThisTime.filter(s => s.title !== class_name)
-    const correctServiceId = await getOrCreateServiceId(class_name)
-    for (const s of toUpdate) {
-      await supabase.from('sessions').update({
-        instructor_name: instructor,
-        ...(correctServiceId ? { service_id: correctServiceId } : {}),
-      }).eq('id', s.id)
+    const serviceId = await getOrCreateServiceId(class_name)
+    const atSlot    = await sessionsAtSlot(day, start_time)
+    const correct   = atSlot.filter(s => s.title === class_name)
+    const wrong     = atSlot.filter(s => s.title !== class_name)
+    if (serviceId) {
+      for (const s of correct) {
+        await supabase.from('sessions').update({ service_id: serviceId, instructor_name: instructor }).eq('id', s.id)
+      }
     }
-    if (toCancel.length > 0) {
-      await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', toCancel.map(s => s.id))
+    if (wrong.length > 0) {
+      await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', wrong.map(s => s.id))
     }
     await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
-    revalidatePath('/classes')
-    revalidatePath('/admin/schedule')
-    revalidatePath('/admin/checkin')
-    revalidatePath('/app/schedule')
-    return NextResponse.json({ row: data, resynced: allAtThisTime.length, cancelled: toCancel.length })
+    revalidateAll()
+    return NextResponse.json({ row: data, resynced: correct.length, cancelled: wrong.length })
   }
 
-  const timeChanged = start_time !== old_start_time || end_time !== old_end_time
-  const nameChanged = class_name !== (old_class_name ?? class_name)
+  // ── Normal save: propagate time/name/instructor changes to future sessions ──
+  //
+  // Strategy: look up sessions by service_id + Melbourne day-of-week — NOT by time.
+  // This means sessions are found even if they were previously stuck at the wrong time
+  // due to a past failed update. No time-matching means no "can't find sessions" failure.
 
-  // When time changes, search by slot (day+time) not by title — session titles can drift
-  // out of sync with the template, causing a title-based lookup to miss them entirely.
-  let sessions = timeChanged
-    ? await matchingSessions(old_day ?? day, old_start_time ?? start_time, '', true)
-    : await matchingSessions(old_day ?? day, old_start_time ?? start_time, old_class_name ?? class_name)
-  if (!timeChanged && sessions.length === 0) {
-    sessions = await matchingSessions(old_day ?? day, old_start_time ?? start_time, '', true)
-  }
+  const targetDay    = old_day ?? day
+  const dayChanged   = old_day !== undefined && old_day !== day
+  const timeChanged  = start_time !== old_start_time
+  const nameChanged  = class_name !== (old_class_name ?? class_name)
 
-  let newServiceId: string | undefined
-  if (nameChanged) {
-    newServiceId = await getOrCreateServiceId(class_name)
-  }
+  const oldClassName = old_class_name ?? class_name
+  const oldServiceId = await getOrCreateServiceId(oldClassName)
+  const newServiceId = nameChanged ? await getOrCreateServiceId(class_name) : oldServiceId
 
-  for (const s of sessions) {
-    const update: Record<string, unknown> = { instructor_name: instructor }
-    if (nameChanged) {
-      update.title = class_name
-      if (newServiceId) update.service_id = newServiceId
+  let updatedCount = 0
+
+  if (oldServiceId) {
+    const toUpdate = await sessionsOnDay(supabase, oldServiceId, targetDay)
+    updatedCount = toUpdate.length
+
+    if (dayChanged) {
+      // Day change: cancel sessions on old day and seed fresh on new day below
+      if (toUpdate.length > 0) {
+        await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', toUpdate.map(s => s.id))
+      }
+    } else {
+      // Same day: update each session's time / name / instructor in place
+      for (const s of toUpdate) {
+        const melbDate = getMelbDate(new Date(s.start_time))
+        const upd: Record<string, unknown> = {
+          instructor_name: instructor,
+          title:           class_name,
+          service_id:      newServiceId ?? oldServiceId,
+        }
+        if (timeChanged) {
+          upd.start_time = melbToUtc(melbDate, start_time)
+          upd.end_time   = melbToUtc(melbDate, end_time)
+        }
+        await supabase.from('sessions').update(upd).eq('id', s.id)
+      }
     }
-    if (timeChanged) {
-      const melbDate = getMelbDate(new Date(s.start_time))
-      update.start_time = melbToUtc(melbDate, start_time)
-      update.end_time   = melbToUtc(melbDate, end_time)
-    }
-    await supabase.from('sessions').update(update).eq('id', s.id)
   }
 
+  // Seed any weeks that are missing sessions at the new day+time
   await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
-  revalidatePath('/classes')
-  revalidatePath('/admin/schedule')
-  revalidatePath('/admin/checkin')
-  revalidatePath('/app/schedule')
+  revalidateAll()
 
-  return NextResponse.json({ row: data, updated: sessions.length })
+  return NextResponse.json({ row: data, updated: updatedCount })
 }
 
-// ── DELETE — remove a slot and cancel future sessions ────────────────────────
+// ── DELETE — remove a slot and cancel all future sessions for that class+day ─
 
 export async function DELETE(req: NextRequest) {
   const admin = await getAdminSession()
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const { id, day, start_time, class_name } = await req.json()
+  const { id, day, class_name } = await req.json()
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
   const supabase = getClient()
   const { error } = await supabase.from('schedule_template').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const sessions = await matchingSessions(day, start_time, class_name)
-  if (sessions.length > 0) {
-    await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', sessions.map(s => s.id))
+  // Cancel all future sessions for this class on this day, regardless of what time
+  // they're currently stored at — so a drifted or previously-failed session is still caught.
+  const serviceId = await getOrCreateServiceId(class_name)
+  let cancelledCount = 0
+  if (serviceId) {
+    const sessions = await sessionsOnDay(supabase, serviceId, day)
+    if (sessions.length > 0) {
+      await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', sessions.map(s => s.id))
+      cancelledCount = sessions.length
+    }
   }
-  revalidatePath('/classes')
-  revalidatePath('/admin/schedule')
-  revalidatePath('/admin/checkin')
-  revalidatePath('/app/schedule')
 
-  return NextResponse.json({ cancelled: sessions.length })
+  revalidateAll()
+  return NextResponse.json({ cancelled: cancelledCount })
 }
