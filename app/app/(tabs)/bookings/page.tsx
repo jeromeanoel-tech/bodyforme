@@ -168,11 +168,18 @@ function SkeletonBookingCard() {
   )
 }
 
+function cancelBy(startIso: string): string {
+  const cutoff = new Date(new Date(startIso).getTime() - 2 * 60 * 60 * 1000)
+  return cutoff.toLocaleTimeString('en-AU', { timeZone: 'Australia/Melbourne', hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
 export default function BookingsPage() {
   const session  = useSession()
-  const [bookings, setBookings] = useState<ContactBooking[]>([])
-  const [loading,  setLoading]  = useState(true)
-  const [tab,      setTab]      = usePersistedState<'upcoming' | 'past'>('bookings-tab', 'upcoming')
+  const [bookings, setBookings]   = useState<ContactBooking[]>([])
+  const [loading,  setLoading]    = useState(true)
+  const [tab,      setTab]        = usePersistedState<'upcoming' | 'past'>('bookings-tab', 'upcoming')
+  const [inFlight, setInFlight]   = useState<Set<string>>(new Set())
+  const [cancelErr, setCancelErr] = useState<string | null>(null)
 
   useEffect(() => {
     if (!session.id) { setLoading(false); return }
@@ -196,6 +203,32 @@ export default function BookingsPage() {
       .subscribe()
     return () => { sbr.removeChannel(channel) }
   }, [])
+
+  async function handleCancel(bookingId: string, startIso: string) {
+    const cutoff = new Date(new Date(startIso).getTime() - 2 * 60 * 60 * 1000)
+    if (new Date() > cutoff) {
+      setCancelErr('Cancellations must be made at least 2 hours before class starts.')
+      setTimeout(() => setCancelErr(null), 4000)
+      return
+    }
+    setInFlight(s => new Set(s).add(bookingId))
+    setCancelErr(null)
+    try {
+      const res  = await fetch('/api/app/cancel-booking', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bookingId }) })
+      const data = await res.json()
+      if (!res.ok) {
+        setCancelErr(data.error ?? 'Could not cancel. Please try again.')
+        setTimeout(() => setCancelErr(null), 5000)
+      } else {
+        setBookings(bs => bs.map(b => b.id === bookingId ? { ...b, status: 'CANCELLED' } : b))
+      }
+    } catch {
+      setCancelErr('Could not cancel. Please try again.')
+      setTimeout(() => setCancelErr(null), 5000)
+    } finally {
+      setInFlight(s => { const n = new Set(s); n.delete(bookingId); return n })
+    }
+  }
 
   const now      = new Date()
   const upcoming = bookings.filter(b => b.status !== 'CANCELLED' && new Date(b.start + '+00:00') >= now)
@@ -250,6 +283,13 @@ export default function BookingsPage() {
           }}>{t === 'upcoming' ? `Upcoming · ${upcoming.length}` : 'Past'}</button>
         ))}
       </div>
+
+      {/* Cancel error toast */}
+      {cancelErr && (
+        <div style={{ margin: '0 20px', padding: '10px 14px', background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 12, flexShrink: 0 }}>
+          {cancelErr}
+        </div>
+      )}
 
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 20px', background: T.linen }}>
@@ -317,6 +357,26 @@ export default function BookingsPage() {
                 <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 10, fontWeight: 500, letterSpacing: '0.14em', textTransform: 'uppercase', color: statusColor, marginTop: 8 }}>
                   {statusLabel}
                 </div>
+                {!isPast && b.status !== 'CANCELLED' && (
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      onClick={() => handleCancel(b.id, b.start)}
+                      disabled={inFlight.has(b.id)}
+                      style={{
+                        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                        fontSize: 10, fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase',
+                        color: inFlight.has(b.id) ? T.muted : T.mid,
+                        background: 'none', border: 'none', padding: 0, cursor: inFlight.has(b.id) ? 'default' : 'pointer',
+                        textDecoration: 'underline', textDecorationColor: T.rule,
+                      }}
+                    >
+                      {inFlight.has(b.id) ? 'Cancelling…' : 'Cancel booking'}
+                    </button>
+                    <div style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", fontSize: 9, color: T.muted, marginTop: 3 }}>
+                      by {cancelBy(b.start)}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )
