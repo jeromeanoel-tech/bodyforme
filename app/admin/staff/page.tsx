@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getAdminSession } from '@/lib/adminSession'
-import { getStaff, getServices, getSessions } from '@/lib/db'
+import { getStaff, getStaffRows, getServices, getSessions } from '@/lib/db'
 import StaffClient from './StaffClient'
 
-export const revalidate = 300
+export const revalidate = 0
 
 export default async function AdminStaffPage() {
   const session = await getAdminSession()
@@ -18,11 +18,12 @@ export default async function AdminStaffPage() {
   const from = mon.toISOString().slice(0, 10) + 'T00:00:00'
   const to   = sun.toISOString().slice(0, 10) + 'T23:59:59'
 
-  const [staff, services, sessions] = await Promise.all([
+  const [staff, staffRows, services, sessions] = await Promise.all([
     getStaff(),
+    getStaffRows(),
     getServices(),
     getSessions(from, to),
   ])
 
-  return <StaffClient staff={staff} services={services} sessions={sessions} />
+  return <StaffClient staff={staff} staffRows={staffRows} services={services} sessions={sessions} />
 }

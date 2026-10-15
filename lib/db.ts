@@ -152,14 +152,44 @@ function rowToCredential(r: any): MemberCredential {
 // ── Staff ─────────────────────────────────────────────────────────────────────
 
 export async function getStaff(): Promise<Staff[]> {
-  const { data } = await getSupabase()
+  // Names from the staff table (explicitly added via admin UI)
+  const { data: tableRows } = await getSupabase()
+    .from('staff')
+    .select('name')
+    .order('name')
+
+  const tableNames = (tableRows ?? []).map((r: { name: string }) => r.name)
+  const tableSet   = new Set(tableNames)
+
+  // Names from sessions (derived — catches instructors added before staff table existed)
+  const { data: sessionRows } = await getSupabase()
     .from('sessions')
     .select('instructor_name')
     .neq('instructor_name', '')
     .order('instructor_name')
 
-  const names = [...new Set((data ?? []).map((r: { instructor_name: string }) => r.instructor_name))] as string[]
-  return names.map(name => ({ id: slug(name), name, resourceId: slug(name) }))
+  const sessionNames = [...new Set((sessionRows ?? []).map((r: { instructor_name: string }) => r.instructor_name))] as string[]
+
+  const allNames = [...tableNames, ...sessionNames.filter(n => !tableSet.has(n))]
+  return allNames.sort().map(name => ({ id: slug(name), name, resourceId: slug(name) }))
+}
+
+export async function getStaffNames(): Promise<string[]> {
+  const { data } = await getSupabase().from('staff').select('name').order('name')
+  return (data ?? []).map((r: { name: string }) => r.name)
+}
+
+export async function getStaffRows(): Promise<{ id: string; name: string; email: string | null }[]> {
+  const { data } = await getSupabase().from('staff').select('id, name, email').order('name')
+  return data ?? []
+}
+
+export async function createStaffMember(name: string, email?: string): Promise<void> {
+  await getSupabase().from('staff').insert({ name: name.trim(), email: email?.trim() || null })
+}
+
+export async function deleteStaffMember(id: string): Promise<void> {
+  await getSupabase().from('staff').delete().eq('id', id)
 }
 
 // ── Services ──────────────────────────────────────────────────────────────────
