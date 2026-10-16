@@ -22,7 +22,7 @@ const T = {
 const PLAN_GROUPS = [
   {
     label: 'Weekly membership',
-    plans: ['weekly-unlimited', 'weekly-4', 'weekly-3'],
+    plans: ['weekly-unlimited', 'weekly-4'],
   },
   {
     label: 'Monthly membership',

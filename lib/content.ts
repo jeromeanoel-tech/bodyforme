@@ -260,25 +260,6 @@ export const memberships = {
       cta:      'Get started',
     },
     {
-      tag:      'Flexible',
-      name:     '3 Per Week',
-      planKey:  'weekly-3',
-      tagline:  '3 classes per week. Weekly direct debit, cancel with 7 days\' notice.',
-      amount:   '$45',
-      period:   '/ week',
-      equiv:    '3 classes per week',
-      featured: false,
-      badge:    '',
-      features: [
-        '3 classes per week',
-        'All class types',
-        'Weekly direct debit',
-        'Cancel with 7 days\' notice',
-      ],
-      crossedOut: [],
-      cta:      'Get started',
-    },
-    {
       tag:      'Best value',
       name:     '3 Months',
       planKey:  '3month',
@@ -300,7 +281,6 @@ export const memberships = {
   ],
 
   packs: [
-    { name: '3 Per Week',        planKey: 'weekly-3',    price: '$45/wk', detail: '3 classes per week · Weekly direct debit · Cancel with 7 days\' notice' },
     { name: 'Casual Class',      planKey: 'casual',      price: '$32',    detail: 'Single drop-in · Any class type' },
     { name: '10 Class Pack',     planKey: '10pack',      price: '$280',   detail: '$28 per class · Any class type' },
     { name: '20 Class Pack',     planKey: '20pack',      price: '$500',   detail: '$25 per class · Any class type' },
@@ -557,16 +537,6 @@ export const signupPlans: Record<string, {
     mode:        'payment',
     features:    ['All class types', 'Unlimited for 7 days', 'New members only'],
   },
-  'weekly-3': {
-    name:            '3 Per Week',
-    tag:             'Flexible',
-    amount:          4500,
-    period:          '$45 / week',
-    description:     '3 classes per week. Weekly direct debit, cancel with 7 days\' notice.',
-    mode:            'subscription',
-    billingInterval: 'week',
-    features:        ['3 classes per week', 'All class types', 'Weekly direct debit', 'Cancel with 7 days\' notice'],
-  },
   'weekly-4': {
     name:            '4 Per Week',
     tag:             'Most popular',
@@ -691,7 +661,6 @@ export function planKeyByName(name: string): string {
 export const RECURRING_PLAN_BILLING: Record<string, { interval: 'week' | 'month'; amount: number }> = {
   'unlimited classes':    { interval: 'week',  amount: 6200  },
   'unlimited':            { interval: 'week',  amount: 6200  },
-  '3 per week':           { interval: 'week',  amount: 4500  },
   '4 per week':           { interval: 'week',  amount: 5500  },
   'unlimited – $239/mo':  { interval: 'month', amount: 23900 },
   'unlimited – $260/mo':  { interval: 'month', amount: 23900 },

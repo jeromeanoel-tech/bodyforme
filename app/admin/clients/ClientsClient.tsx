@@ -1408,7 +1408,6 @@ function OverviewTab({ contact, loading, totalBookings, attended, cancelled, las
 
 const PLAN_OPTIONS = [
   { label: 'Unlimited (DD)',         value: 'Unlimited' },
-  { label: '3 classes/week (DD)',    value: '3 per week' },
   { label: '10-Class Pack',          value: '10-Class Pack' },
   { label: '20-Class Pack',          value: '20-Class Pack' },
   { label: '50-Class Pass',          value: '50-Class Pass' },
@@ -1420,7 +1419,6 @@ const PLAN_OPTIONS = [
 
 const QUICK_PRESETS = [
   { label: 'Unlimited',      plan: 'Unlimited',    credits: 0  },
-  { label: '3/week DD',      plan: '3 per week',   credits: 0  },
   { label: '10-class pack',  plan: '10-Class Pack', credits: 10 },
   { label: '20-class pack',  plan: '20-Class Pack', credits: 20 },
   { label: 'Casual',         plan: 'casual',        credits: 1  },
