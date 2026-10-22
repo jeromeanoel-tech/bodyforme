@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose'
 const SECRET = () => {
   const s = process.env.JWT_SECRET
   if (!s) throw new Error('JWT_SECRET is not configured')
-  return new TextEncoder().encode(s)
+  return new TextEncoder().encode(s.replace(/\\n|\n/g, '').trim())
 }
 
 export async function middleware(req: NextRequest) {

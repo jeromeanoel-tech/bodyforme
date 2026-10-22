@@ -5,9 +5,10 @@ import { getScheduleWeekRange, getMelbDayTime, melbMidnightToUtc } from './dates
 let _supabase: ReturnType<typeof createClient> | null = null
 function getSupabase(): any {
   if (!_supabase) {
+    const clean = (s: string) => s.replace(/\\n|\n/g, '').trim()
     _supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SECRET_KEY!,
+      clean(process.env.NEXT_PUBLIC_SUPABASE_URL!),
+      clean(process.env.SUPABASE_SECRET_KEY!),
     )
   }
   return _supabase

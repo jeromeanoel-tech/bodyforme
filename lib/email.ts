@@ -1,4 +1,4 @@
-const RESEND_API_KEY = process.env.RESEND_API_KEY
+const RESEND_API_KEY = (process.env.RESEND_API_KEY ?? '').replace(/\\n|\n/g, '').trim() || undefined
 const FROM = 'BodyForme Studio <info@bodyforme.com.au>'
 const BASE = (process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bodyforme.com.au').replace(/\\n|\n/g, '').trim()
 

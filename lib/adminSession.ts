@@ -13,7 +13,7 @@ export const ADMIN_MAX_AGE = 60 * 60 * 24 * 7  // 7 days
 const secret = () => {
   const s = process.env.JWT_SECRET
   if (!s) throw new Error('JWT_SECRET is required')
-  return new TextEncoder().encode(s)
+  return new TextEncoder().encode(s.replace(/\\n|\n/g, '').trim())
 }
 
 export async function signAdminSession(user: AdminUser): Promise<string> {

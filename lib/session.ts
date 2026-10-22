@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 const getSecret = () => {
   const s = process.env.JWT_SECRET
   if (!s) throw new Error('JWT_SECRET is required')
-  return new TextEncoder().encode(s)
+  return new TextEncoder().encode(s.replace(/\\n|\n/g, '').trim())
 }
 const COOKIE  = 'bf_member'
 const EXPIRY  = '7d'
