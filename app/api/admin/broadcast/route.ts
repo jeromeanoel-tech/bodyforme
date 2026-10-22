@@ -4,7 +4,7 @@ import { getAdminSession } from '@/lib/adminSession'
 
 type Segment = 'all' | 'active-members' | 'expiring-soon' | 'new-this-month' | 'no-membership'
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY!
+const RESEND_API_KEY = (process.env.RESEND_API_KEY ?? '').replace(/\\n|\n/g, '').trim()
 const FROM_ADDRESS   = 'BodyForme Studio <info@bodyforme.com.au>'
 
 function escHtml(s: string) {

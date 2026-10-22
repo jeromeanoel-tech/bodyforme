@@ -549,9 +549,9 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     logError('/api/webhooks/stripe', `unhandled error in ${event.type}: ${msg}`, { eventId: event.id }).catch(() => {})
-    // Return 200 so Stripe marks the event as delivered and stops retrying.
-    // The error is logged — fix the bug, then replay from Stripe dashboard.
-    return NextResponse.json({ received: true, error: msg })
+    // Return 500 so Stripe retries with exponential backoff (up to ~3 days).
+    // The error is also logged — replay from Stripe dashboard if retries exhaust.
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })

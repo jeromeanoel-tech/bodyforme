@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMemberByContactId } from '@/lib/db'
 import { getSession } from '@/lib/session'
 
-const RESEND_API_KEY  = process.env.RESEND_API_KEY
+const RESEND_API_KEY  = (process.env.RESEND_API_KEY ?? '').replace(/\\n|\n/g, '').trim() || undefined
 const STUDIO_EMAIL    = process.env.STUDIO_EMAIL ?? 'info@bodyforme.com.au'
 const FROM            = 'BodyForme App <info@bodyforme.com.au>'
 

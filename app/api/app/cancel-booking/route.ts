@@ -50,14 +50,14 @@ export async function POST(req: NextRequest) {
             let ok = true
             if (nextMember.membershipEndDate) {
               const PREPAID_KEYS = ['7-day', '3 month unlimited', '6 month unlimited', '1 year unlimited']
-              const wlPlan = nextMember.planOverride.toLowerCase()
+              const wlPlan = (nextMember.planOverride ?? '').toLowerCase()
               if (PREPAID_KEYS.some(k => wlPlan.includes(k))) {
                 const todayMelb = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Melbourne' }).format(new Date())
                 if (todayMelb > nextMember.membershipEndDate) ok = false
               }
             }
             if (ok) {
-              const plan   = nextMember.planOverride.toLowerCase()
+              const plan   = (nextMember.planOverride ?? '').toLowerCase()
               const isPack = CREDIT_PLANS.some(p => plan.includes(p.toLowerCase()))
               if (isPack) {
                 const pending = await countPendingBookings(next.memberId)

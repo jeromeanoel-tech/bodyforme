@@ -1,7 +1,8 @@
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10' as never,
-})
+const stripe = new Stripe(
+  (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim(),
+  { apiVersion: '2024-04-10' as never },
+)
 
 export default stripe

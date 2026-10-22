@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
   }
 
-  const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY
+  const STRIPE_SECRET = (process.env.STRIPE_SECRET_KEY ?? '').replace(/\\n|\n/g, '').trim() || undefined
   if (!STRIPE_SECRET) {
     return NextResponse.json({ error: 'Payment not configured' }, { status: 500 })
   }
