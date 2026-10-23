@@ -36,7 +36,13 @@ export async function POST(req: NextRequest) {
   }
 
   // 1. Try member auth first (by email)
-  const member = await getMemberByEmail(credential)
+  let member
+  try {
+    member = await getMemberByEmail(credential)
+  } catch {
+    if (isForm) return NextResponse.redirect(new URL('/app/login?error=server', req.url))
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
+  }
   if (member) {
     const valid = await bcrypt.compare(password, member.passwordHash)
     if (!valid) {

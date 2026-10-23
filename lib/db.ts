@@ -263,12 +263,13 @@ export async function createService(data: {
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
 export async function getSessions(from: string, to: string): Promise<Session[]> {
-  const { data: sessions } = await getSupabase()
+  const { data: sessions, error: sessError } = await getSupabase()
     .from('sessions')
     .select('*')
     .gte('start_time', from)
     .lte('start_time', to)
     .order('start_time')
+  if (sessError) throw new Error(`getSessions failed: ${sessError.message}`)
 
   if (!sessions?.length) return []
 
@@ -360,11 +361,12 @@ export async function getMemberships(): Promise<Membership[]> {
 // ── Contacts ──────────────────────────────────────────────────────────────────
 
 export async function getContacts(): Promise<Contact[]> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from('members')
     .select('id, first_name, last_name, email, phone, created_at, plan_override, status, end_date, next_billing_date, stripe_customer_id')
     .order('last_name')
     .order('first_name')
+  if (error) throw new Error(`getContacts failed: ${error.message}`)
 
   // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
@@ -408,31 +410,34 @@ export async function createMemberCredential(data: Omit<MemberCredential, '_id'>
 }
 
 export async function getMemberByEmail(email: string): Promise<MemberCredential | null> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from('members')
     .select('*')
     .eq('email', email)
     .single()
+  if (error && error.code !== 'PGRST116') throw new Error(`getMemberByEmail failed: ${error.message}`)
   return data ? rowToCredential(data) : null
 }
 
 export async function getMemberByStripeCustomerId(customerId: string): Promise<MemberCredential | null> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from('members')
     .select('*')
     .eq('stripe_customer_id', customerId)
     .single()
+  if (error && error.code !== 'PGRST116') throw new Error(`getMemberByStripeCustomerId failed: ${error.message}`)
   return data ? rowToCredential(data) : null
 }
 
 export const getMemberById = async (id: string) => getMemberByContactId(id)
 
 export async function getMemberByContactId(id: string): Promise<MemberCredential | null> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from('members')
     .select('*')
     .eq('id', id)
     .single()
+  if (error && error.code !== 'PGRST116') throw new Error(`getMemberByContactId failed: ${error.message}`)
   return data ? rowToCredential(data) : null
 }
 
@@ -461,12 +466,13 @@ export async function updateMemberCredential(id: string, patch: Partial<MemberCr
 // ── Bookings for a member ─────────────────────────────────────────────────────
 
 export async function getContactBookings(memberId: string): Promise<ContactBooking[]> {
-  const { data } = await getSupabase()
+  const { data, error } = await getSupabase()
     .from('bookings')
     .select('id, session_id, status, attended, sessions(title, start_time)')
     .eq('member_id', memberId)
     .order('created_at', { ascending: false })
     .limit(50)
+  if (error) throw new Error(`getContactBookings failed: ${error.message}`)
 
   // eslint-disable-next-line
   return (data ?? []).map((r: any) => ({
@@ -505,11 +511,12 @@ function weeklyAllowance(plan: string): number | null {
 }
 
 export async function getSessionBookings(sessionId: string): Promise<Booking[]> {
-  const { data } = await getSupabase()
+  const { data, error: bookErr } = await getSupabase()
     .from('bookings')
     .select('id, status, attended, members(id, first_name, last_name, email, plan_override, credit_balance, status)')
     .eq('session_id', sessionId)
     .eq('status', 'CONFIRMED')
+  if (bookErr) throw new Error(`getSessionBookings failed: ${bookErr.message}`)
 
   if (!data || data.length === 0) return []
 

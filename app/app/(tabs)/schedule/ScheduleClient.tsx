@@ -185,10 +185,11 @@ export default function ScheduleClient({
     const nextMonIso = new Date(Date.UTC(sy, sm - 1, sd + 1)).toISOString().slice(0, 10)
     const from = melbMidnightToUtc(monIso)
     const to   = new Date(new Date(melbMidnightToUtc(nextMonIso)).getTime() - 1).toISOString()
+    const okJson = async (r: Response) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() }
     const [schedData, bookingsData, waitlistData] = await Promise.all([
-      fetch(`/api/app/schedule?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(r => r.json()),
-      fetch(`/api/app/my-bookings?from=${monIso}&to=${sunIso}`).then(r => r.json()),
-      fetch(`/api/app/waitlist?from=${monIso}&to=${sunIso}`).then(r => r.json()).catch(() => ({ sessionIds: [] })),
+      fetch(`/api/app/schedule?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`).then(okJson),
+      fetch(`/api/app/my-bookings?from=${monIso}&to=${sunIso}`).then(okJson),
+      fetch(`/api/app/waitlist?from=${monIso}&to=${sunIso}`).then(okJson).catch(() => ({ sessionIds: [] })),
     ])
     const bm: BookedMap = {}
     ;(bookingsData.bookings as MemberBooking[] ?? []).forEach(b => {

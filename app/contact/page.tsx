@@ -5,6 +5,7 @@ import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ScrollReveal from '@/components/ScrollReveal'
 import Link from 'next/link'
+import Image from 'next/image'
 import { contact, hours, studio } from '@/lib/content'
 
 export default function ContactPage() {
@@ -76,7 +77,7 @@ export default function ContactPage() {
         <div style={{ height: '380px', background: 'var(--l3)', position: 'relative', overflow: 'hidden' }}>
           {/* Pilates image — swap back to studio/map once available post-reno */}
           <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-            <img src="/pilates.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+            <Image src="/pilates.png" alt="BodyForme Pilates studio" fill sizes="100vw" style={{ objectFit: 'cover', objectPosition: 'center top' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(42,21,6,.3) 0%,transparent 60%)' }} />
             <div style={{ position: 'absolute', bottom: '24px', left: '0', right: '0', textAlign: 'center', zIndex: 2 }}>
               <div style={{ display: 'inline-block', background: 'var(--esp)', color: 'var(--linen)', fontSize: '11px', letterSpacing: '.1em', textTransform: 'uppercase', padding: '10px 18px', fontWeight: 400 }}>

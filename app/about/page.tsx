@@ -2,9 +2,8 @@ import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ScrollReveal from '@/components/ScrollReveal'
 import Link from 'next/link'
+import Image from 'next/image'
 import { about, studio, memberships } from '@/lib/content'
-
-export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title:       'About Us | BodyForme Pilates',
@@ -100,19 +99,19 @@ export default function AboutPage() {
         <ScrollReveal>
           <div className="gallery-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gridTemplateRows: 'auto auto', gap: '2px', background: 'var(--rule)' }}>
             <div style={{ gridRow: '1 / 3', minHeight: '520px', position: 'relative', overflow: 'hidden' }}>
-              <img src="/website-asset-1.jpg" alt="BodyForme studio" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+              <Image src="/website-asset-1.jpg" alt="BodyForme studio" fill sizes="(max-width: 767px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
             </div>
             <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
-              <img src="/stretch.jpg" alt="Pilates class" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+              <Image src="/stretch.jpg" alt="Pilates class" fill sizes="(max-width: 767px) 50vw, 25vw" style={{ objectFit: 'cover' }} />
             </div>
             <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
-              <img src="/yoga.png" alt="Flexibility training" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+              <Image src="/yoga.png" alt="Flexibility training" fill sizes="(max-width: 767px) 50vw, 25vw" style={{ objectFit: 'cover' }} />
             </div>
             <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
-              <img src="/mat.png" alt="Studio equipment" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+              <Image src="/mat.png" alt="Studio equipment" fill sizes="(max-width: 767px) 50vw, 25vw" style={{ objectFit: 'cover' }} />
             </div>
             <div style={{ minHeight: '258px', position: 'relative', overflow: 'hidden' }}>
-              <img src="/pilates.png" alt="Pilates training" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} />
+              <Image src="/pilates.png" alt="Pilates training" fill sizes="(max-width: 767px) 50vw, 25vw" style={{ objectFit: 'cover' }} />
             </div>
           </div>
         </ScrollReveal>

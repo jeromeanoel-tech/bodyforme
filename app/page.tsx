@@ -1,17 +1,26 @@
-'use client'
-
 import Link from 'next/link'
 import Image from 'next/image'
 import SiteHeader from '@/components/SiteHeader'
 import SiteFooter from '@/components/SiteFooter'
 import ClassAccordion from '@/components/ClassAccordion'
+import ClassCard from '@/components/ClassCard'
+import ContactForm from '@/components/ContactForm'
 import ScrollReveal from '@/components/ScrollReveal'
-import { useState, useRef, useEffect } from 'react'
 import { home, studio, classTypes, memberships } from '@/lib/content'
 
 type ClassType = { slug: string; name: string; nameItalic?: string; tags?: string[]; desc: string; priceNote?: string }
 
-
+export const metadata = {
+  title: 'BodyForme Pilates | Reformer Pilates Doncaster',
+  description: 'Boutique Reformer Pilates studio in Doncaster, Melbourne. Small classes, expert instruction. Book your free trial today.',
+  openGraph: {
+    title: 'BodyForme Pilates | Reformer Pilates Doncaster',
+    description: 'Boutique Reformer Pilates studio in Doncaster, Melbourne. Small classes, expert instruction.',
+    url: 'https://bodyforme.com.au',
+    siteName: 'BodyForme Pilates',
+    type: 'website',
+  },
+}
 
 /* ── Homepage ──────────────────────────────────────────────────────────────── */
 export default function HomePage() {
@@ -284,78 +293,6 @@ function ClassesSection() {
   )
 }
 
-function ClassCard({ cls, index }: { cls: typeof classTypes[0]; index: number }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <Link
-      href="/classes"
-      style={{ textDecoration: 'none', display: 'block' }}
-    >
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          background: hovered ? 'var(--esp)' : 'var(--canvas)',
-          padding: '36px 30px 40px',
-          cursor: 'pointer',
-          transition: 'background .3s ease',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        {/* Number */}
-        <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '11px', color: hovered ? 'rgba(244,237,225,.3)' : 'var(--muted)', marginBottom: '24px', transition: 'color .3s' }}>
-          0{index + 1}
-        </div>
-        {/* Name */}
-        <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: '28px', fontWeight: 400, color: hovered ? 'rgba(244,237,225,1)' : 'var(--esp)', lineHeight: 1.1, marginBottom: '14px', transition: 'color .3s' }}>
-          {cls.name}{' '}
-          {cls.nameItalic && (
-            <em style={{ fontStyle: 'italic', fontWeight: 300, color: hovered ? 'rgba(196,168,130,.9)' : 'var(--brown)', transition: 'color .3s' }}>
-              {cls.nameItalic}
-            </em>
-          )}
-        </h3>
-        {/* Tags */}
-        {'tags' in cls && Array.isArray(cls.tags) && (
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
-            {(cls.tags as string[]).map(tag => (
-              <span
-                key={tag}
-                style={{
-                  fontFamily: 'var(--font-dm-sans)',
-                  fontSize: '8.5px',
-                  letterSpacing: '.14em',
-                  textTransform: 'uppercase',
-                  color: hovered ? 'rgba(196,168,130,.7)' : 'var(--blt)',
-                  fontWeight: 500,
-                  transition: 'color .3s',
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        {/* Description */}
-        <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12.5px', fontWeight: 300, color: hovered ? 'rgba(244,237,225,.6)' : 'var(--mid)', lineHeight: 1.75, flex: 1, transition: 'color .3s' }}>
-          {cls.desc}
-        </p>
-        {/* Footer */}
-        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: `1px solid ${hovered ? 'rgba(255,255,255,.08)' : 'var(--rule)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'border-color .3s' }}>
-          <span style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.12em', textTransform: 'uppercase', color: hovered ? 'rgba(244,237,225,.4)' : 'var(--muted)', transition: 'color .3s' }}>
-            {'duration' in cls ? (cls as { duration?: string }).duration : ''} · {'level' in cls ? (cls as { level?: string }).level : ''}
-          </span>
-          <span style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.12em', textTransform: 'uppercase', color: hovered ? 'rgba(196,168,130,.8)' : 'var(--brown)', transition: 'color .3s' }}>
-            Book →
-          </span>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
 /* ── Benefits (dark) ───────────────────────────────────────────────────────── */
 function BenefitsSection() {
   return (
@@ -400,7 +337,13 @@ function BenefitsSection() {
         {/* Photo */}
         <ScrollReveal>
           <div style={{ aspectRatio: '3/4', width: '100%', position: 'relative', overflow: 'hidden' }}>
-            <img src="/website-asset-1.jpg" alt="BodyForme studio" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <Image
+              src="/website-asset-1.jpg"
+              alt="BodyForme studio"
+              fill
+              sizes="(max-width: 767px) 100vw, 50vw"
+              style={{ objectFit: 'cover' }}
+            />
           </div>
         </ScrollReveal>
       </div>
@@ -658,74 +601,5 @@ function ContactSection() {
         </ScrollReveal>
       </div>
     </section>
-  )
-}
-
-function ContactForm() {
-  const [sent, setSent] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    const form = e.currentTarget
-    const data = Object.fromEntries(new FormData(form))
-    try {
-      const res  = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-      if (res.ok) { setSent(true); form.reset() }
-      else        { setError('Something went wrong — please try again.') }
-    } catch {
-      setError('Something went wrong — please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (sent) return (
-    <div style={{ paddingTop: '12px' }}>
-      <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '28px', fontWeight: 300, color: 'var(--esp)', marginBottom: '12px' }}>Message sent</div>
-      <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '13.5px', fontWeight: 300, color: 'var(--mid)', lineHeight: 1.75 }}>We&apos;ll get back to you within one business day.</p>
-    </div>
-  )
-
-  return (
-    <div style={{ paddingTop: '12px' }}>
-      <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '28px', fontWeight: 300, color: 'var(--esp)', marginBottom: '12px' }}>
-        {home.contactSection.formHeading}
-      </div>
-      <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '13px', fontWeight: 300, color: 'var(--mid)', marginBottom: '32px', lineHeight: 1.75 }}>
-        We aim to respond within one business day.
-      </p>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-        <div className="r2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          <Field label="Name"  name="name"  type="text"  />
-          <Field label="Email" name="email" type="email" />
-        </div>
-        <div style={{ marginBottom: '28px' }}>
-          <label style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '10px' }}>Message</label>
-          <textarea
-            name="message"
-            required
-            rows={4}
-            style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid var(--rule)', padding: '8px 0', fontFamily: 'var(--font-dm-sans)', fontSize: '13.5px', fontWeight: 300, color: 'var(--text)', outline: 'none', resize: 'none' }}
-          />
-        </div>
-        {error && <p style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '12px', color: '#c0392b', marginBottom: '12px' }}>{error}</p>}
-        <button type="submit" disabled={loading} className="btn-primary" style={{ alignSelf: 'flex-start', opacity: loading ? 0.6 : 1 }}>
-          {loading ? 'Sending…' : 'Send message'}
-        </button>
-      </form>
-    </div>
-  )
-}
-
-function Field({ label, name, type }: { label: string; name: string; type: string }) {
-  return (
-    <div>
-      <label style={{ fontFamily: 'var(--font-dm-sans)', fontSize: '9px', letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '10px' }}>{label}</label>
-      <input name={name} type={type} required style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid var(--rule)', padding: '8px 0', fontFamily: 'var(--font-dm-sans)', fontSize: '13.5px', fontWeight: 300, color: 'var(--text)', outline: 'none' }} />
-    </div>
   )
 }
