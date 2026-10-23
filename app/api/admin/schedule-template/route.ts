@@ -182,17 +182,20 @@ export async function PUT(req: NextRequest) {
     const atSlot    = await sessionsAtSlot(day, start_time)
     const correct   = atSlot.filter(s => s.title === class_name)
     const wrong     = atSlot.filter(s => s.title !== class_name)
+    let resyncFailed = 0
     if (serviceId) {
       for (const s of correct) {
-        await supabase.from('sessions').update({ service_id: serviceId, instructor_name: instructor }).eq('id', s.id)
+        const { error: syncErr } = await supabase.from('sessions').update({ service_id: serviceId, instructor_name: instructor }).eq('id', s.id)
+        if (syncErr) resyncFailed++
       }
     }
     if (wrong.length > 0) {
-      await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', wrong.map(s => s.id))
+      const { error: cancelErr } = await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', wrong.map(s => s.id))
+      if (cancelErr) console.error('[schedule-template resync] cancel failed:', cancelErr.message)
     }
     await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
     revalidateAll()
-    return NextResponse.json({ row: data, resynced: correct.length, cancelled: wrong.length })
+    return NextResponse.json({ row: data, resynced: correct.length, cancelled: wrong.length, ...(resyncFailed > 0 ? { failed: resyncFailed, warning: `${resyncFailed} session(s) failed to sync` } : {}) })
   }
 
   // ── Normal save: propagate time/name/instructor changes to future sessions ──
@@ -211,6 +214,7 @@ export async function PUT(req: NextRequest) {
   const newServiceId = nameChanged ? await getOrCreateServiceId(class_name) : oldServiceId
 
   let updatedCount = 0
+  let failedCount  = 0
 
   if (oldServiceId) {
     const toUpdate = await sessionsOnDay(supabase, oldServiceId, targetDay)
@@ -219,7 +223,8 @@ export async function PUT(req: NextRequest) {
     if (dayChanged) {
       // Day change: cancel sessions on old day and seed fresh on new day below
       if (toUpdate.length > 0) {
-        await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', toUpdate.map(s => s.id))
+        const { error: cancelErr } = await supabase.from('sessions').update({ status: 'CANCELLED' }).in('id', toUpdate.map(s => s.id))
+        if (cancelErr) failedCount = toUpdate.length
       }
     } else {
       // Same day: update each session's time / name / instructor in place
@@ -234,7 +239,11 @@ export async function PUT(req: NextRequest) {
           upd.start_time = melbToUtc(melbDate, start_time)
           upd.end_time   = melbToUtc(melbDate, end_time)
         }
-        await supabase.from('sessions').update(upd).eq('id', s.id)
+        const { error: updErr } = await supabase.from('sessions').update(upd).eq('id', s.id)
+        if (updErr) {
+          failedCount++
+          console.error(`[schedule-template] session update failed for ${s.id}:`, updErr.message)
+        }
       }
     }
   }
@@ -242,6 +251,13 @@ export async function PUT(req: NextRequest) {
   // Seed any weeks that are missing sessions at the new day+time
   await seedSessions(day, start_time, end_time, class_name, instructor ?? '')
   revalidateAll()
+
+  if (failedCount > 0) {
+    return NextResponse.json(
+      { row: data, updated: updatedCount - failedCount, failed: failedCount, warning: `${failedCount} session${failedCount !== 1 ? 's' : ''} failed to update. Try using the Sync button.` },
+      { status: 207 },
+    )
+  }
 
   return NextResponse.json({ row: data, updated: updatedCount })
 }

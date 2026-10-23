@@ -25,18 +25,28 @@ export async function PATCH(req: NextRequest) {
   const sessionPatch: Record<string, unknown> = {}
   if (name     !== undefined) sessionPatch.title    = name
   if (capacity !== undefined) sessionPatch.capacity = capacity
+  let cascadeFailed = false
   if (Object.keys(sessionPatch).length > 0) {
-    await supabase
+    const { error: cascadeErr } = await supabase
       .from('sessions')
       .update(sessionPatch)
       .eq('service_id', id)
       .gt('start_time', new Date().toISOString())
       .neq('status', 'CANCELLED')
+    if (cascadeErr) {
+      console.error('[classes PATCH] session cascade failed:', cascadeErr.message)
+      cascadeFailed = true
+    }
   }
 
   revalidatePath('/admin/schedule')
   revalidatePath('/admin/classes')
+  revalidatePath('/classes')
+  revalidatePath('/app/schedule')
 
+  if (cascadeFailed) {
+    return NextResponse.json({ ok: true, warning: 'Class updated but some sessions failed to sync. Try editing the class in the schedule template.' }, { status: 207 })
+  }
   return NextResponse.json({ ok: true })
 }
 

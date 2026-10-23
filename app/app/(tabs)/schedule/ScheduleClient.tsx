@@ -557,7 +557,7 @@ export default function ScheduleClient({
           const onWaitlist  = !!waitlistMap[s.id]
           const isPast      = new Date(s.start) < now
           const inFlight    = pending === s.id
-          const displayName = templateNameBySlot[slotKey(s.start)] || s.title
+          const displayName = s.title || templateNameBySlot[slotKey(s.start)]
           const color       = classColor(displayName)
           const duration    = classDuration(s.start, s.end)
           const teacher     = staffMap[s.staffResourceId] ?? ''

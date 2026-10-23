@@ -129,6 +129,7 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
   // Dedup state
   const [deduping,  setDeduping]  = useState(false)
   const [syncing,   setSyncing]   = useState<string | null>(null)
+  const [syncWarning, setSyncWarning] = useState('')
 
   // Pop-up classes
   const [popups,        setPopups]       = useState<PopupSession[]>([])
@@ -259,7 +260,8 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
       }),
     })
     const data = await res.json()
-    if (!res.ok) { setEditError(data.error ?? 'Failed to save'); setEditing(false); return }
+    if (!res.ok && res.status !== 207) { setEditError(data.error ?? 'Failed to save'); setEditing(false); return }
+    if (data.warning) { setSyncWarning(data.warning); setTimeout(() => setSyncWarning(''), 8000) }
     setRows(prev => sortRows(prev.map(r => r.id === editRow.id ? data.row : r)))
     setEditRow(null); setEditing(false)
   }
@@ -342,6 +344,15 @@ export default function ClassesClient({ initialRows, instructors }: { initialRow
           </button>
         </div>
       </div>
+
+      {/* Sync warning banner */}
+      {syncWarning && (
+        <div className="mx-4 md:mx-6 mt-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg text-[13px] text-amber-800 flex items-start gap-2">
+          <span className="shrink-0 mt-0.5">⚠</span>
+          <span>{syncWarning}</span>
+          <button onClick={() => setSyncWarning('')} className="ml-auto shrink-0 text-amber-500 hover:text-amber-700">✕</button>
+        </div>
+      )}
 
       {/* Exact duplicate warning */}
       {dupIds.length > 0 && (
